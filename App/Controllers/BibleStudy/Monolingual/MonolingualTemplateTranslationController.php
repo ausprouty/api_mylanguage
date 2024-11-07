@@ -1,8 +1,8 @@
 <?php
 namespace App\Controllers\BibleStudy\Monolingual;
 
-use App\Model\Language\TranslationModel as TranslationModel;
-use App\Model\Language\LanguageModel as LanguageModel;
+use App\Models\Language\TranslationModel as TranslationModel;
+use App\Models\Language\LanguageModel as LanguageModel;
 
 class MonolingualTemplateTranslationController {
     

@@ -1,8 +1,8 @@
 <?php
 
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController;
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 
 
 echo ("You should see a nicely formatted text below with verse numbers.<hr>");

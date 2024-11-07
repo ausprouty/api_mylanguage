@@ -4,11 +4,11 @@
 */
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
-use App\Model\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Bible\BiblePassageModel as BiblePassageModel;
-use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Bible\BiblePassageModel as BiblePassageModel;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 
 class BibleBrainPassageController extends BiblePassageModel {
     private $dbConnection;

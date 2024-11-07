@@ -3,9 +3,9 @@
 */
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
-use App\Model\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;
-use App\Model\Language\LanguageModel as LanguageModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;
+use App\Models\Language\LanguageModel as LanguageModel;
 use PDO as PDO;
 
 class BibleBrainLanguageController extends LanguageModel {

@@ -1,7 +1,7 @@
 <?php
 
 use App\Controllers\ReturnDataController as ReturnDataController;
-use App\Model\Language\LanguageModel as LanguageModel;
+use App\Models\Language\LanguageModel as LanguageModel;
 
 $languageCodeHL = strip_tags($languageCodeHL);
 $language = new LanguageModel();

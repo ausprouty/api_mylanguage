@@ -1,11 +1,12 @@
 <?php
 /*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
 */
-namespace App\Model\Data;
+namespace App\Models\Data;
 
 use Exception as Exception;
 
-class CloudFrontConnectionModel
+class WebsiteConnectionModel
+
 {
     protected $url;
     public $response;
@@ -27,7 +28,7 @@ class CloudFrontConnectionModel
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => 'GET',
             ));
-            $data = curl_exec($curl);
+            $this->response = curl_exec($curl);
     
             // Check for cURL errors
             if (curl_errno($curl)) {
@@ -36,16 +37,22 @@ class CloudFrontConnectionModel
     
             curl_close($curl);
     
-            // Decode the JSON response
-            $this->response = json_decode($data);
-    
         } catch (Exception $e) {
-            // Log the exception
-            writeLogDebug('CloudFrontConnection-34', $e->getMessage());
-    
-            // Rethrow the exception for further handling
             throw new Exception("Failed to connect to the website: " . $e->getMessage());
         }
+    }
+    protected function decode(){
+        $decoded = json_decode($this->response);
+        if (isset($decoded->data)){
+            $this->response = $decoded->data;
+        }
+        else{
+            $this->response = $decoded;
+        }
+
+    }
+    public function getResponse(){
+        return $this->response;
     }
 
 }

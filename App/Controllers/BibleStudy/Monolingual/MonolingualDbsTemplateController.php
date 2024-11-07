@@ -3,9 +3,9 @@ namespace App\Controllers\BibleStudy\Monolingual;
 
 use App\Controllers\BibleStudy\DbsStudyController as  DbsStudyController;
 use App\Controllers\BibleStudy\Monolingual\MonolingualStudyTemplateController as MonolingualStudyTemplateController;
-use App\Model\Language\LanguageModel as LanguageModel;
-use App\Model\BibleStudy\DbsReferenceModel as DbsReferenceModel;
-use App\Model\QrCodeGeneratorModel as QrCodeGeneratorModel;
+use App\Models\Language\LanguageModel as LanguageModel;
+use App\Models\BibleStudy\DbsReferenceModel as DbsReferenceModel;
+use App\Models\QrCodeGeneratorModel as QrCodeGeneratorModel;
 
 class MonolingualDbsTemplateController extends MonolingualStudyTemplateController
 {

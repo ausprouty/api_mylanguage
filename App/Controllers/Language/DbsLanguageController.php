@@ -1,10 +1,10 @@
 <?php
 namespace App\Controllers\Language;
 
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
-use App\Model\Language\DbsLanguageModel as DbsLanguageModel;
-use App\Model\Language\LanguageModel as LanguageModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Language\DbsLanguageModel as DbsLanguageModel;
+use App\Models\Language\LanguageModel as LanguageModel;
 use PDO as PDO;
 
 

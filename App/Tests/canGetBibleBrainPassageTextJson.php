@@ -1,8 +1,8 @@
 <?php
 
 use  App\Controller\BiblePassage\BibleBrain\BibleBrainTextJsonController;
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 
 $bible = new BibleModel();
 $bible->selectBibleByBid(4092);

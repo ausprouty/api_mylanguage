@@ -2,9 +2,9 @@
 
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
-use App\Model\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;
-use App\Model\Bible\BibleModel as BibleModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;
+use App\Models\Bible\BibleModel as BibleModel;
 use PDO as PDO;
 /*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
 */

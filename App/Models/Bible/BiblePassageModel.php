@@ -1,7 +1,7 @@
 <?php
-namespace App\Model\Bible;
+namespace App\Models\Bible;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use  App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use PDO as PDO;
 

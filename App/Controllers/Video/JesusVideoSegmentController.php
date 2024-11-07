@@ -1,8 +1,8 @@
 <?php
 namespace App\Controllers\Video;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
-use App\Model\Language\TranslationModel as TranslationModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Language\TranslationModel as TranslationModel;
 use PDO as PDO;
 use stdClass as stdClass;
 

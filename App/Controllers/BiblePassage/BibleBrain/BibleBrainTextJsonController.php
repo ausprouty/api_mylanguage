@@ -3,7 +3,7 @@
 namespace App\Controllers\BiblePassage\BibleBrain;
 
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainPassageController;
-use App\Model\Data\CloudFrontConnectionModel as CloudFrontConnectionModel;
+use App\Models\Data\CloudFrontConnectionModel as CloudFrontConnectionModel;
 
 class BibleBrainTextJsonController extends BibleBrainPassageController
 {

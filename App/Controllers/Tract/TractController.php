@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers\Tract;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use PDO as PDO;
 
 

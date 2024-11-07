@@ -1,5 +1,5 @@
 <?php
-namespace App\Model\Tract;
+namespace App\Models\Tract;
 
 class TractModel
 {

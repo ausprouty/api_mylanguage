@@ -4,9 +4,9 @@ namespace App\Controllers\BibleStudy\Bilingual;
 
 use App\Controllers\BibleStudy\Bilingual\BilingualStudyTemplateController as BilingualStudyTemplateController;
 use App\Controllers\BibleStudy\LifeStudyController as LifeStudyController;
-use App\Model\Language\LanguageModel as LanguageModel;
-use App\Model\QrCodeGeneratorModel as QrCodeGeneratorModel;
-use App\Model\BibleStudy\LifePrincipleReferenceModel AS LifePrincipleReferenceModel;
+use App\Models\Language\LanguageModel as LanguageModel;
+use App\Models\QrCodeGeneratorModel as QrCodeGeneratorModel;
+use App\Models\BibleStudy\LifePrincipleReferenceModel AS LifePrincipleReferenceModel;
 
 class BilingualLifeTemplateController extends BilingualStudyTemplateController
 {

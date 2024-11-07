@@ -5,7 +5,7 @@
 // fonts available:  https://mpdf.github.io/fonts-languages/available-fonts-v6.html
 namespace App\Controller;
 
-use App\Model\Language\LanguageModel as LanguageModel;
+use App\Models\Language\LanguageModel as LanguageModel;
 
 class PdfController {
 

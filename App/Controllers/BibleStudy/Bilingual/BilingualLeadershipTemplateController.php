@@ -3,9 +3,9 @@ namespace App\Controllers\BibleStudy\Bilingual;
 
 use App\Controllers\BibleStudy\Bilingual\BilingualStudyTemplateController as BilingualStudyTemplateController;
 use App\Controllers\BibleStudy\LeadershipStudyController as LeadershipStudyController;
-use App\Model\Language\LanguageModel as LanguageModel;
-use App\Model\QrCodeGeneratorModel as QrCodeGeneratorModel;
-use App\Model\BibleStudy\LeadershipReferenceModel as LeadershipReferenceModel;
+use App\Models\Language\LanguageModel as LanguageModel;
+use App\Models\QrCodeGeneratorModel as QrCodeGeneratorModel;
+use App\Models\BibleStudy\LeadershipReferenceModel as LeadershipReferenceModel;
 
 class BilingualLeadershipTemplateController extends BilingualStudyTemplateController
 {

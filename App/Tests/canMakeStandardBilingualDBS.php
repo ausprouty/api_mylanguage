@@ -1,7 +1,7 @@
 <?php
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Model\BibleStudy\DbsReferenceModel as DbsReferenceModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\BibleStudy\DbsReferenceModel as DbsReferenceModel;
 use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController as BilingualDbsTemplateController;
 
 

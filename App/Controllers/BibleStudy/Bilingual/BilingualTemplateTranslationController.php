@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers\BibleStudy\Bilingual;
 
-use App\Model\Language\TranslationModel as TranslationModel;
+use App\Models\Language\TranslationModel as TranslationModel;
 
 class BilingualTemplateTranslationController {
     

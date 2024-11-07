@@ -2,8 +2,8 @@
 
 use App\Controllers\ReturnDataController as ReturnDataController;
 use App\Controllers\BiblePassage\PassageSelectController as PassageSelectController;
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use stdClass as stdClass;
 
 $bid =1259;

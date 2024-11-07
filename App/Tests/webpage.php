@@ -1,5 +1,5 @@
 <?php
-use App\Model\Data\WebsiteConnectionModel as WebsiteConnectionModel;
+use App\Models\Data\WebsiteConnectionModel as WebsiteConnectionModel;
 
 $url = 'https://hereslife.com';
 

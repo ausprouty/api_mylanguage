@@ -1,7 +1,7 @@
 <?php
-namespace App\Model\BibleStudy;
+namespace App\Models\BibleStudy;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use PDO as PDO;
 //todo  I think this needs a rewrite
 class LifePrincipleReferenceModel {

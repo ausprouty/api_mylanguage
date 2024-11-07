@@ -2,10 +2,10 @@
 namespace App\Controllers\BibleStudy\Monolingual;
 
 use App\Controllers\BiblePassage\PassageSelectController as PassageSelectController;
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Model\Language\TranslationModel as TranslationModel;
-use App\Model\Language\LanguageModel as LanguageModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Language\TranslationModel as TranslationModel;
+use App\Models\Language\LanguageModel as LanguageModel;
 
 abstract class MonolingualStudyTemplateController
 {

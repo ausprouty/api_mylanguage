@@ -1,9 +1,9 @@
 <?php
 /*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
 */
-namespace App\Model\Data;
+namespace App\Models\Data;
 
-use App\Model\Data\WebsiteConnectionModel as WebsiteConnectionModel;
+use App\Models\Data\WebsiteConnectionModel as WebsiteConnectionModel;
 
 class BibleBrainConnectionModel extends WebsiteConnectionModel
 {

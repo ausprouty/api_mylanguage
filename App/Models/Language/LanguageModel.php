@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Model\Language;
+namespace App\Models\Language;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use PDO as PDO;
 
 class LanguageModel

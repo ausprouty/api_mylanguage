@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Model\Language;
+namespace App\Models\Language;
 
 class TranslationModel
 {

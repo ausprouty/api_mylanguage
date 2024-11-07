@@ -7,11 +7,11 @@ use App\Controllers\BiblePassage\BibleYouVersionPassageController as BibleYouVer
 use App\Controllers\BiblePassage\BibleWordPassageController as BibleWordPassageController;
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController as BibleBrainTextPlainController;
 use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController as  BibleGatewayPassageController;
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Bible\BiblePassageModel as BiblePassageModel;
-use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
-use App\Model\Language\LanguageModel as LanguageModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Bible\BiblePassageModel as BiblePassageModel;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Language\LanguageModel as LanguageModel;
 
 class PassageSelectController extends BiblePassageModel
 {

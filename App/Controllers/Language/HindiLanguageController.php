@@ -2,8 +2,8 @@
 
 namespace App\Controllers\Language;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
-use App\Model\Video\VideoModel as VideoModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Video\VideoModel as VideoModel;
 use PDO as PDO;
 use stdClass as stdClass;
 

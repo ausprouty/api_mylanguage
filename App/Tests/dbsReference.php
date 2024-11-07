@@ -1,6 +1,6 @@
 <?php
 
-use App\Model\BibleStudy\DbsReferenceModel as DbsReferenceModel;
+use App\Models\BibleStudy\DbsReferenceModel as DbsReferenceModel;
 
 $references = new DbsReferenceModel();
 $output =  $references->findByHL('eng00');

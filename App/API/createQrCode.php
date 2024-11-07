@@ -1,7 +1,7 @@
 
 <?php
 
-use App\Model\QrCodeGeneratorModel as QrCodeGeneratorModel;
+use App\Models\QrCodeGeneratorModel as QrCodeGeneratorModel;
 
 $url = 'https://www.hereslife.com';
 $size = 240;

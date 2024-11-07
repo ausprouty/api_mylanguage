@@ -1,6 +1,6 @@
 <?php
 
-use App\Model\Bible\BibleModel as BibleModel;
+use App\Models\Bible\BibleModel as BibleModel;
 
 $code = 'eng00';
 echo ("For eng00 you should see Young's Literal Translation<hr>");

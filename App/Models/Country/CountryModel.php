@@ -1,5 +1,5 @@
 <?php
-namespace App\Model\Country
+namespace App\Models\Country
 ;
 class Country
 {

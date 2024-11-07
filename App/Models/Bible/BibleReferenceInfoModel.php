@@ -10,9 +10,9 @@
         'verseEnd' => 3,
          collection_code' => 'OT' ,
  */
-namespace App\Model\Bible;
+namespace App\Models\Bible;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use PDO as PDO;
 
 class BibleReferenceInfoModel

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Model\Video;
+namespace App\Models\Video;
 
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 
 class JesusVideoSegmentModel
  {

@@ -2,10 +2,10 @@
 
 namespace App\Controllers\BiblePassage\BibleGateway;
 
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Model\Bible\BiblePassageModel as BiblePassageModel;
-use App\Model\Data\WebsiteConnectionModel as WebsiteConnectionModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Bible\BiblePassageModel as BiblePassageModel;
+use App\Models\Data\WebsiteConnectionModel as WebsiteConnectionModel;
 
 
 class BibleGatewayPassageController extends BiblePassageModel {

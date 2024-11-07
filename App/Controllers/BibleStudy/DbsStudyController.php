@@ -1,9 +1,9 @@
 <?php
 namespace App\Controllers\BibleStudy;
 
-use App\Model\Bible\BibleModel as BibleModel;
-use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
-use App\Model\Language\TranslationModel as TranslationModel;
+use App\Models\Bible\BibleModel as BibleModel;
+use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Models\Language\TranslationModel as TranslationModel;
 use PDO as PDO;
 use StdClass as StdClass;
 

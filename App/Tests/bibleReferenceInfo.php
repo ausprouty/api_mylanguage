@@ -1,6 +1,6 @@
 <?php
 
-use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 
 
 $passage = 'John 3:16-40';
