@@ -2,20 +2,20 @@
 
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use App\Models\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;
 use App\Models\Bible\BibleModel as BibleModel;
 use PDO as PDO;
 /*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
 */
 class BibleBrainBibleController extends BibleModel {
-    private $dbService;
+    private $databaseService;
     public $languageCodeIso;
     public $response;
 
 
-    public function __construct(){
-        $this->dbConnection = new DatabaseService();
+    public function __construct(DatabaseService $databaseService){
+        $this->databaseService = $databaseService;
         
     }
     /*This endpoint would be used to find all content available for each Bible for a specific language.
@@ -50,8 +50,8 @@ https://4.dbt.io/api/bibles?language_code=HAE&page=1&limit=25
             WHERE languageCodeBibleBrain IS NOT NULL
             AND checkedBBBibles IS NULL LIMIT 1";
     
-        $this->dbConnection = new DatabaseService();
-        $statement = $this->dbConnection->executeQuery($query);
+        $this->databaseService = $databaseService;
+        $statement = $this->databaseService->executeQuery($query);
         $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
         $this->languageCodeIso = $languageCodeIso;
         return $languageCodeIso;
@@ -106,7 +106,7 @@ https://4.dbt.io/api/bibles?language_code=HAE&page=1&limit=25
            SET checkedBBBibles = :today 
            WHERE languageCodeIso = :languageCodeIso";
         $params = [':today'=> date('Y-m-d'), ':languageCodeIso'=> $this->languageCodeIso];
-        $this->dbConnection = new DatabaseService();
-        $this->dbConnection->executeQuery($query, $params);
+        $this->databaseService = $databaseService;
+        $this->databaseService->executeQuery($query, $params);
     }
 }

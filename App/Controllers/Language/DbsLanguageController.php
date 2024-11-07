@@ -2,13 +2,20 @@
 namespace App\Controllers\Language;
 
 use App\Models\Bible\BibleModel as BibleModel;
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use App\Models\Language\DbsLanguageModel as DbsLanguageModel;
 use App\Models\Language\LanguageModel as LanguageModel;
 use PDO as PDO;
 
 
 class DbsLanguageController{
+
+    protected $databaseService;
+
+    public function __construct(DatabaseService $databaseService)
+    {
+        $this->databaseService = $databaseService;
+    }
 
     public function updateDatabase(){
         $directory = ROOT_TRANSLATIONS . 'languages/';
@@ -32,13 +39,13 @@ class DbsLanguageController{
         }
     }
     public function getOptions(){
-        $dbService = new DatabaseService();
+      
         $query = "SELECT dbs_languages.*, hl_languages.name,  hl_languages.ethnicName
                   FROM dbs_languages INNER JOIN hl_languages
                   ON dbs_languages.languageCodeHL = hl_languages.languageCodeHL
                   ORDER BY hl_languages.name";
         try {
-            $statement = $dbService->executeQuery($query);
+            $statement = $databaseService->executeQuery($query);
             $data = $statement->fetchAll(PDO::FETCH_ASSOC);
             return $data;
         } catch (Exception $e) {

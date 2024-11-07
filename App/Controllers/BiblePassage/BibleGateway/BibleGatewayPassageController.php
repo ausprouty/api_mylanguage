@@ -10,12 +10,13 @@ use App\Models\Data\WebsiteConnectionModel as WebsiteConnectionModel;
 
 class BibleGatewayPassageController extends BiblePassageModel {
 
+    protected $databaseService;
     private $bibleReferenceInfo;
     private $bible;
 
 
-    public function __construct( BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
- 
+    public function __construct(DatabaseService $databaseService, BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
+        $this->databaseService = $databaseService;
         $this->bibleReferenceInfo=$bibleReferenceInfo;
         $this->bible = $bible;
         $this->referenceLocalLanguage = '';

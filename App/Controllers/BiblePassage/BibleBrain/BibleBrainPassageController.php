@@ -4,21 +4,21 @@
 */
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use App\Models\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;
 use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BiblePassageModel as BiblePassageModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 
 class BibleBrainPassageController extends BiblePassageModel {
-    private $dbService;
+    private $databaseService;
     protected $bibleReferenceInfo;
     protected $bible;
     public $response;
 
 
-    public function __construct( BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
-        $this->dbConnection = new DatabaseService();
+    public function __construct(DatabaseService $databaseService, BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
+        $this->databaseService = $databaseService;
         $this->bibleReferenceInfo = $bibleReferenceInfo;
         $this->bible = $bible;
         $this->referenceLocalLanguage = '';

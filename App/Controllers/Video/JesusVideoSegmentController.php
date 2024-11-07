@@ -1,28 +1,33 @@
 <?php
 namespace App\Controllers\Video;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use App\Models\Language\TranslationModel as TranslationModel;
 use PDO as PDO;
 use stdClass as stdClass;
 
+
+
+
 class JesusVideoSegmentController{
+    protected $databaseService;
     private $data;
     private $formatted;
     private $languageCodeJF;
 
-    public function __construct($languageCodeJF){
+    public function __construct(DatabaseService $databaseService, $languageCodeJF){
+        $this->databaseService = $databaseService;
         $this->data = null;
         $this->formatted = null;
         $this->languageCodeJF = $languageCodeJF;
     }
        
     public function selectAllSegments(){
-        $dbService = new DatabaseService();
+ 
         $query = "SELECT * FROM jesus_video_segments
         ORDER BY id";
         try {
-            $statement = $dbService->executeQuery($query);
+            $statement = $databaseService->executeQuery($query);
             $this->data = $statement->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -31,12 +36,12 @@ class JesusVideoSegmentController{
     }
   
     private function selectOneSegmentById($id){
-        $dbService = new DatabaseService();
+ 
         $query = "SELECT * FROM jesus_video_segments
         WHERE id= :id";
         $params = array(':id' => $id);
         try {
-            $statement = $dbService->executeQuery($query, $params);
+            $statement = $databaseService->executeQuery($query, $params);
             $this->data = $statement->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

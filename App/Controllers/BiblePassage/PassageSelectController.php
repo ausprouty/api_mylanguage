@@ -10,13 +10,13 @@ use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController as  
 use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BiblePassageModel as BiblePassageModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use App\Models\Language\LanguageModel as LanguageModel;
 
 class PassageSelectController extends BiblePassageModel
 {
 
-    //private $dbService;
+    protected $databaseService;
     protected $bibleReferenceInfo;
     private $bible;
     private $passageId;// used to see if data is stored
@@ -24,13 +24,13 @@ class PassageSelectController extends BiblePassageModel
     public  $passageUrl;
     public  $referenceLocalLanguage;
 
-    public function __construct( BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
-        //$this->dbConnection = new DatabaseService();
+    public function __construct(DatabaseService $databaseService,  BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
+            $this->databaseService = $databaseService;
             $this->bibleReferenceInfo=$bibleReferenceInfo;
             $this->bible = $bible;
             $this->passageText= null;
             $this->passageUrl= null;
-           $this->checkDatabase();
+            $this->checkDatabase();
       
     }
     public function getBible(){
@@ -112,7 +112,7 @@ class PassageSelectController extends BiblePassageModel
         if ($direction == 'rtl'){
             $dir = 'rtl';
         }
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "UPDATE bibles
             SET direction = :dir
             WHERE languageCodeHL = :languageCodeHL";
@@ -120,7 +120,7 @@ class PassageSelectController extends BiblePassageModel
             ':languageCodeHL'=>  $languageCodeHL,
             ':dir'=> $dir
         );
-        $statement = $dbService->executeQuery($query, $params);
+        $statement = $databaseService->executeQuery($query, $params);
         return $dir;
     }
 

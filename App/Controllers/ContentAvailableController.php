@@ -1,11 +1,11 @@
 <?php
 namespace App\Controller;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
 class ContentAvailableController{
-
+    protected $databaseService;
     private $dbs;
     private $bilingualGospel;
     private $gospel;
@@ -15,7 +15,8 @@ class ContentAvailableController{
     private $query;
     private $params;
 
-    public function __construct ( $languageCodeHL1, $languageCodeHL2 =  null){
+    public function __construct (DatabaseService $databaseService,  $languageCodeHL1, $languageCodeHL2 =  null){
+        $this->databaseService = $databaseService;
         $this->languageCodeHL1 = $languageCodeHL1;
         if ($languageCodeHL1 !== null){
             $this->$languageCodeHL2 = $languageCodeHL2;
@@ -69,9 +70,8 @@ class ContentAvailableController{
         
     }
     private function getResponse(){
-        $dbService = new DatabaseService();
         try {
-            $statement = $dbService->executeQuery($this->query, $this->params);
+            $statement = $databaseService->executeQuery($this->query, $this->params);
             $data = $statement->fetch(PDO::FETCH_ASSOC);
             if ($data){
                 return true;

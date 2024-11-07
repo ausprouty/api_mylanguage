@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers\BiblePassage\BibleGateway;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
 class BibleGatewayBibleController{
@@ -16,7 +16,9 @@ class BibleGatewayBibleController{
     private  $languageName;
     private  $defaultBible;
 
-    public function __construct(){
+    public function __construct(DatabaseService $databaseService){
+        $this->databaseService = $databaseService;
+        
         $this->languageCodeIso = 'notSet';
         $this->externalId = '';
         $this->volumeName = '';
@@ -115,32 +117,32 @@ class BibleGatewayBibleController{
         }
     }
     private function tryLanguageCodeIso($try){
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "SELECT languageCodeIso FROM hl_languages
             WHERE languageCodeIso = :languageCodeIso LIMIT 1";
         $params = array(':languageCodeIso'=> $try, 
         );
-        $statement = $dbService->executeQuery($query, $params);
+        $statement = $databaseService->executeQuery($query, $params);
         $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
        return $languageCodeIso;
     }
     private function tryLanguageCodeGoogle($try){
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "SELECT languageCodeIso FROM hl_languages
             WHERE languageCodeGoogle = :languageCode LIMIT 1";
         $params = array(':languageCode'=> $try, 
         );
-        $statement = $dbService->executeQuery($query, $params);
+        $statement = $databaseService->executeQuery($query, $params);
         $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
        return $languageCodeIso;
     }
     private function tryLanguageCodeBrowser($try){
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "SELECT languageCodeIso FROM hl_languages
             WHERE languageCodeBrowser = :languageCode LIMIT 1";
         $params = array(':languageCode'=> $try, 
         );
-        $statement = $dbService->executeQuery($query, $params);
+        $statement = $databaseService->executeQuery($query, $params);
         $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
        return $languageCodeIso;
     }
@@ -155,7 +157,7 @@ class BibleGatewayBibleController{
 
     }
     private function recordExists(){
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "SELECT bid FROM bibles 
             WHERE source = :biblegateway AND
             externalId = :externalId LIMIT 1";
@@ -163,7 +165,7 @@ class BibleGatewayBibleController{
             ':externalId' => $this->externalId, 
         );
         try {
-            $statement = $dbService->executeQuery($query, $params);
+            $statement = $databaseService->executeQuery($query, $params);
             $bid = $statement->fetch(PDO::FETCH_COLUMN);
             return $bid;
         } catch (Exception $e) {
@@ -173,7 +175,7 @@ class BibleGatewayBibleController{
     }
     private function updateVerified($bid){
         $verified = date('Y-m-d');
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "UPDATE bibles 
             SET dateVerified = :verified
             WHERE bid = :bid 
@@ -181,10 +183,10 @@ class BibleGatewayBibleController{
         $params = array(':verified'=>$verified, 
             ':bid' => $bid, 
         );
-        $statement = $dbService->executeQuery($query, $params);
+        $statement = $databaseService->executeQuery($query, $params);
     }
     private function updateLanguage($bid){
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "UPDATE bibles 
             SET languageCodeIso = :languageCodeIso,
             languageName = :languageName
@@ -195,7 +197,7 @@ class BibleGatewayBibleController{
             ':languageName' => $this->languageName,
             ':bid' => $bid, 
         );
-        $statement = $dbService->executeQuery($query, $params);
+        $statement = $databaseService->executeQuery($query, $params);
     }
 
 
@@ -205,7 +207,7 @@ class BibleGatewayBibleController{
         if ($this->externalId == $this->defaultBible){
             $weight = 9;
         }
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "INSERT INTO bibles 
         (source, externalId, volumeName, languageName, languageCodeIso, 
         collectionCode, format, text, weight , dateVerified) 
@@ -224,11 +226,11 @@ class BibleGatewayBibleController{
             ':weight' => $weight, 
             ':dateVerified' => $verified
         );
-        $statement = $dbService->executeQuery($query, $params);
+        $statement = $databaseService->executeQuery($query, $params);
 
     }
     private function addNewLanguage($try){
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "INSERT INTO hl_languages 
         (languageCodeHL, languageCodeIso, ethnicName ) 
         VALUES 
@@ -238,14 +240,14 @@ class BibleGatewayBibleController{
             ':languageCodeIso' => $try, 
             ':ethnicName' => $this->languageName,
         );
-        $statement = $dbService->executeQuery($query, $params);
+        $statement = $databaseService->executeQuery($query, $params);
     }
     private function updateWeight($bid){
         $weight = 0;
         if ($this->externalId == $this->defaultBible){
             $weight = 9;
         }
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         $query = "UPDATE bibles 
             SET weight = :weight
             WHERE bid = :bid 
@@ -254,6 +256,6 @@ class BibleGatewayBibleController{
             ':weight'=> $weight,
             ':bid' => $bid, 
         );
-        $statement = $dbService->executeQuery($query, $params);
+        $statement = $databaseService->executeQuery($query, $params);
     }
 }

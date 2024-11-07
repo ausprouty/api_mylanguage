@@ -1,10 +1,17 @@
 <?php
 namespace App\Controllers\Video;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
 class VideoController extends Video {
+
+    protected $databaseService;
+
+    public function __construct(DatabaseService $databaseService)
+    {
+        $this->databaseService = $databaseService;
+    }
 
     // input videoCode is 6_529 -GOLUKE
     private function changeVideoLanguage($languageCodeJF){
@@ -13,13 +20,12 @@ class VideoController extends Video {
 
     static function getVideoCodeFromTitle($title, $languageCodeHL){
         $title = str_ireplace('%20', ' ', $title);
-        $dbService = new DatabaseService();
         $query = "SELECT videoCode FROM jesus_video_languages
             WHERE title = :title AND languageCodeHL = :languageCodeHL
             ORDER BY weight DESC";
         $params = array(':title'=> $title, ':languageCodeHL'=> $languageCodeHL);
         try {
-            $statement = $dbService->executeQuery($query, $params);
+            $statement = $databaseService->executeQuery($query, $params);
             $videoCode = $statement->fetch(PDO::FETCH_COLUMN);
             return $videoCode;
         } catch (Exception $e) {

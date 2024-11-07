@@ -2,13 +2,20 @@
 
 namespace App\Controllers\Language;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use App\Models\Video\VideoModel as VideoModel;
 use PDO as PDO;
 use stdClass as stdClass;
 
 
 class HindiLanguageController{
+
+    protected $databaseService;
+
+    public function __construct(DatabaseService $databaseService)
+    {
+        $this->databaseService = $databaseService;
+    }
 
     public function getLanguageOptions(){
         $result = $this->getLanguageData();
@@ -17,13 +24,13 @@ class HindiLanguageController{
     }
 
     public function getLanguageData(){
-        $dbService = new DatabaseService();
+        
         $query = "SELECT *
                   FROM hl_languages
                   WHERE isHindu  = 'Y'
                   ORDER BY name";
         try {
-            $statement = $dbService->executeQuery($query);
+            $statement = $databaseService->executeQuery($query);
             $result = $statement->fetchAll(PDO::FETCH_ASSOC);
             return $result;
         } catch (Exception $e) {

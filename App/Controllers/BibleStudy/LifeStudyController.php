@@ -1,20 +1,21 @@
 <?php
 namespace App\Controllers\BibleStudy;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use App\Models\Language\TranslationModel as TranslationModel;
 use PDO as PDO;
 use stdClass as stdClass;
 
 class LifeStudyController{
+    protected $databaseService;
     private $data;
 
-    public function __construct(){
-        $dbService = new DatabaseService();
+    public function __construct(DatabaseService $databaseService){
+        $this->databaseService = $databaseService;
         $query = "SELECT * FROM life_principle_references
         ORDER BY lesson";
         try {
-            $statement = $dbService->executeQuery($query);
+            $statement = $databaseService->executeQuery($query);
             $this->data = $statement->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -49,7 +50,7 @@ class LifeStudyController{
         return $formatted;
     }
     static function getTitle($lesson, $languageCodeHL){
-        $dbService = new DatabaseService();
+        $databaseService = new DatabaseService();
         if ($languageCodeHL != 'eng00'){
             $translation = new TranslationModel($languageCodeHL, 'life');
         }
@@ -57,7 +58,7 @@ class LifeStudyController{
         WHERE lesson = :lesson";
         $params = array(':lesson'=> $lesson);
         try {
-            $statement = $dbService->executeQuery($query, $params);
+            $statement = $databaseService->executeQuery($query, $params);
             $title = $statement->fetch(PDO::FETCH_COLUMN);
             if ($languageCodeHL != 'eng00'){
                 $title = $translation->translateText ($title);
