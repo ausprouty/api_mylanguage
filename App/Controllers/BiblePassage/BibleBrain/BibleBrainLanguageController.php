@@ -1,7 +1,7 @@
 <?php
 /*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
 */
-namespace App\Controller\BiblePassage\BibleBrain;
+namespace App\Controllers\BiblePassage\BibleBrain;
 
 use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use App\Model\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;

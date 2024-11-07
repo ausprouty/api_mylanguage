@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\Language;
+namespace App\Controllers\Language;
 
 use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use PDO as PDO;

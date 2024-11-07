@@ -19,7 +19,7 @@ if ($_SERVER['SERVER_NAME'] === 'localhost') {
 
 
 require_once __DIR__ . '/Vendor/autoload.php';
-use App\Controllers\PostInputController;
+
 use App\Middleware\PreflightMiddleware;
 use App\Middleware\PostAuthorizationMiddleware;
 use App\Middleware\CORSMiddleware;

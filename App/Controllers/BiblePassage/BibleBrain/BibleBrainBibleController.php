@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\BiblePassage\BibleBrain;
+namespace App\Controllers\BiblePassage\BibleBrain;
 
 use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use App\Model\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;

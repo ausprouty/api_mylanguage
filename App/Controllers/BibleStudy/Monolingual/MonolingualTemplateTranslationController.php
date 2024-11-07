@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\BibleStudy\Monolingual;
+namespace App\Controllers\BibleStudy\Monolingual;
 
 use App\Model\Language\TranslationModel as TranslationModel;
 use App\Model\Language\LanguageModel as LanguageModel;

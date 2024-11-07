@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Language;
+namespace App\Controllers\Language;
 
 use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use App\Model\Video\VideoModel as VideoModel;

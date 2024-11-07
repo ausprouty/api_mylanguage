@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\BiblePassage\BibleGateway;
+namespace App\Controllers\BiblePassage\BibleGateway;
 
 use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use PDO as PDO;

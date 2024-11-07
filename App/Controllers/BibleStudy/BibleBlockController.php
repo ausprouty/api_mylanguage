@@ -4,7 +4,7 @@
 where the gap after the  18 is a non-breaking space
 
 */
-namespace App\Controller\BibleStudy;
+namespace App\Controllers\BibleStudy;
 
 use stdClass as stdClass;
 

@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\Tract;
+namespace App\Controllers\Tract;
 
 use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use PDO as PDO;

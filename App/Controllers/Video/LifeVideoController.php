@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\Video;
+namespace App\Controllers\Video;
 
 class LifeVideoController extends Video
 {

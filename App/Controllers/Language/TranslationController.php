@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Language;
+namespace App\Controllers\Language;
 
 class TranslationController {
 

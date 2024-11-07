@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Video;
+namespace App\Controllers\Video;
 class VideoLumoController extends Video {
 
     // input videoCode is 6_529 -GOLUKE

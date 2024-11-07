@@ -1,7 +1,7 @@
 <?php
 
 
-namespace App\Controller\BiblePassage\BibleBrain;
+namespace App\Controllers\BiblePassage\BibleBrain;
 
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainPassageController;
 

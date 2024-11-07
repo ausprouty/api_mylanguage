@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\BibleStudy\Monolingual;
+namespace App\Controllers\BibleStudy\Monolingual;
 
 use App\Controllers\BiblePassage\PassageSelectController as PassageSelectController;
 use App\Model\Bible\BibleModel as BibleModel;

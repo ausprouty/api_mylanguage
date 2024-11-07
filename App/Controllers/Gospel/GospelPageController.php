@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\Gospel;
+namespace App\Controllers\Gospel;
 
 class GospelPageController{
 

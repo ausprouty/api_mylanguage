@@ -6,8 +6,7 @@
     },
     "autoload": {
       "psr-4": {
-        "MyLanguageControllers\\": "controllers/",
-        "MyLanguageModels\\": "models/"
+        "App\\": "App/"
       }
     }
 }

@@ -2,7 +2,7 @@
 
 /*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
 */
-namespace App\Controller\BiblePassage;
+namespace App\Controllers\BiblePassage;
 
 use App\Model\Bible\BibleModel as BibleModel;
 use App\Model\Bible\BiblePassageModel as BiblePassageModel;

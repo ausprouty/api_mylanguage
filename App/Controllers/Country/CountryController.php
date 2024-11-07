@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Country;
+namespace App\Controllers\Country;
 
 use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use PDO as PDO;

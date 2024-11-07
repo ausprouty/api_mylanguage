@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\BibleStudy;
+namespace App\Controllers\BibleStudy;
 
 use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use App\Model\Language\TranslationModel as TranslationModel;

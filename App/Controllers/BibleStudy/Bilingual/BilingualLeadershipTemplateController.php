@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\BibleStudy\Bilingual;
+namespace App\Controllers\BibleStudy\Bilingual;
 
 use App\Controllers\BibleStudy\Bilingual\BilingualStudyTemplateController as BilingualStudyTemplateController;
 use App\Controllers\BibleStudy\LeadershipStudyController as LeadershipStudyController;

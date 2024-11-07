@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller\Video;
+namespace App\Controllers\Video;
 
 use App\Model\Data\DatabaseConnectionModel as DatabaseConnectionModel;
 use App\Model\Language\TranslationModel as TranslationModel;
