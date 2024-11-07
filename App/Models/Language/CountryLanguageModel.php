@@ -2,13 +2,15 @@
 
 namespace App\Models\Language;
 
-use App\Services\Database\DatabaseService
-use  App\Model\Video\VideoModel as VideoModel;
+use App\Services\Database\DatabaseService;
+use  App\Models\Video\VideoModel as VideoModel;
 use PDO as PDO;
 use stdClass as stdClass;
 
 class CountryLanguageModel
 {
+    protected $databaseService;
+
     private $id;
     private $countryCode;
     private $languageCodeIso;
@@ -16,7 +18,9 @@ class CountryLanguageModel
     private $languageNameEnglish;
    
 
-    public function __construct(){
+    public function __construct(DatabaseService $databaseService){
+        $this->databaseService = $databaseService;
+        
         $this->countryCode= '';
         $this->langaugeCodeHL = '';
         $this->languageNameEnglish= '';

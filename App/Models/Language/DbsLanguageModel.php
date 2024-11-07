@@ -2,15 +2,18 @@
 
 namespace App\Models\Language;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
 class DbsLanguageModel  {
+    protected $databaseService;
+
     private $languageCodeHL;
     private $collectionCode; //  'C' for complete  'NT' for New Testament
     private $format;  
     
-    public function __construct( $languageCodeHL = null, $collectionCode = null, $format = null){
+    public function __construct(DatabaseService $databaseService,  $languageCodeHL = null, $collectionCode = null, $format = null){
+        $this->databaseService = $databaseService;
         $this->languageCodeHL = $languageCodeHL;
         $this->collectionCode = $collectionCode;
         $this->format =  $format;

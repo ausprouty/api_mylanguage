@@ -1,11 +1,12 @@
 <?php
 namespace App\Model;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
 class AskQuestionModel{
-    private $dbService;
+    protected $databaseService;
+
     private $id;
     private $langaugeCodeHL;
     private $name;
@@ -18,8 +19,8 @@ class AskQuestionModel{
     private $tagline;
     private $weight;
 
-    public function __construct(){
-        $this->dbConnection = new DatabaseService();
+    public function __construct(protected $databaseService;){
+        $this->databaseService = $databaseService;
         $this->dbConnection= '';
         $this->id= '';
         $this->langaugeCodeHL= '';

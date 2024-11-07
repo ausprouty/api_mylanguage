@@ -1,13 +1,14 @@
 <?php
 namespace App\Models\Bible;
 
-use App\Services\Database\DatabaseService
-use  App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Services\Database\DatabaseService;
+use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use PDO as PDO;
 
 class BiblePassageModel
 {
-    private    $dbService;
+    private    $databaseService;
+
     public     $bpid;
     protected  $referenceLocalLanguage;
     protected  $passageText;
@@ -16,8 +17,9 @@ class BiblePassageModel
     protected  $dateChecked;
     protected  $timesUsed;
 
-    public function __construct(){
-        $this->dbConnection = new DatabaseService();
+    public function __construct(DatabaseService $databaseService){
+        $this->databaseService = $databaseService;
+        
         $this->bpid = '';
         $this->referenceLocalLanguage= '';
         $this->passageText = '';

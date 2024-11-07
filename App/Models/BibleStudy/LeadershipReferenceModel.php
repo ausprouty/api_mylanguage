@@ -1,17 +1,19 @@
 <?php
 namespace App\Models\BibleStudy;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use PDO as PDO;
 //todo  I think this needs a rewrite
 class LeadershipReferenceModel {
-    private $dbService;
+    protected $databaseService;
+
     private $lesson;
     public $reference;
     public $description;
 
-    public function __construct($lesson = null, $reference= null, $description= null) {
-        $this->dbConnection = new DatabaseService();
+    public function __construct(DatabaseService $databaseService, $lesson = null, $reference= null, $description= null) {
+        $this->databaseService = $databaseService;
+        
         $this->lesson = $lesson;
         $this->reference = $reference;
         $this->description = $description;

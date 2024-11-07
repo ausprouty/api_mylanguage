@@ -6,6 +6,7 @@ use PDO as PDO;
 
 class BibleModel {
     private $databaseService;
+    
     private $bid;
     private $source;
     private $externalId;
@@ -32,8 +33,9 @@ class BibleModel {
 
  
 
-    public function __construct(){
-        $this->dbConnection = new DatabaseService();
+    public function __construct(DatabaseService $databaseService){
+        $this->databaseService = $databaseService;
+
         $this->bid = ' ';
         $this->source = ' ';
         $this->externalId = NULL;

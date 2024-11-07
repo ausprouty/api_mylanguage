@@ -2,12 +2,14 @@
 
 namespace App\Models\Language;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
 class LanguageModel
 
 {
+    protected $databaseService;
+
     private $id;
     private $dbService;
     private $name;
@@ -25,8 +27,8 @@ class LanguageModel
     private $font;
     private $fontData; // array used by PDFContoller;
 
-    public function __construct(){
-            $this->dbConnection = new DatabaseService();
+    public function __construct(DatabaseService $databaseService){
+        $this->databaseService = $databaseService;
         }
 
     public function findOneByLanguageCodeHL($languageCodeHL){
