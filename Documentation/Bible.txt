@@ -1,0 +1,21 @@
+class BibleBookID extends DbConnection
+
+	private  $language_iso;
+    private  $bookName;
+    private  $bookID;
+    private  $testament;
+	
+	class BiblePassageInfo extends BibleBookID
+
+{
+    public   $entry;
+    public   $language_iso;
+    private  $bookID;
+    private  $chapterStart;
+    private  $verseStart;
+    private  $chapterEnd;
+    private  $verseEnd;
+    private  $collectionCode;
+	
+	
+$result = new  BiblePassageInfo($passage);

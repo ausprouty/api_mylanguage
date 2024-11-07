@@ -1,0 +1,13 @@
+{
+    "require": {
+        "mpdf/mpdf": "^8.1",
+        "endroid/qr-code": "^3.9",
+        "guzzlehttp/guzzle": "^7.8"
+    },
+    "autoload": {
+      "psr-4": {
+        "MyLanguageControllers\\": "controllers/",
+        "MyLanguageModels\\": "models/"
+      }
+    }
+}

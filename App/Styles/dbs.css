@@ -1,0 +1,85 @@
+
+body{
+    background-color: lightgrey;
+    
+}
+div.dbs{
+    background-color: white;
+    max-width: 800px;
+    margin:auto;
+    background-color: white;
+    padding: 10px;
+}
+table{
+    width:100%;
+    max-width: 800px;
+}
+td {
+    width:50%;
+    vertical-align: top;
+    padding: 10px;
+}
+li{
+    padding-top:10px;
+}
+
+title.dbs{
+    font-size: 1.5em;
+    text-align: center;
+
+}
+h1.dbs{
+    font-size: 2em;
+
+}
+h2.dbs{
+    margin-block-end: 0em;
+    font-size: 1.5em;
+    color: green;
+}
+h3.dbs{
+    margin-block-end: 0.3em;
+    font-size: 1.17em;
+}
+h4.dbs{
+    margin-block-start: 0em;
+    margin-block-end: 0em;
+    font-size: 1em;
+}
+table.dbs{
+    border-collapse: collapse;
+    border: none;
+}
+td.dbs, th.dbs {
+    border: none;
+  }
+.ltr.dbs.link {
+    text-align: center;
+}
+.link{
+    vertical-align: middle;
+}
+.languages{
+    text-align: center;
+}
+.title{
+    text-align: center;
+}
+.biblereference,
+.bible_reference{
+    font-weight: bold;
+    color:green;
+}
+.bible_text{
+    color:green;
+}
+.bible-container {
+    display: flex;
+    padding: 10px;
+}
+.bible-text {
+    flex: 1;
+}  
+.bible-text:first-child {
+    margin-right: 20px;
+} 

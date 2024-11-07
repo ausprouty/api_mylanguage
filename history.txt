@@ -1,0 +1,13 @@
+Router is from from https://github.com/phprouter/main
+
+Look for autoloader for classes in configuration
+
+installed composer to ampp/php
+composer require guzzlehttp/guzzle
+
+you can make qr codes with https://phpqrcode.sourceforge.net/index.php#demo
+
+composer require mpdf/mpdf
+use nvm list to change versions of node  This was created with 16.18.1
+
+Translation at https://github.com/MicrosoftTranslator/Text-Translation-API-V3-PHP/blob/master/Languages.php
