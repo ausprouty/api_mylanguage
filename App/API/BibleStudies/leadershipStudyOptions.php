@@ -1,7 +1,7 @@
 <?php
 
-use App\Controller\BibleStudy\LeadershipStudyController as LeadershipStudyController;
-use App\Controller\ReturnDataController as ReturnDataController;
+use App\Controllers\BibleStudy\LeadershipStudyController as LeadershipStudyController;
+use App\Controllers\ReturnDataController as ReturnDataController;
 
 $lessons = new LeadershipStudyController();
 if (!isset ($languageCodeHL1)){

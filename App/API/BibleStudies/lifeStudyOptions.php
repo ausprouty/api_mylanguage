@@ -2,8 +2,8 @@
 
 
 
-use App\Controller\BibleStudy\LifeStudyController as LifeStudyController;
-use App\Controller\ReturnDataController as ReturnDataController;
+use App\Controllers\BibleStudy\LifeStudyController as LifeStudyController;
+use App\Controllers\ReturnDataController as ReturnDataController;
 
 $lessons = new LifeStudyController();
 

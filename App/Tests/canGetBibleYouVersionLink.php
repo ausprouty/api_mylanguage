@@ -2,7 +2,7 @@
 
 use App\Model\Bible\BibleModel as BibleModel;
 use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Controller\BiblePassage\BibleYouVersionPassageController as BibleYouVersionPassageController;
+use App\Controllers\BiblePassage\BibleYouVersionPassageController as BibleYouVersionPassageController;
 
 
 echo ("You should see a nicely formatted text below with verse numbers.<hr>");

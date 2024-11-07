@@ -1,7 +1,7 @@
 <?php
 
-use App\Controller\ReturnDataController as ReturnDataController;
-use App\Controller\BibleStudy\Monolingual\MonolingualTemplateTranslationController as MonolingualTemplateTranslationController;
+use App\Controllers\ReturnDataController as ReturnDataController;
+use App\Controllers\BibleStudy\Monolingual\MonolingualTemplateTranslationController as MonolingualTemplateTranslationController;
 
 $questions = new MonolingualTemplateTranslationController(
     $templateName = 'monolingualJesusVideoQuestions', 

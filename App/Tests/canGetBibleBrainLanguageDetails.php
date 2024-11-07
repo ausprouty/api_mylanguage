@@ -1,6 +1,6 @@
 <?php
 
-use App\Controller\BiblePassage\BibleBrain\BibleBrainLanguageController as BibleBrainLanguageController;
+use App\Controllers\BiblePassage\BibleBrain\BibleBrainLanguageController as BibleBrainLanguageController;
 
 $languageCodeIso = 'spa';
 $language = new BibleBrainLanguageController();

@@ -1,6 +1,6 @@
 <?php
 
-use App\Controller\BiblePassage\BibleBrain\BibleBrainBibleController;
+use App\Controllers\BiblePassage\BibleBrain\BibleBrainBibleController;
 
 $languageCodeIso = 'en';
 $bible = new BibleBrainBibleController();

@@ -3,7 +3,7 @@
 
 namespace App\Controller\BiblePassage\BibleBrain;
 
-use App\Controller\BiblePassage\BibleBrain\BibleBrainPassageController;
+use App\Controllers\BiblePassage\BibleBrain\BibleBrainPassageController;
 
 class BibleBrainTextPlainController extends BibleBrainPassageController
 {

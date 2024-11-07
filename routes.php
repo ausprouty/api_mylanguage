@@ -74,7 +74,7 @@ get(WEB_ROOT . 'api/video/code/$title/$languageCodeHL', 'App/API/videoCodeFromTi
 post(WEB_ROOT .'api/passage/text', 'App/API/passageForBible.php');
 
 
-if (WEB_ROOT == '/mylanguage-namespaced/'){
+if (ENVIRONMENT == 'local) {
   //  get(WEB_ROOT , 'App/Views/index.php');
     get(WEB_ROOT , 'App/Views/indexLocal.php');
     get(WEB_ROOT . 'local', '/App/Views/indexLocal.php');
@@ -157,8 +157,6 @@ if (WEB_ROOT == '/mylanguage-namespaced/'){
 
     //Database
     get(WEB_ROOT . 'test/language/hl',  'App/Tests/canGetLanguageFromHL.php');
-
-
 
 
 

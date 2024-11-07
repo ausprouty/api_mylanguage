@@ -2,7 +2,7 @@
 
 namespace App\Controller\BiblePassage\BibleBrain;
 
-use App\Controller\BiblePassage\BibleBrain\BibleBrainPassageController;
+use App\Controllers\BiblePassage\BibleBrain\BibleBrainPassageController;
 use App\Model\Data\CloudFrontConnectionModel as CloudFrontConnectionModel;
 
 class BibleBrainTextJsonController extends BibleBrainPassageController

@@ -1,5 +1,5 @@
 <?php
-use App\Controller\BiblePassage\BibleBrain\BibleBrainTextPlainController;
+use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController;
 use App\Model\Bible\BibleModel as BibleModel;
 use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 

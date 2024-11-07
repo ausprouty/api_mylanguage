@@ -1,7 +1,7 @@
 <?php
 
-use App\Controller\Language\GospelLanguageController as GospelLanguageController;
-use App\Controller\ReturnDataController as ReturnDataController;
+use App\Controllers\Language\GospelLanguageController as GospelLanguageController;
+use App\Controllers\ReturnDataController as ReturnDataController;
 
 $languages = new GospelLanguageController();
 $options = $languages->getBilingualOptions();

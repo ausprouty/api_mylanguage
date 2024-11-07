@@ -5,7 +5,7 @@
 use App\Model\Bible\BibleModel as BibleModel;
 use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use App\Model\BibleStudy\DbsReferenceModel as DbsReferenceModel;
-use App\Controller\BibleStudy\Bilingual\BilingualDbsTemplateController as BilingualDbsTemplateController;
+use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController as BilingualDbsTemplateController;
 use Vendor\Mpdf\Mpdf as Mpdf;
 
 

@@ -4,7 +4,7 @@
         bid:string
         changed: sring ('true'\ or 'false')
     */
-use App\Controller\ReturnDataController as ReturnDataController;
+use App\Controllers\ReturnDataController as ReturnDataController;
 
 
 $authorized = Authorize::authorized($_POST);

@@ -1,39 +1,35 @@
 <?php
-namespace App\Controller\BibleStudy\Bilingual;
+namespace App\Controller\BibleStudy\Monolingual;
 
-use App\Controller\BibleStudy\BibleBlockController as BibleBlockController;
-use App\Controller\BiblePassage\PassageSelectController as PassageSelectController;
+use App\Controllers\BiblePassage\PassageSelectController as PassageSelectController;
 use App\Model\Bible\BibleModel as BibleModel;
 use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use App\Model\Language\TranslationModel as TranslationModel;
 use App\Model\Language\LanguageModel as LanguageModel;
 
-abstract class BilingualStudyTemplateController
+abstract class MonolingualStudyTemplateController
 {
     protected  $bible1;
-    protected  $bible2;
     protected  $bibleBlock;
     protected  $biblePassage1;
-    protected  $biblePassage2;
     protected  $bibleReferenceInfo;
     protected  $testament;
     protected  $fileName;  // name of pdf or view file
     protected  $language1; // langauge object
-    protected  $language2;
     protected  $lesson;
     protected  $qrcode1;
-    protected  $qrcode2;
     protected  $template;
     protected  $studyReferenceInfo;
     protected  $title;
     protected  $translation1;
-    protected  $translation2;
 
     abstract protected function createQRCode($url, $languageCodeHL);
-    abstract static function findFileName($lesson, $languageCodeHL1, $languageCodeHL2);
-    abstract static function findFileNamePdf($lesson, $languageCodeHL1, $languageCodeHL2);
+    abstract static function findFileName($lesson, $languageCodeHL1);
+    abstract static function findFileNamePdf($lesson, $languageCodeHL1);
+    abstract static function findFileNameView($lesson, $languageCodeHL1);
     abstract protected function findTitle($lesson, $languageCodeHL1);
-    abstract protected function getBilingualTemplateName();
+    abstract protected function getMonolingualPdfTemplateName();
+    abstract protected function getMonolingualViewTemplateName();
     abstract static function getPathPdf();
     abstract static function getUrlPdf();
     abstract static function getPathView();
@@ -42,17 +38,14 @@ abstract class BilingualStudyTemplateController
     abstract protected function setFileName();
 	abstract protected function setUniqueTemplateValues();
    
-    public function __construct( string $languageCodeHL1, string $languageCodeHL2, $lesson)
+    public function __construct( string $lesson, $languageCodeHL1)
     {   
         $this->language1 = new LanguageModel();
         $this->language1->findOneByLanguageCodeHL( $languageCodeHL1);
-        $this->language2 = new LanguageModel();
-        $this->language2->findOneByLanguageCodeHL( $languageCodeHL2);
         $this->bibleBlock = '';
         $this->biblePassage1 = '';
-        $this->biblePassage2 = '';
         $this->lesson = $lesson;
-        $this->fileName = $this->findFileName( $lesson, $languageCodeHL1, $languageCodeHL2);
+        $this->fileName = $this->findFileName($lesson, $languageCodeHL1 );
         $this->title = $this->findTitle($lesson, $languageCodeHL1);
         $this->setTranslation($this->getTranslationSource());
         $this->studyReferenceInfo = $this->getStudyReferenceInfo($lesson);
@@ -60,27 +53,18 @@ abstract class BilingualStudyTemplateController
         $this->bibleReferenceInfo->setFromEntry($this->studyReferenceInfo->getEntry());
         $this->testament = $this->bibleReferenceInfo->getTestament();
         $this->bible1 = $this->findBibleOne($languageCodeHL1, $this->testament);
-        $this->bible2 = $this->findBibleTwo($languageCodeHL2, $this->testament);
         $this->setPassage($this->bibleReferenceInfo);
         $this->qrcode1 = $this->createQrCode( $this->biblePassage1->getPassageUrl(), $languageCodeHL1);
-        $this->qrcode2 = $this->createQrCode( $this->biblePassage2->getPassageUrl(), $languageCodeHL2);
     }
     protected function setTranslation ($source = 'dbs') {
         $translation1 = new TranslationModel($this->language1->getLanguageCodeHL(), $source);
         $this->translation1 = $translation1->getTranslationFile();
-        $translation2 = new TranslationModel($this->language2->getLanguageCodeHL(), $source);
-        $this->translation2 =  $translation2->getTranslationFile();
     }
-    
-
     public function getFileName(){
         return $this->fileName;
     }
     public function getTranslation1(){
         return $this->translation1;
-    }
-    public function getTranslation2(){
-        return $this->translation2;
     }
     public function getTemplate(){
         return $this->template;
@@ -92,17 +76,11 @@ abstract class BilingualStudyTemplateController
         $bible->setBestDbsBibleByLanguageCodeHL($languageCodeHL1, $testament);
         return $bible;
     }
-    protected function findBibleTwo($languageCodeHL2, $testament= 'NT')
-    {
-        $bible = new BibleModel();
-        $bible->setBestDbsBibleByLanguageCodeHL($languageCodeHL2, $testament);
-        return $bible;
-    }
+   
     public function setPassage(BibleReferenceInfoModel $bibleReferenceInfo)
     {
         $this->bibleReferenceInfo = $bibleReferenceInfo;
         $this->biblePassage1= new PassageSelectController ($this->bibleReferenceInfo, $this->bible1);
-        $this->biblePassage2= new PassageSelectController ($this->bibleReferenceInfo, $this->bible2);
     }
     private function fillPlaceHolder($placeholder, $value){
         $this->template = str_replace($placeholder, $value, $this->template);
@@ -112,29 +90,19 @@ abstract class BilingualStudyTemplateController
         $span .= $value . '</span>';
         $this->template = str_replace($placeholder, $span, $this->template);
     }
-    private function fillPlaceHolderSpanLanguage2($placeholder, $value){
-        $span = '<span dir="||dir_language2||" style="font-family:||font_language2||;" >';
-        $span .= $value . '</span>';
-        $this->template = str_replace($placeholder, $span, $this->template);
-    }
-    public function setBilingualTemplate($template)
+    public function setMonolingualTemplate($template = 'monolinguallDbs.template.html')
     {
         $file = ROOT_TEMPLATES . $template;
         if (!file_exists($file)){
-            writeLogError('BilingualStudyTemplateController-124', 'template does not exist');
-            return 'Template does not exist';
+            return null;
         }
         $this->template = file_get_contents($file);
         $this->createBibleBlock();
         $this->fillPlaceHolderSpanLanguage1('{{Bible Block}}', $this->bibleBlock);
         $this->fillPlaceHolderSpanLanguage1('{{language}}', $this->language1->getName());
-        $this->fillPlaceHolder('||language||', $this->language2->getName());
         $this->fillPlaceHolder('{{Bible Reference}}', $this->biblePassage1->getReferenceLocalLanguage());
-        $this->fillPlaceHolder('||Bible Reference||', $this->biblePassage2->getReferenceLocalLanguage());
         $this->fillPlaceHolder('{{url}}', $this->biblePassage1->getPassageUrl());
-        $this->fillPlaceHolder('||url||', $this->biblePassage2->getPassageUrl());
         $this->fillPlaceHolder('{{QrCode1}}', $this->qrcode1);
-        $this->fillPlaceHolder('||QrCode2||', $this->qrcode2);
         $this->fillPlaceHolderSpanLanguage1('{{Title}}', $this->title);
         $this->fillPlaceHolderSpanLanguage1('{{filename}}', $this->getFileName());
         $this->fillPlaceHolderSpanLanguage1('{{Video Block}}', '');
@@ -143,45 +111,22 @@ abstract class BilingualStudyTemplateController
             $find= '{{' . $key . '}}';
             $this->fillPlaceHolderSpanLanguage1($find, $value);
         }
-        foreach ($this->translation2 as $key => $value){
-            $find= '||' . $key . '||';
-            $this->fillPlaceHolderSpanLanguage2($find, $value);
-        }
         $this->fillPlaceHolder('{{dir_language1}}', $this->language1->getDirection());
-        $this->fillPlaceHolder('||dir_language2||', $this->language2->getDirection());
         $this->fillPlaceHolder('{{font_language1}}', $this->language1->getFont());
-        $this->fillPlaceHolder('||font_language2||', $this->language2->getFont());
         $this->setUniqueTemplateValues();
+        
     }
     private function createBibleBlock(){
         // a blank record is NULL
-        if ($this->biblePassage1->getPassageText() !==  NULL 
-            && $this->biblePassage2->getPassageText() !== NULL
-            && $this->biblePassage1->getPassageText() !==  '' 
-            && $this->biblePassage2->getPassageText() !== '')
-            {
-           $bibleBlock = new BibleBlockController(
-                    $this->biblePassage1->getPassageText(),
-                    $this->biblePassage2->getPassageText(), 
-                    $this->bibleReferenceInfo->getVerseRange()
-            );
-            $this->bibleBlock =$bibleBlock->getBlock();
+        if ($this->biblePassage1->getPassageText() !==  NULL){
+            $this->bibleBlock = $this->biblePassage1->getPassageText();
         }
         else{
             $this->createBibleBlockWhenTextMissing();
         }
     }
     private function createBibleBlockWhenTextMissing(){
-        $this->bibleBlock = '';
-        if ($this->biblePassage2->getPassageText() !== NULL
-            && $this->biblePassage2->getPassageText() !== ''){
-            $this->bibleBlock .= $this->showTextOrLink($this->biblePassage1);
-            $this->bibleBlock .= $this->showTextOrLink($this->biblePassage2);
-        }
-        else{
-            $this->bibleBlock .= $this->showTextOrLink($this->biblePassage2);
-            $this->bibleBlock .= $this->showTextOrLink($this->biblePassage1);
-        }
+            $this->bibleBlock = $this->showTextOrLink($this->biblePassage1);
     }
     private function showTextOrLink($biblePassage){
         if ($biblePassage->getPassageText() == NULL){
@@ -227,11 +172,9 @@ abstract class BilingualStudyTemplateController
         $template = str_replace($existing, $new, $template);
         return $template;
     }
-    
-    
-
-    public function saveBilingualView(){
+    public function saveMonolingualView(){
         $filePath= $this->getPathView() . $this->fileName .'.html';
+        writeLogDebug('saveMonolingualView-176', $filePath);
         $text = $this->template;
         file_put_contents($filePath, $text);
     }

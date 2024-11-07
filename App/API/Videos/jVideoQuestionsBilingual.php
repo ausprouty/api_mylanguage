@@ -1,7 +1,7 @@
 <?php
 
-use App\Controller\BibleStudy\Bilingual\BilingualTemplateTranslationController as BilingualTemplateTranslationController;
-use App\Controller\ReturnDataController as ReturnDataController;
+use App\Controllers\BibleStudy\Bilingual\BilingualTemplateTranslationController as BilingualTemplateTranslationController;
+use App\Controllers\ReturnDataController as ReturnDataController;
 
 
 $questions = new BilingualTemplateTranslationController(

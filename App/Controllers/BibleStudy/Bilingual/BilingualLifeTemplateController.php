@@ -1,13 +1,14 @@
 <?php
-namespace App\Controller\BibleStudy\Monolingual;
 
-use App\Controller\BibleStudy\Monolingual\MonolingualStudyTemplateController as MonolingualStudyTemplateController;
-use App\Controller\BibleStudy\LifeStudyController as LifeStudyController;
+namespace App\Controller\BibleStudy\Bilingual;
+
+use App\Controllers\BibleStudy\Bilingual\BilingualStudyTemplateController as BilingualStudyTemplateController;
+use App\Controllers\BibleStudy\LifeStudyController as LifeStudyController;
 use App\Model\Language\LanguageModel as LanguageModel;
 use App\Model\QrCodeGeneratorModel as QrCodeGeneratorModel;
-use App\Model\BibleStudy\LifePrincipleReferenceModel as LifePrincipleReferenceModel;
+use App\Model\BibleStudy\LifePrincipleReferenceModel AS LifePrincipleReferenceModel;
 
-class MonolingualLifeTemplateController extends MonolingualStudyTemplateController
+class BilingualLifeTemplateController extends BilingualStudyTemplateController
 {
     protected function createQrCode($url, $languageCodeHL){
         $size = 240;
@@ -16,29 +17,23 @@ class MonolingualLifeTemplateController extends MonolingualStudyTemplateControll
         $qrCodeGenerator->generateQrCode();
         return $qrCodeGenerator->getQrCodeUrl();
     }
-    static function findFileName($lesson, $languageCodeHL1){
+    static function findFileName($lesson, $languageCodeHL1, $languageCodeHL2){
         $lang1 = LanguageModel::getEnglishNameFromCodeHL($languageCodeHL1);
-        $fileName =  'LifePrinciple'. $lesson .'('. $lang1 .')';
+        $lang2 = LanguageModel::getEnglishNameFromCodeHL($languageCodeHL2);
+        $fileName =  'LifePrinciple'. $lesson .'('. $lang1 . '-' . $lang2 .')';
         $fileName = str_replace( ' ', '_', $fileName);
 
         return trim($fileName);
     }
-    static function findFileNamePdf($lesson, $languageCodeHL1){
-        $fileName =  MonolingualLifePdfTemplateController::findFileName($lesson, $languageCodeHL1);
+    static function findFileNamePdf($lesson, $languageCodeHL1, $languageCodeHL2){
+        $fileName =  BilingualLifeTemplateController::findFileName($lesson, $languageCodeHL1, $languageCodeHL2);
         return $fileName . '.pdf';
     }
-    static function findFileNameView($lesson, $languageCodeHL1){
-        $fileName =  MonolingualLifeTemplateController::findFileName($lesson, $languageCodeHL1);
-        return $fileName . '.html';
-    }
     protected function findTitle($lesson, $languageCodeHL1){
-        return LifeStudyController::getTitle($lesson, $languageCodeHL1 );
+        return LifeStudyController::getTitle($lesson, $languageCodeHL1);
     }
-    protected function getMonolingualPdfTemplateName(){
-        return 'monolingualLifePrinciplesPdf.template.html';
-    }
-    protected function getMonolingualViewTemplateName(){
-        return 'monolingualLifePrinciplesView.template.html';
+    protected function getBilingualTemplateName(){
+        return 'bilingualLifePrinciples.template.html';
     }
     static function getPathPdf(){
         return ROOT_RESOURCES .'pdf/principle/';
@@ -49,9 +44,6 @@ class MonolingualLifeTemplateController extends MonolingualStudyTemplateControll
     static function getPathView(){
         return ROOT_RESOURCES .'view/principle/';
     }
-    static function getUrlView(){
-        return WEBADDRESS_RESOURCES .'view/principle/';
-    }
     protected function getStudyReferenceInfo($lesson){
         $studyReferenceInfo = new LifePrincipleReferenceModel();
         $studyReferenceInfo->setLesson($lesson);
@@ -61,7 +53,7 @@ class MonolingualLifeTemplateController extends MonolingualStudyTemplateControll
         return 'life';
     }
     protected function setFileName(){
-        $this->fileName = 'LifePrinciple' . $this->lesson .'('. $this->language1->getName() . ')';
+        $this->fileName = 'LifePrinciple' . $this->lesson .'('. $this->language1->getName()  .'-'. $this->language2->getName() . ')';
         $this->fileName = str_replace( ' ', '_', $this->fileName);
     }
     protected function setUniqueTemplateValues(){
@@ -70,6 +62,12 @@ class MonolingualLifeTemplateController extends MonolingualStudyTemplateControll
         foreach ( $translation1 as $key => $value){
             if ($key == $question){
                 $this->template= str_replace ('{{Topic Sentence}}', $value, $this->getTemplate());
+            }
+        }
+        $translation2 = $this->getTranslation2();
+        foreach ($translation2  as $key => $value){
+            if ($key == $question){
+                $this->template= str_replace ('||Topic Sentence||', $value, $this->template);
             }
         }
    }

@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller\BibleStudy\Monolingual;
 
-use App\Controller\BibleStudy\DbsStudyController as  DbsStudyController;
-use App\Controller\BibleStudy\Monolingual\MonolingualStudyTemplateController as MonolingualStudyTemplateController;
+use App\Controllers\BibleStudy\DbsStudyController as  DbsStudyController;
+use App\Controllers\BibleStudy\Monolingual\MonolingualStudyTemplateController as MonolingualStudyTemplateController;
 use App\Model\Language\LanguageModel as LanguageModel;
 use App\Model\BibleStudy\DbsReferenceModel as DbsReferenceModel;
 use App\Model\QrCodeGeneratorModel as QrCodeGeneratorModel;

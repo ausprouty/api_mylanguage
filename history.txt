@@ -11,3 +11,7 @@ composer require mpdf/mpdf
 use nvm list to change versions of node  This was created with 16.18.1
 
 Translation at https://github.com/MicrosoftTranslator/Text-Translation-API-V3-PHP/blob/master/Languages.php
+
+
+Added Middleware;
+Cut out custom composer

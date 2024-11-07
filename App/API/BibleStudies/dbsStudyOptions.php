@@ -1,7 +1,7 @@
 <?php
 
- use App\Controller\BibleStudy\DbsStudyController as  DbsStudyController;
- use App\Controller\ReturnDataController as ReturnDataController;
+ use App\Controllers\BibleStudy\DbsStudyController as  DbsStudyController;
+ use App\Controllers\ReturnDataController as ReturnDataController;
 
 $lessons = new DbsStudyController();
 if (!isset ($languageCodeHL1)){

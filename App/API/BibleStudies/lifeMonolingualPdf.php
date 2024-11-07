@@ -6,7 +6,7 @@
 */
 use  App\Controller\ReturnDataController as ReturnDataController;
 use  App\Controller\BibleStudy\Monolingual\MonolingualLifeTemplateController as MonolingualLifeTemplateController;
-use App\Controller\PdfController as PdfController;
+use App\Controllers\PdfController as PdfController;
 
 $fileName = MonolingualLifeTemplateController::findFileNameView($lesson, $languageCodeHL1);
 $path = MonolingualLifeTemplateController::getPathPdf();

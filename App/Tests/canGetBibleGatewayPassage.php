@@ -1,6 +1,6 @@
 <?php
 
-use App\Controller\BiblePassage\BibleGateway\BibleGatewayPassageController;
+use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController;
 use App\Model\Bible\BibleModel as BibleModel;
 use App\Model\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 

@@ -6,8 +6,8 @@
 */
 
 use  App\Controller\ReturnDataController as ReturnDataController;
-use App\Controller\BibleStudy\Bilingual\BilingualLifeTemplateController as BilingualLifeTemplateController;
-use App\Controller\PdfController as PdfController;
+use App\Controllers\BibleStudy\Bilingual\BilingualLifeTemplateController as BilingualLifeTemplateController;
+use App\Controllers\PdfController as PdfController;
 
 
 

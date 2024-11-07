@@ -1,6 +1,6 @@
 <?php
 
-use App\Controller\ReturnDataController as ReturnDataController;
+use App\Controllers\ReturnDataController as ReturnDataController;
 
 $options = [
     [
