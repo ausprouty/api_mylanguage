@@ -26,9 +26,9 @@ class DatabaseConnectionUtf8Model{
       try {
         
           $dsn = "mysql:host={$this->host};port= {$this->port};dbname={$this->database};charset=utf8";
-          $this->dbConnection = new PDO($dsn, $this->username, $this->password);
+          $this->databaseService = new PDO($dsn, $this->username, $this->password);
           // Set PDO error mode to exception
-          $this->dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+          $this->databaseService->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       } catch (PDOException $e) {
           throw new Exception("Failed to connect to the database: " . $e->getMessage());
       }
@@ -36,19 +36,19 @@ class DatabaseConnectionUtf8Model{
 
     public function executeQuery(string $query, array $params = []) {
         try {
-            $statement = $this->dbConnection->prepare($query);
+            $results = $this->databaseService->prepare($query);
             if (empty($params)) {
-                $statement->execute();
+                $results->execute();
             } else {
-                $statement->execute($params);
+                $results->execute($params);
             }
-            return $statement;
+            return $results;
         } catch (PDOException $e) {
             throw new Exception("Error executing the query: " . $e->getMessage());
         }
     }
 
     public function closeConnection() {
-        $this->dbConnection = null;
+        $this->databaseService = null;
     }
 }

@@ -19,9 +19,9 @@ class AskQuestionModel{
     private $tagline;
     private $weight;
 
-    public function __construct(protected $databaseService;){
+    public function __construct(DatabaseService $databaseService){
         $this->databaseService = $databaseService;
-        $this->dbConnection= '';
+        $this->databaseService= '';
         $this->id= '';
         $this->langaugeCodeHL= '';
         $this->name= '';
@@ -41,8 +41,8 @@ class AskQuestionModel{
             ORDER BY weight DESC LIMIT 1";
         $params = array(':code'=>$code);
         try {
-            $statement = $dbService->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_OBJ);
+            $results =$this->databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_OBJ);
             $this->setValues($data);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -56,8 +56,8 @@ class AskQuestionModel{
             ORDER BY weight DESC LIMIT 1";
         $params = array(':code'=>$code);
         try {
-            $statement = $dbService->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_OBJ);
+            $results =$this->databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_OBJ);
             return $data;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

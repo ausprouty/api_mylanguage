@@ -15,8 +15,8 @@ Class CountryController extends Country {
                   WHERE countryCodeIso = :countryCodeIso";
                   $params = array(':countryCodeIso'=> $countryCodeIso);
         try {
-            $statement = $databaseService->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_OBJECT);
+            $results = $databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_OBJECT);
             return $data;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -30,8 +30,8 @@ Class CountryController extends Country {
                   WHERE countryCodeIso3 = :countryCodeIso3";
                   $params = array(':countryCodeIso3'=> $countryCodeIso3);
         try {
-            $statement = $databaseService->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_OBJECT);
+            $results = $databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_OBJECT);
             return $data;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -48,7 +48,7 @@ Class CountryController extends Country {
                     ':countryCodeIso'=> $countryCodeIso)
                 ;
         try {
-            $statement = $databaseService->executeQuery($query, $params);
+            $results = $databaseService->executeQuery($query, $params);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
@@ -64,7 +64,7 @@ Class CountryController extends Country {
                     ':countryCodeIso'=> $countryCodeIso)
                 ;
         try {
-            $statement = $databaseService->executeQuery($query, $params);
+            $results = $databaseService->executeQuery($query, $params);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;

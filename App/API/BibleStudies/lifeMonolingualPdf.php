@@ -4,8 +4,8 @@
    Then store it
    Then send you the text you need
 */
-use  App\Controller\ReturnDataController as ReturnDataController;
-use  App\Controller\BibleStudy\Monolingual\MonolingualLifeTemplateController as MonolingualLifeTemplateController;
+use App\Controller\ReturnDataController as ReturnDataController;
+use App\Controller\BibleStudy\Monolingual\MonolingualLifeTemplateController as MonolingualLifeTemplateController;
 use App\Controllers\PdfController as PdfController;
 
 $fileName = MonolingualLifeTemplateController::findFileNameView($lesson, $languageCodeHL1);

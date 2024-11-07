@@ -1,12 +1,13 @@
 <?php
 namespace App\Models\Video;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
 class VideoModel
 {
 
+    private $databaseService;
 
     private $videoCode;
     private $videoSegment;
@@ -18,7 +19,9 @@ class VideoModel
     
     private $template;
     
-    public function __construct($videoCode, $videoSegment= null, $startTime = 0, $endTime = 0, $languageCodeHL = null){
+    public function __construct(DatabaseService $databaseService, $videoCode, $videoSegment= null, $startTime = 0, $endTime = 0, $languageCodeHL = null){
+        $this->databaseService = $databaseService;
+
         $this->videoCode = $videoCode;
         $this->videoSegment = $videoSegment;
         $this->startTime = $this->getTimeToSeconds($startTime);
@@ -35,9 +38,8 @@ class VideoModel
         $query = "SELECT languageCodeJF FROM jesus_video_languages 
             WHERE languageCodeHL = :languageCodeHL ORDER BY weight DESC LIMIT 1";
         $params= array(':languageCodeHL' => $languageCodeHL);
-        $dbService = new DatabaseService();
-        $statement = $dbService->executeQuery($query, $params);
-        $languageCodeJF = $statement->fetch(PDO::FETCH_COLUMN);
+        $results =$this->databaseService->executeQuery($query, $params);
+        $languageCodeJF = $results->fetch(PDO::FETCH_COLUMN);
         return  $languageCodeJF;
     }
     static function getLanguageCodeJFFollowingJesus($languageCodeHL){
@@ -46,9 +48,8 @@ class VideoModel
             AND title LIKE :following 
             ORDER BY weight DESC LIMIT 1";
         $params= array(':languageCodeHL' => $languageCodeHL, ':following' => '%Following Jesus%');
-        $dbService = new DatabaseService();
-        $statement = $dbService->executeQuery($query, $params);
-        $languageCodeJF = $statement->fetch(PDO::FETCH_COLUMN);
+        $results =$this->databaseService->executeQuery($query, $params);
+        $languageCodeJF = $results->fetch(PDO::FETCH_COLUMN);
         return  $languageCodeJF;
     }
     protected function getArclightTemplate(){
@@ -79,9 +80,8 @@ class VideoModel
         $query = "SELECT videoCode FROM jesus_video_languages 
             WHERE videoCode = :videoCode LIMIT 1";
         $params= array(':videoCode' => $videoCode);
-        $dbService = new DatabaseService();
-        $statement = $this->dbConnection->executeQuery($query);
-        $videoCode = $statement->fetch(PDO::FETCH_COLUMN);
+        $results = $this->databaseService->executeQuery($query);
+        $videoCode = $results->fetch(PDO::FETCH_COLUMN);
         return  $videoCode;
 
     }

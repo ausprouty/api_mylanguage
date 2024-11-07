@@ -71,8 +71,8 @@ class ContentAvailableController{
     }
     private function getResponse(){
         try {
-            $statement = $databaseService->executeQuery($this->query, $this->params);
-            $data = $statement->fetch(PDO::FETCH_ASSOC);
+            $results = $databaseService->executeQuery($this->query, $this->params);
+            $data = $results->fetch(PDO::FETCH_ASSOC);
             if ($data){
                 return true;
             }

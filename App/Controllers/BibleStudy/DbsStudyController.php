@@ -16,8 +16,8 @@ class DbsStudyController{
         $query = "SELECT * FROM dbs_references
         ORDER BY lesson";
         try {
-            $statement = $databaseService->executeQuery($query);
-            $this->data = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $results = $databaseService->executeQuery($query);
+            $this->data = $results->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
@@ -61,8 +61,8 @@ class DbsStudyController{
         WHERE lesson = :lesson";
         $params = array(':lesson'=> $lesson);
         try {
-            $statement = $databaseService->executeQuery($query, $params);
-            $title = $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $databaseService->executeQuery($query, $params);
+            $title = $results->fetch(PDO::FETCH_COLUMN);
             if ($languageCodeHL != 'eng00'){
                 $title = $translation->translateText($title);
             }

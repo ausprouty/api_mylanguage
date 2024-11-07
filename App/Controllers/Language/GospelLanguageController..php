@@ -21,8 +21,8 @@ class GospelLanguageController{
                   WHERE valid != 0
                   ORDER BY name";
         try {
-            $statement = $databaseService->executeQuery($query);
-            $data = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $results = $databaseService->executeQuery($query);
+            $data = $results->fetchAll(PDO::FETCH_ASSOC);
             return $data;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

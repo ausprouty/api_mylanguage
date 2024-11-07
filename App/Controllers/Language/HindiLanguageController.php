@@ -30,8 +30,8 @@ class HindiLanguageController{
                   WHERE isHindu  = 'Y'
                   ORDER BY name";
         try {
-            $statement = $databaseService->executeQuery($query);
-            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $results = $databaseService->executeQuery($query);
+            $result = $results->fetchAll(PDO::FETCH_ASSOC);
             return $result;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

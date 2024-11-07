@@ -122,8 +122,8 @@ class BibleGatewayBibleController{
             WHERE languageCodeIso = :languageCodeIso LIMIT 1";
         $params = array(':languageCodeIso'=> $try, 
         );
-        $statement = $databaseService->executeQuery($query, $params);
-        $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
+        $results = $databaseService->executeQuery($query, $params);
+        $languageCodeIso = $results->fetch(PDO::FETCH_COLUMN);
        return $languageCodeIso;
     }
     private function tryLanguageCodeGoogle($try){
@@ -132,8 +132,8 @@ class BibleGatewayBibleController{
             WHERE languageCodeGoogle = :languageCode LIMIT 1";
         $params = array(':languageCode'=> $try, 
         );
-        $statement = $databaseService->executeQuery($query, $params);
-        $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
+        $results = $databaseService->executeQuery($query, $params);
+        $languageCodeIso = $results->fetch(PDO::FETCH_COLUMN);
        return $languageCodeIso;
     }
     private function tryLanguageCodeBrowser($try){
@@ -142,8 +142,8 @@ class BibleGatewayBibleController{
             WHERE languageCodeBrowser = :languageCode LIMIT 1";
         $params = array(':languageCode'=> $try, 
         );
-        $statement = $databaseService->executeQuery($query, $params);
-        $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
+        $results = $databaseService->executeQuery($query, $params);
+        $languageCodeIso = $results->fetch(PDO::FETCH_COLUMN);
        return $languageCodeIso;
     }
     private function setExternalId($line){
@@ -165,8 +165,8 @@ class BibleGatewayBibleController{
             ':externalId' => $this->externalId, 
         );
         try {
-            $statement = $databaseService->executeQuery($query, $params);
-            $bid = $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $databaseService->executeQuery($query, $params);
+            $bid = $results->fetch(PDO::FETCH_COLUMN);
             return $bid;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -183,7 +183,7 @@ class BibleGatewayBibleController{
         $params = array(':verified'=>$verified, 
             ':bid' => $bid, 
         );
-        $statement = $databaseService->executeQuery($query, $params);
+        $results = $databaseService->executeQuery($query, $params);
     }
     private function updateLanguage($bid){
         $databaseService = new DatabaseService();
@@ -197,7 +197,7 @@ class BibleGatewayBibleController{
             ':languageName' => $this->languageName,
             ':bid' => $bid, 
         );
-        $statement = $databaseService->executeQuery($query, $params);
+        $results = $databaseService->executeQuery($query, $params);
     }
 
 
@@ -226,7 +226,7 @@ class BibleGatewayBibleController{
             ':weight' => $weight, 
             ':dateVerified' => $verified
         );
-        $statement = $databaseService->executeQuery($query, $params);
+        $results = $databaseService->executeQuery($query, $params);
 
     }
     private function addNewLanguage($try){
@@ -240,7 +240,7 @@ class BibleGatewayBibleController{
             ':languageCodeIso' => $try, 
             ':ethnicName' => $this->languageName,
         );
-        $statement = $databaseService->executeQuery($query, $params);
+        $results = $databaseService->executeQuery($query, $params);
     }
     private function updateWeight($bid){
         $weight = 0;
@@ -256,6 +256,6 @@ class BibleGatewayBibleController{
             ':weight'=> $weight,
             ':bid' => $bid, 
         );
-        $statement = $databaseService->executeQuery($query, $params);
+        $results = $databaseService->executeQuery($query, $params);
     }
 }

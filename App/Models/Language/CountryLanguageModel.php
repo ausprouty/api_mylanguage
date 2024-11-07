@@ -3,7 +3,7 @@
 namespace App\Models\Language;
 
 use App\Services\Database\DatabaseService;
-use  App\Models\Video\VideoModel as VideoModel;
+use App\Models\Video\VideoModel as VideoModel;
 use PDO as PDO;
 use stdClass as stdClass;
 
@@ -25,8 +25,7 @@ class CountryLanguageModel
         $this->langaugeCodeHL = '';
         $this->languageNameEnglish= '';
     }
-    static function getLanguagesWithContentForCountry($countryCode){
-       $dbService = new DatabaseService();
+    public function getLanguagesWithContentForCountry($countryCode){
        $query = "SELECT *
             FROM country_languages 
             WHERE countryCode = :countryCode
@@ -36,15 +35,15 @@ class CountryLanguageModel
         $params = array(':countryCode'=> $countryCode,
                     ':blank'=> '');
         try {
-            $statement = $dbService->executeQuery($query, $params);
-            $data = $statement->fetchAll(PDO::FETCH_OBJ);
+            $results =$this->databaseService->executeQuery($query, $params);
+            $data = $results->fetchAll(PDO::FETCH_OBJ);
             return $data;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
         }
     }
-    static function addLanguageCodeJF($result){
+    public function addLanguageCodeJF($result){
         $data = [];
         foreach ($result as $language){
             $obj = new stdClass;

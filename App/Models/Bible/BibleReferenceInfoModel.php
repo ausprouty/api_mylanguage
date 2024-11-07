@@ -145,8 +145,8 @@ class BibleReferenceInfoModel
              ':english' => 'eng00', 
              ':book_lookup'=>$this->bookName );
         try {
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $this->bookID  = $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $this->bookID  = $results->fetch(PDO::FETCH_COLUMN);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
@@ -158,8 +158,8 @@ class BibleReferenceInfoModel
             LIMIT 1';
         $params = array(':bookId'=> $this->bookID);
         try {
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $bookNumber = $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $bookNumber = $results->fetch(PDO::FETCH_COLUMN);
             $this->bookNumber = $bookNumber;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -172,8 +172,8 @@ class BibleReferenceInfoModel
             LIMIT 1';
         $params = array(':bookId'=> $this->bookID);
         try {
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $uversionBookID = $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $uversionBookID = $results->fetch(PDO::FETCH_COLUMN);
             $this->uversionBookID = $uversionBookID;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -185,8 +185,8 @@ class BibleReferenceInfoModel
             WHERE bookId = :bookId  LIMIT 1';
         $params = array(':bookId'=>$this->bookID );
         try {
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $testament = $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $testament = $results->fetch(PDO::FETCH_COLUMN);
             $this->testament = $testament;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

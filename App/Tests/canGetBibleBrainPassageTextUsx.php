@@ -1,6 +1,6 @@
 <?php
 
-use  App\Controller\BiblePassage\BibleBrain\BibleBrainTextJsonController;
+use App\Controller\BiblePassage\BibleBrain\BibleBrainTextJsonController;
 use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 

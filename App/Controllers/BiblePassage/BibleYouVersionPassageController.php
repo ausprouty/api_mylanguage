@@ -68,8 +68,8 @@ class BibleYouVersionPassageController extends BiblePassageModel {
             ':languageCodeHL'=> $this->bibleReferenceInfo->getLanguageCodeHL(),
             ':bookID' => $this->bibleReferenceInfo->getbookID(),
         );
-        $statement = $databaseService->executeQuery($query, $params);
-        $this->bookName = $statement->fetch(PDO::FETCH_COLUMN);
+        $results = $databaseService->executeQuery($query, $params);
+        $this->bookName = $results->fetch(PDO::FETCH_COLUMN);
         if (!$this->bookName){
             $this->retrieveExternalBookName();
             if ($this->bookName){
@@ -114,7 +114,7 @@ class BibleYouVersionPassageController extends BiblePassageModel {
             ':languageCodeHL'=> $this->bible->getLanguageCodeHL(),
             ':name' => $this->bookName,
         );
-        $statement = $databaseService->executeQuery($query, $params);
+        $results = $databaseService->executeQuery($query, $params);
     }
     /* to get verses: https://www.bible.com/bible/111/GEN.1.7-14.NIV
     https://www.bible.com/bible/37/GEN.1.7-14.CEB

@@ -45,8 +45,8 @@ class DbsLanguageController{
                   ON dbs_languages.languageCodeHL = hl_languages.languageCodeHL
                   ORDER BY hl_languages.name";
         try {
-            $statement = $databaseService->executeQuery($query);
-            $data = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $results = $databaseService->executeQuery($query);
+            $data = $results->fetchAll(PDO::FETCH_ASSOC);
             return $data;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

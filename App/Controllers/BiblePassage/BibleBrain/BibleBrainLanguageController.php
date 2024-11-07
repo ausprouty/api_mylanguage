@@ -55,8 +55,8 @@ https://4.dbt.io/api/bibles?language_code=HAE&page=1&limit=25
             WHERE languageCodeBibleBrain IS NULL
             AND checkedBBBibles IS NOT NULL LIMIT 1";
         $this->databaseService = $databaseService;
-        $statement = $this->databaseService->executeQuery($query);
-        $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
+        $results = $this->databaseService->executeQuery($query);
+        $languageCodeIso = $results->fetch(PDO::FETCH_COLUMN);
         $this->languageCodeIso = $languageCodeIso;
         return $languageCodeIso;
     }
@@ -67,8 +67,8 @@ https://4.dbt.io/api/bibles?language_code=HAE&page=1&limit=25
             LIMIT 1";
         $params = array(':languageCodeIso' => $languageCodeIso);
         try {
-            $statement = $this->databaseService->executeQuery($query, $params);
-            $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $results->fetch(PDO::FETCH_COLUMN);
             
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -80,8 +80,8 @@ https://4.dbt.io/api/bibles?language_code=HAE&page=1&limit=25
         $query = 'SELECT languageCodeHL, languageCodeBibleBrain  FROM hl_languages 
             WHERE languageCodeIso = :languageCodeIso LIMIT 1';
         $params = array(':languageCodeIso' => $languageCodeIso);
-        $statement = $this->databaseService->executeQuery($query, $params);
-        $data= $statement->fetch(PDO::FETCH_OBJ);
+        $results = $this->databaseService->executeQuery($query, $params);
+        $data= $results->fetch(PDO::FETCH_OBJ);
         if (!$data->languageCodeHL){
             $languageCodeHL = $languageCodeIso . date('y');
             $query = 'INSERT INTO hl_languages (languageCodeIso, languageCodeHL, name)
@@ -179,8 +179,8 @@ https://4.dbt.io/api/bibles?language_code=HAE&page=1&limit=25
         $query = 'SELECT id FROM hl_languages WHERE languageCodeBibleBrain = :languageCodeBibleBrain LIMIT 1';
         $params = array(':languageCodeBibleBrain' => $languageCodeBibleBrain);
         try {
-            $statement = $this->databaseService->executeQuery($query, $params);
-            $id = $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $id = $results->fetch(PDO::FETCH_COLUMN);
             return $id;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -192,8 +192,8 @@ https://4.dbt.io/api/bibles?language_code=HAE&page=1&limit=25
         $query = 'SELECT languageCodeBibleBrain FROM hl_languages WHERE languageCodeIso = :languageCodeIso LIMIT 1';
         $params = array(':languageCodeIso' => $languageCodeIso);
         try {
-            $statement = $this->databaseService->executeQuery($query, $params);
-            $id = $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $id = $results->fetch(PDO::FETCH_COLUMN);
             return $id;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

@@ -120,7 +120,7 @@ class PassageSelectController extends BiblePassageModel
             ':languageCodeHL'=>  $languageCodeHL,
             ':dir'=> $dir
         );
-        $statement = $databaseService->executeQuery($query, $params);
+        $results = $databaseService->executeQuery($query, $params);
         return $dir;
     }
 

@@ -5,7 +5,7 @@
    Then store it
    Then send you the text you need
 */
-use  App\Controller\ReturnDataController as ReturnDataController;
+use App\Controller\ReturnDataController as ReturnDataController;
 use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController as BilingualDbsTemplateController;
 use App\Controllers\Language\DbsLanguageController as DbsLanguageController;
 

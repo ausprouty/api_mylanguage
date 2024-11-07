@@ -37,7 +37,7 @@ class BiblePassageModel
     public function getReferenceLocalLanguage(){
         return $this->referenceLocalLanguage;
     }
-    public static function createBiblePassageId(string $bid, BibleReferenceInfoModel $passage){
+    public  function createBiblePassageId(string $bid, BibleReferenceInfoModel $passage){
         // 1026-Luke-10-1-42
             $bpid=$bid .'-' .
             $passage->getBookID() . '-' .
@@ -50,8 +50,8 @@ class BiblePassageModel
         $query = "SELECT * FROM bible_passages WHERE bpid = :bpid LIMIT 1";
         $params = array('bpid'=>$bpid);
         try {
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_OBJ);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_OBJ);
             if ($data){
                 $this->bpid= $data->bpid;
                 $this->referenceLocalLanguage = $data->referenceLocalLanguage;
@@ -85,17 +85,15 @@ class BiblePassageModel
                 ':dateChecked' => null,
                 ':timesUsed' => 1
             );
-            $this->dbConnection = new DatabaseService();
-            $this->dbConnection->executeQuery($query, $params);
+            $this->databaseService->executeQuery($query, $params);
         }
     }
     protected function savePassageRecord($bpid, $referenceLocalLanguage,  $passageText, $passageUrl){
-        $this->dbConnection = new DatabaseService();
         $query = 'SELECT bpid FROM bible_passages WHERE bpid = :bpid LIMIT 1';
         $params = array(':bpid'=> $bpid);
         try {
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_OBJ);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_OBJ);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
@@ -112,7 +110,7 @@ class BiblePassageModel
                 ':passageUrl'=> $passageUrl,
                 ':bpid' => $this->bpid
             );
-            $this->dbConnection->executeQuery($query, $params);
+            $this->databaseService->executeQuery($query, $params);
         }
         else{
            $this->insertPassageRecord($bpid, $referenceLocalLanguage,  $passageText, $passageUrl);
@@ -126,8 +124,7 @@ class BiblePassageModel
             ':today' => date("Y-m-d"),
             ':bpid' => $this->bpid
         );
-        $this->dbConnection = new DatabaseService();
-        $this->dbConnection->executeQuery($query, $params);
+        $this->databaseService->executeQuery($query, $params);
     }
     protected function updatePassageUrl(){
         $query = "UPDATE bible_passages
@@ -137,8 +134,7 @@ class BiblePassageModel
             ':passageUrl' => $this->passageUrl,
             ':bpid' => $this->bpid
         );
-        $this->dbConnection = new DatabaseService();
-        $this->dbConnection->executeQuery($query, $params);
+        $this->databaseService->executeQuery($query, $params);
     }
 
     private function updatePassageUse(){
@@ -152,7 +148,7 @@ class BiblePassageModel
             ':timesUsed' =>  $this->timesUsed,
             ':bpid' => $this->bpid
         );
-        $this->dbConnection->executeQuery($query, $params);
+        $this->databaseService->executeQuery($query, $params);
     }
     protected function updatereferenceLocalLanguage(){ 
         echo ("In updatereferenceLocalLanguage with value of $this->referenceLocalLanguage and bpid of $this->bpid");
@@ -163,8 +159,7 @@ class BiblePassageModel
             ':referenceLocalLanguage' => $this->referenceLocalLanguage,
             ':bpid' => $this->bpid
         );
-        $this->dbConnection = new DatabaseService();
-        $this->dbConnection->executeQuery($query, $params);
+        $this->databaseService->executeQuery($query, $params);
     }
     protected function updatepassageText(){
         $query = "UPDATE bible_passages
@@ -174,7 +169,6 @@ class BiblePassageModel
             ':text' => $this->passageText,
             ':bpid' => $this->bpid
         );
-        $this->dbConnection = new DatabaseService();
-        $this->dbConnection->executeQuery($query, $params);
+        $this->databaseService->executeQuery($query, $params);
     }
 }

@@ -5,9 +5,9 @@
    Then send you the address of the file you can download
 */
 
-use  App\Controller\ReturnDataController;
+use App\Controller\ReturnDataController;
 use App\Controllers\PdfController ;
-use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController r;
+use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController ;
 
 
 

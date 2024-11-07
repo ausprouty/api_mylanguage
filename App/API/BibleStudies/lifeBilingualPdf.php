@@ -5,7 +5,7 @@
    Then send you the address of the file you can download
 */
 
-use  App\Controller\ReturnDataController as ReturnDataController;
+use App\Controller\ReturnDataController as ReturnDataController;
 use App\Controllers\BibleStudy\Bilingual\BilingualLifeTemplateController as BilingualLifeTemplateController;
 use App\Controllers\PdfController as PdfController;
 

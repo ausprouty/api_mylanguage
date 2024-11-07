@@ -41,8 +41,8 @@ class LanguageModel
         $query = 'SELECT * FROM hl_languages WHERE ' .$field .'= :id ';
         $params = array(':id'=> $code );
         try {
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_OBJ);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_OBJ);
             if ($data) {
                 $this->id = $data->id  ;
                 $this->name = $data->name  ;
@@ -78,8 +78,8 @@ class LanguageModel
             LIMIT 1";
         $params = array(':languageCodeHL'=>$languageCodeHL);
         try {
-            $statement = $dbService->executeQuery($query, $params);
-            $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
+            $results =$this->databaseService->executeQuery($query, $params);
+            $languageCodeIso = $results->fetch(PDO::FETCH_COLUMN);
             return $languageCodeIso;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -96,8 +96,8 @@ class LanguageModel
             LIMIT 1";
         $params = array(':languageCodeHL'=>$languageCodeHL);
         try {
-            $statement = $dbService->executeQuery($query, $params);
-            $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
+            $results =$this->databaseService->executeQuery($query, $params);
+            $languageCodeIso = $results->fetch(PDO::FETCH_COLUMN);
             return $languageCodeIso;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -112,8 +112,8 @@ class LanguageModel
             LIMIT 1";
         $params = array(':languageCodeHL'=>$languageCodeHL);
         try {
-            $statement = $dbService->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_COLUMN);
+            $results =$this->databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_COLUMN);
             if ($data != NULL){
                 return json_decode($data, true);
             }
@@ -190,8 +190,8 @@ class LanguageModel
             ':ethnicName'=> $record->autonym, 
             ':languageCodeBibleBrain'=> $record->id
         );
-        $this->dbConnection = new DatabaseService();
-        $this->dbConnection->executeQuery($query, $params);
+        $this->databaseService = new DatabaseService();
+        $this->databaseService->executeQuery($query, $params);
 
     }
     protected function LanguageIsoRecordExists($languageCodeIso)
@@ -199,9 +199,9 @@ class LanguageModel
         $query = 'SELECT id FROM hl_languages WHERE languageCodeIso = :languageCodeIso LIMIT 1';
         $params = array(':languageCodeIso' => $languageCodeIso);
         try {
-            $this->dbConnection = new DatabaseService();
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $id = $statement->fetch(PDO::FETCH_COLUMN);
+            $this->databaseService = new DatabaseService();
+            $results = $this->databaseService->executeQuery($query, $params);
+            $id = $results->fetch(PDO::FETCH_COLUMN);
             return $id;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -213,9 +213,9 @@ class LanguageModel
         $query = 'SELECT ethnicName FROM hl_languages WHERE languageCodeIso = :languageCodeIso';
         $params = array(':languageCodeIso' => $languageCodeIso);
         try {
-            $this->dbConnection = new DatabaseService();
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $ethnicNames = $statement->fetchALL(PDO::FETCH_COLUMN);
+            $this->databaseService = new DatabaseService();
+            $results = $this->databaseService->executeQuery($query, $params);
+            $ethnicNames = $results->fetchALL(PDO::FETCH_COLUMN);
             return $ethnicNames;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -227,8 +227,8 @@ class LanguageModel
              WHERE languageCodeIso = :languageCodeIso';
         $params = array(':languageCodeIso' => $languageCodeIso, ':ethnicName'=> $ethnicName
         );
-        $this->dbConnection = new DatabaseService();
-        $this->dbConnection->executeQuery($query, $params);
+        $this->databaseService = new DatabaseService();
+        $this->databaseService->executeQuery($query, $params);
     }
     protected function UpdateLanguageCodeBibleBrainFromIso($languageCodeIso, $languageCodeBibleBrain)
     {
@@ -237,7 +237,7 @@ class LanguageModel
         $params = array(
             ':languageCodeIso' => $languageCodeIso, ':languageCodeBibleBrain' => $languageCodeBibleBrain
         );
-        $this->dbConnection = new DatabaseService();
-        $this->dbConnection->executeQuery($query, $params);
+        $this->databaseService = new DatabaseService();
+        $this->databaseService->executeQuery($query, $params);
     }
 }

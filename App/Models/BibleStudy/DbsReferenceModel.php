@@ -23,8 +23,8 @@ class DbsReferenceModel {
         $query = "SELECT * FROM dbs_references WHERE lesson = :lesson";
         $params = array('lesson'=>$lesson);
         try {
-            $statement = $this->dbConnection->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_OBJ);
+            $results = $this->databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_OBJ);
             if($data){
                 $this->lesson =$data->lesson;
                 $this->reference= $data->reference;

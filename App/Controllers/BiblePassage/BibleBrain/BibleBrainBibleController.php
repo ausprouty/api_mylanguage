@@ -51,8 +51,8 @@ https://4.dbt.io/api/bibles?language_code=HAE&page=1&limit=25
             AND checkedBBBibles IS NULL LIMIT 1";
     
         $this->databaseService = $databaseService;
-        $statement = $this->databaseService->executeQuery($query);
-        $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
+        $results = $this->databaseService->executeQuery($query);
+        $languageCodeIso = $results->fetch(PDO::FETCH_COLUMN);
         $this->languageCodeIso = $languageCodeIso;
         return $languageCodeIso;
       

@@ -2,7 +2,7 @@
 
 namespace App\Models\Video;
 
-use App\Services\Database\DatabaseService
+use App\Services\Database\DatabaseService;
 
 class JesusVideoSegmentModel
  {
@@ -15,7 +15,7 @@ class JesusVideoSegmentModel
    
 
     public function __construct() {
-        $this->dbConnection = new DatabaseService();
+        $this->databaseService = new DatabaseService();
         $this->id = '';
         $this->title = '';
         $this->verses = '';

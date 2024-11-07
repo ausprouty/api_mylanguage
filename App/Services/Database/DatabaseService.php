@@ -64,8 +64,8 @@ class DatabaseService {
     private function connect() {
         try {
             $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->database};charset={$this->charset}";
-            $this->dbConnection = new PDO($dsn, $this->username, $this->password);
-            $this->dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->databaseService = new PDO($dsn, $this->username, $this->password);
+            $this->databaseService->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             throw new Exception("Failed to connect to the database: " . $e->getMessage());
         }
@@ -88,20 +88,20 @@ class DatabaseService {
     public function executeQuery(string $query, array $params = []) {
         try {
             // Prepare the query using the PDO connection
-            $statement = $this->dbConnection->prepare($query);
+            $results = $this->databaseService->prepare($query);
             
             // Iterate over the provided parameters and bind each based on its type
             foreach ($params as $key => $value) {
                 // Bind as integer if the value is an integer, otherwise bind as string
                 $paramType = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
-                $statement->bindValue($key, $value, $paramType);
+                $results->bindValue($key, $value, $paramType);
             }
 
             // Execute the prepared statement
-            $statement->execute();
+            $results->execute();
             
             // Return the PDO statement object to allow fetching results or row count
-            return $statement;
+            return $results;
         } catch (PDOException $e) {
             // Throw an exception if the query execution fails, including the error message
             throw new Exception("Error executing the query: " . $e->getMessage());
@@ -119,9 +119,9 @@ class DatabaseService {
      */
     public function executeUpdate(string $query, array $params = []) {
         try {
-            $statement = $this->dbConnection->prepare($query);
-            $statement->execute($params);
-            return $statement->rowCount();
+            $results = $this->databaseService->prepare($query);
+            $results->execute($params);
+            return $results->rowCount();
         } catch (PDOException $e) {
             throw new Exception("Error executing the update: " . $e->getMessage());
         }
@@ -137,9 +137,9 @@ class DatabaseService {
  */
 public function fetchColumn(string $query, array $params = []): array {
     try {
-        $statement = $this->dbConnection->prepare($query);
-        $statement->execute($params);
-        return $statement->fetchAll(PDO::FETCH_COLUMN);
+        $results = $this->databaseService->prepare($query);
+        $results->execute($params);
+        return $results->fetchAll(PDO::FETCH_COLUMN);
     } catch (PDOException $e) {
         throw new Exception("Error executing the query: " . $e->getMessage());
     }
@@ -155,9 +155,9 @@ public function fetchColumn(string $query, array $params = []): array {
 public function fetchSingleValue(string $query, array $params = [])
 {
     try {
-        $statement = $this->dbConnection->prepare($query);
-        $statement->execute($params);
-        return $statement->fetchColumn();
+        $results = $this->databaseService->prepare($query);
+        $results->execute($params);
+        return $results->fetchColumn();
     } catch (PDOException $e) {
         throw new Exception("Error executing the query: " . $e->getMessage());
     }
@@ -173,9 +173,9 @@ public function fetchSingleValue(string $query, array $params = [])
 public function fetchAll(string $query, array $params = []): array
 {
     try {
-        $statement = $this->dbConnection->prepare($query);
-        $statement->execute($params);
-        return $statement->fetchAll(PDO::FETCH_ASSOC);
+        $results = $this->databaseService->prepare($query);
+        $results->execute($params);
+        return $results->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         throw new Exception("Error executing the query: " . $e->getMessage());
     }
@@ -188,13 +188,13 @@ public function fetchAll(string $query, array $params = []): array
      * @return string The last inserted ID.
      */
     public function getLastInsertId(): string {
-        return $this->dbConnection->lastInsertId();
+        return $this->databaseService->lastInsertId();
     }
 
     /**
      * Closes the database connection.
      */
     public function closeConnection() {
-        $this->dbConnection = null;
+        $this->databaseService = null;
     }
 }

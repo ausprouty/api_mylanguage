@@ -15,8 +15,8 @@ class LeadershipStudyController{
         $query = "SELECT * FROM leadership_references
         ORDER BY lesson";
         try {
-            $statement = $databaseService->executeQuery($query);
-            $this->data = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $results = $databaseService->executeQuery($query);
+            $this->data = $results->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
@@ -57,8 +57,8 @@ class LeadershipStudyController{
         WHERE lesson = :lesson";
         $params = array(':lesson'=> $lesson);
         try {
-            $statement = $databaseService->executeQuery($query, $params);
-            $data = $statement->fetch(PDO::FETCH_OBJ);
+            $results = $databaseService->executeQuery($query, $params);
+            $data = $results->fetch(PDO::FETCH_OBJ);
             $title = $data->description;
             if ($languageCodeHL != 'eng00'){
                 $title = $translation->translateText ($title);

@@ -25,8 +25,8 @@ class VideoController extends Video {
             ORDER BY weight DESC";
         $params = array(':title'=> $title, ':languageCodeHL'=> $languageCodeHL);
         try {
-            $statement = $databaseService->executeQuery($query, $params);
-            $videoCode = $statement->fetch(PDO::FETCH_COLUMN);
+            $results = $databaseService->executeQuery($query, $params);
+            $videoCode = $results->fetch(PDO::FETCH_COLUMN);
             return $videoCode;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

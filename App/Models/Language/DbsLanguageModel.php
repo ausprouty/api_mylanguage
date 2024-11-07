@@ -26,8 +26,8 @@ class DbsLanguageModel  {
             LIMIT 1";
         $params = array(':code'=> $this->languageCodeHL);
         try {
-            $statement = $dbService->executeQuery($query, $params);
-            $data = $statement->fetchAll(PDO::FETCH_COLUMN);
+            $results =$this->databaseService->executeQuery($query, $params);
+            $data = $results->fetchAll(PDO::FETCH_COLUMN);
             if ($data){
                 $this->updateRecord();
             }
@@ -50,7 +50,7 @@ class DbsLanguageModel  {
             ':format' => $this->format,
             ':languageCodeHL'=> $this->languageCodeHL);
         try {
-            $statement = $dbService->executeQuery($query, $params);
+            $results =$this->databaseService->executeQuery($query, $params);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
@@ -66,7 +66,7 @@ class DbsLanguageModel  {
             ':collectionCode' => $this->collectionCode,
             ':format' => $this->format);
         try {
-            $statement = $dbService->executeQuery($query, $params);
+            $results =$this->databaseService->executeQuery($query, $params);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;

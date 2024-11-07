@@ -4,8 +4,8 @@
    Then store it
    Then send you the text you need
 */
-use  App\Controller\ReturnDataController as ReturnDataController;
-use  App\Controller\BibleStudy\Monolingual\MonolingualLeadershipTemplateController as MonolingualLeadershipTemplateController;
+use App\Controller\ReturnDataController as ReturnDataController;
+use App\Controller\BibleStudy\Monolingual\MonolingualLeadershipTemplateController as MonolingualLeadershipTemplateController;
 
 $fileName = MonolingualLeadershipTemplateController::findFileNameView($lesson, $languageCodeHL1);
 $path = MonolingualLeadershipTemplateController::getPathView();

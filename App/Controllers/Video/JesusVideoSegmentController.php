@@ -27,8 +27,8 @@ class JesusVideoSegmentController{
         $query = "SELECT * FROM jesus_video_segments
         ORDER BY id";
         try {
-            $statement = $databaseService->executeQuery($query);
-            $this->data = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $results = $databaseService->executeQuery($query);
+            $this->data = $results->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
@@ -41,8 +41,8 @@ class JesusVideoSegmentController{
         WHERE id= :id";
         $params = array(':id' => $id);
         try {
-            $statement = $databaseService->executeQuery($query, $params);
-            $this->data = $statement->fetch(PDO::FETCH_ASSOC);
+            $results = $databaseService->executeQuery($query, $params);
+            $this->data = $results->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
