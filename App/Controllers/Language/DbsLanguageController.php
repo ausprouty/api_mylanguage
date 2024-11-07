@@ -2,7 +2,7 @@
 namespace App\Controllers\Language;
 
 use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use App\Models\Language\DbsLanguageModel as DbsLanguageModel;
 use App\Models\Language\LanguageModel as LanguageModel;
 use PDO as PDO;
@@ -32,13 +32,13 @@ class DbsLanguageController{
         }
     }
     public function getOptions(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT dbs_languages.*, hl_languages.name,  hl_languages.ethnicName
                   FROM dbs_languages INNER JOIN hl_languages
                   ON dbs_languages.languageCodeHL = hl_languages.languageCodeHL
                   ORDER BY hl_languages.name";
         try {
-            $statement = $dbConnection->executeQuery($query);
+            $statement = $dbService->executeQuery($query);
             $data = $statement->fetchAll(PDO::FETCH_ASSOC);
             return $data;
         } catch (Exception $e) {

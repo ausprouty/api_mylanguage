@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers\Video;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use App\Models\Language\TranslationModel as TranslationModel;
 use PDO as PDO;
 use stdClass as stdClass;
@@ -18,11 +18,11 @@ class JesusVideoSegmentController{
     }
        
     public function selectAllSegments(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM jesus_video_segments
         ORDER BY id";
         try {
-            $statement = $dbConnection->executeQuery($query);
+            $statement = $dbService->executeQuery($query);
             $this->data = $statement->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -31,12 +31,12 @@ class JesusVideoSegmentController{
     }
   
     private function selectOneSegmentById($id){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM jesus_video_segments
         WHERE id= :id";
         $params = array(':id' => $id);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $this->data = $statement->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();

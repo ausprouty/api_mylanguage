@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers\BibleStudy;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use App\Models\Language\TranslationModel as TranslationModel;
 use PDO as PDO;
 use stdClass as stdClass;
@@ -10,11 +10,11 @@ class LeadershipStudyController{
     private $data;
 
     public function __construct(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM leadership_references
         ORDER BY lesson";
         try {
-            $statement = $dbConnection->executeQuery($query);
+            $statement = $dbService->executeQuery($query);
             $this->data = $statement->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -48,7 +48,7 @@ class LeadershipStudyController{
         return $formatted;
     }
     static function getTitle($lesson, $languageCodeHL){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         if ($languageCodeHL != 'eng00'){
             $translation = new TranslationModel($languageCodeHL, 'leadership');
         }
@@ -56,7 +56,7 @@ class LeadershipStudyController{
         WHERE lesson = :lesson";
         $params = array(':lesson'=> $lesson);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetch(PDO::FETCH_OBJ);
             $title = $data->description;
             if ($languageCodeHL != 'eng00'){

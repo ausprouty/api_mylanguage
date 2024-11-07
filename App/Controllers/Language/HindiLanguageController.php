@@ -2,7 +2,7 @@
 
 namespace App\Controllers\Language;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use App\Models\Video\VideoModel as VideoModel;
 use PDO as PDO;
 use stdClass as stdClass;
@@ -17,13 +17,13 @@ class HindiLanguageController{
     }
 
     public function getLanguageData(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT *
                   FROM hl_languages
                   WHERE isHindu  = 'Y'
                   ORDER BY name";
         try {
-            $statement = $dbConnection->executeQuery($query);
+            $statement = $dbService->executeQuery($query);
             $result = $statement->fetchAll(PDO::FETCH_ASSOC);
             return $result;
         } catch (Exception $e) {

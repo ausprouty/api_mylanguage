@@ -1,7 +1,7 @@
 <?php
 namespace App\Controller;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use PDO as PDO;
 
 class ContentAvailableController{
@@ -69,9 +69,9 @@ class ContentAvailableController{
         
     }
     private function getResponse(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         try {
-            $statement = $dbConnection->executeQuery($this->query, $this->params);
+            $statement = $dbService->executeQuery($this->query, $this->params);
             $data = $statement->fetch(PDO::FETCH_ASSOC);
             if ($data){
                 return true;

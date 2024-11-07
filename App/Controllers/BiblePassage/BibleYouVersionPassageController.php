@@ -7,7 +7,7 @@ namespace App\Controllers\BiblePassage;
 use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BiblePassageModel as BiblePassageModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use App\Models\Data\WebsiteConnectionModel as WebsiteConnectionModel;
 use PDO as PDO;
 
@@ -59,7 +59,7 @@ class BibleYouVersionPassageController extends BiblePassageModel {
         $this->referenceLocalLanguage = $this->bookName . ' '. $this->chapterAndVerse;
     }
     private function retrieveBookName(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT name FROM bible_book_names
             WHERE languageCodeHL = :languageCodeHL
             AND bookID = :bookID 
@@ -68,7 +68,7 @@ class BibleYouVersionPassageController extends BiblePassageModel {
             ':languageCodeHL'=> $this->bibleReferenceInfo->getLanguageCodeHL(),
             ':bookID' => $this->bibleReferenceInfo->getbookID(),
         );
-        $statement = $dbConnection->executeQuery($query, $params);
+        $statement = $dbService->executeQuery($query, $params);
         $this->bookName = $statement->fetch(PDO::FETCH_COLUMN);
         if (!$this->bookName){
             $this->retrieveExternalBookName();
@@ -105,7 +105,7 @@ class BibleYouVersionPassageController extends BiblePassageModel {
        
     }
     private function saveBookName(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "INSERT INTO bible_book_names
         (bookId, languageCodeHL, name)
         VALUES (:bookId, :languageCodeHL, :name)";
@@ -114,7 +114,7 @@ class BibleYouVersionPassageController extends BiblePassageModel {
             ':languageCodeHL'=> $this->bible->getLanguageCodeHL(),
             ':name' => $this->bookName,
         );
-        $statement = $dbConnection->executeQuery($query, $params);
+        $statement = $dbService->executeQuery($query, $params);
     }
     /* to get verses: https://www.bible.com/bible/111/GEN.1.7-14.NIV
     https://www.bible.com/bible/37/GEN.1.7-14.CEB

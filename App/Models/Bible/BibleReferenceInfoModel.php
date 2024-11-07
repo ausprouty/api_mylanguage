@@ -12,14 +12,14 @@
  */
 namespace App\Models\Bible;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use PDO as PDO;
 
 class BibleReferenceInfoModel
 
 {
 
-    private  $dbConnection;
+    private $databaseService;
     private   $entry;
     private   $languageCodeHL;
     private   $bookName;
@@ -34,7 +34,7 @@ class BibleReferenceInfoModel
 
 
    public function __construct(){
-        $this->dbConnection = new DatabaseConnectionModel();
+        $this->dbConnection = new DatabaseService();
         $this->entry= ' ';
         $this->languageCodeHL= null;
         $this->bookName= ' ';

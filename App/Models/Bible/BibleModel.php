@@ -1,11 +1,11 @@
 <?php
 namespace App\Models\Bible;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
 class BibleModel {
-    private  $dbConnection;
+    private $databaseService;
     private $bid;
     private $source;
     private $externalId;
@@ -33,7 +33,7 @@ class BibleModel {
  
 
     public function __construct(){
-        $this->dbConnection = new DatabaseConnectionModel();
+        $this->dbConnection = new DatabaseService();
         $this->bid = ' ';
         $this->source = ' ';
         $this->externalId = NULL;
@@ -78,7 +78,7 @@ class BibleModel {
     }
     static function oldTestamentAvailable($languageCodeHL){
         $available = FALSE;
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT bid FROM  bibles WHERE languageCodeHL = :languageCodeHL AND
           (collectionCode = :OT OR collectionCode = :AL OR collectionCode = :C ) LIMIT 1";
         $params = array(
@@ -87,7 +87,7 @@ class BibleModel {
             ':AL' => 'AL',
             ':C' => 'C'
         );
-        $statement = $dbConnection->executeQuery($query, $params);
+        $statement = $dbService->executeQuery($query, $params);
         $data = $statement->fetch(PDO::FETCH_COLUMN);
         if ($data){
             $available = TRUE;
@@ -97,12 +97,12 @@ class BibleModel {
     }
    
     static function getAllBiblesByLanguageCodeHL($languageCodeHL){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM bibles WHERE languageCodeHL = :code 
         ORDER BY volumeName";
         $params = array(':code'=>$languageCodeHL);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetchAll(PDO::FETCH_ASSOC);
             return $data;
         } catch (Exception $e) {
@@ -112,7 +112,7 @@ class BibleModel {
 
     }
     static function updateWeight($bid, $weight){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "UPDATE bibles 
             SET weight = :weight
             WHERE bid = :bid
@@ -121,7 +121,7 @@ class BibleModel {
             ':bid' => $bid, 
         );
         try {
-            $dbConnection->executeQuery($query, $params);
+            $dbService->executeQuery($query, $params);
             return 'success';
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -131,7 +131,7 @@ class BibleModel {
 
     }
     static function getTextBiblesByLanguageCodeHL($languageCodeHL){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM bibles 
         WHERE languageCodeHL = :code 
         AND format NOT LIKE :audio AND format NOT LIKE :video AND format != :usx AND format IS NOT NULL
@@ -144,7 +144,7 @@ class BibleModel {
             ':dbt' => 'dbt'
         );
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetchAll(PDO::FETCH_ASSOC);
             return $data;
         } catch (Exception $e) {
@@ -154,13 +154,13 @@ class BibleModel {
 
     }
     static function getBestBibleByLanguageCodeHL($code){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM bibles 
             WHERE languageCodeHL = :code 
             ORDER BY weight DESC LIMIT 1";
         $params = array(':code'=>$code);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetch(PDO::FETCH_OBJ);
            return $data;
         } catch (Exception $e) {
@@ -170,13 +170,13 @@ class BibleModel {
 
     }
     public function setBestBibleByLanguageCodeHL($code){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM bibles 
             WHERE languageCodeHL = :code 
             ORDER BY weight DESC LIMIT 1";
         $params = array(':code'=>$code);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetch(PDO::FETCH_OBJ);
             $this->setBibleValues($data);
         } catch (Exception $e) {
@@ -188,7 +188,7 @@ class BibleModel {
 
     public function setBestDbsBibleByLanguageCodeHL($code, $testament){
         // 'C' for complete will be found AFTER 'NT' or 'OT'
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM bibles 
             WHERE languageCodeHL = :code 
             AND (collectionCode = :complete OR collectionCode = :testament)
@@ -201,7 +201,7 @@ class BibleModel {
             ':testament' => $testament
         );
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetch(PDO::FETCH_OBJ);
             $this->setBibleValues($data);
         } catch (Exception $e) {
@@ -243,7 +243,7 @@ class BibleModel {
         echo ("external id is $this->externalId<br>");
         $query = "SELECT bid  FROM bibles WHERE externalId = :externalId";
         $params = array(':externalId' => $this->externalId);
-        $this->dbConnection = new DatabaseConnectionModel();
+        $this->dbConnection = new DatabaseService();
         $statement = $this->dbConnection->executeQuery($query, $params);
         $bid = $statement->fetch(PDO::FETCH_COLUMN);
         if (!$bid){

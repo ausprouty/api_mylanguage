@@ -2,20 +2,20 @@
 
 namespace App\Controllers\Country;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use PDO as PDO;
 
 
 Class CountryController extends Country {
 
     static function getCountryByIsoCode($countryCodeIso){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT *
                   FROM country_locations 
                   WHERE countryCodeIso = :countryCodeIso";
                   $params = array(':countryCodeIso'=> $countryCodeIso);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetch(PDO::FETCH_OBJECT);
             return $data;
         } catch (Exception $e) {
@@ -24,13 +24,13 @@ Class CountryController extends Country {
         }
     }
     static function getCountryByIsoCode3($countryCodeIso3){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT *
                   FROM country_locations 
                   WHERE countryCodeIso3 = :countryCodeIso3";
                   $params = array(':countryCodeIso3'=> $countryCodeIso3);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetch(PDO::FETCH_OBJECT);
             return $data;
         } catch (Exception $e) {
@@ -39,7 +39,7 @@ Class CountryController extends Country {
         }
     }
     protected function updateCountryCodeIso3($countryCodeIso, $countryCodeIso3){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "UPDATE country_locations 
                 SET countryCodeIso3 = :countryCodeIso3
                   WHERE countryCodeIso = :countryCodeIso";
@@ -48,14 +48,14 @@ Class CountryController extends Country {
                     ':countryCodeIso'=> $countryCodeIso)
                 ;
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
         }
     }
     protected function updateCountryNamefromCodeIso($countryCodeIso, $countryName){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "UPDATE country_locations 
                 SET countryName = :countryName
                   WHERE countryCodeIso = :countryCodeIso";
@@ -64,7 +64,7 @@ Class CountryController extends Country {
                     ':countryCodeIso'=> $countryCodeIso)
                 ;
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;

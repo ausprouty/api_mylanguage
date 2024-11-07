@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers\Video;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use PDO as PDO;
 
 class VideoController extends Video {
@@ -13,13 +13,13 @@ class VideoController extends Video {
 
     static function getVideoCodeFromTitle($title, $languageCodeHL){
         $title = str_ireplace('%20', ' ', $title);
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT videoCode FROM jesus_video_languages
             WHERE title = :title AND languageCodeHL = :languageCodeHL
             ORDER BY weight DESC";
         $params = array(':title'=> $title, ':languageCodeHL'=> $languageCodeHL);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $videoCode = $statement->fetch(PDO::FETCH_COLUMN);
             return $videoCode;
         } catch (Exception $e) {

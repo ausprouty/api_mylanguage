@@ -1,11 +1,11 @@
 <?php
 namespace App\Model;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use PDO as PDO;
 
 class AskQuestionModel{
-    private $dbConnection;
+    private $dbService;
     private $id;
     private $langaugeCodeHL;
     private $name;
@@ -19,7 +19,7 @@ class AskQuestionModel{
     private $weight;
 
     public function __construct(){
-        $this->dbConnection = new DatabaseConnectionModel();
+        $this->dbConnection = new DatabaseService();
         $this->dbConnection= '';
         $this->id= '';
         $this->langaugeCodeHL= '';
@@ -34,13 +34,13 @@ class AskQuestionModel{
         $this->weight= '';
     }
     public function setBestSiteByLanguageCodeHL($code){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM ask_questions 
             WHERE languageCodeHL = :code 
             ORDER BY weight DESC LIMIT 1";
         $params = array(':code'=>$code);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetch(PDO::FETCH_OBJ);
             $this->setValues($data);
         } catch (Exception $e) {
@@ -49,13 +49,13 @@ class AskQuestionModel{
         }
     }
     static function getBestSiteByLanguageCodeHL($code){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT * FROM ask_questions 
             WHERE languageCodeHL = :code 
             ORDER BY weight DESC LIMIT 1";
         $params = array(':code'=>$code);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetch(PDO::FETCH_OBJ);
             return $data;
         } catch (Exception $e) {

@@ -1,6 +1,6 @@
 <?php
-use  App\Controller\ReturnDataController as ReturnDataController;
-use App\Models\Bible\BibleModel as BibleModel;
+use  App\Controller\ReturnDataController;
+use App\Models\Bible\BibleModel;
 
 $data = BibleModel::getAllBiblesByLanguageCodeHL($languageCodeHL);
 ReturnDataController::returnData($data);

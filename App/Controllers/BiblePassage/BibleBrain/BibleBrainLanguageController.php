@@ -3,13 +3,13 @@
 */
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use App\Models\Data\BibleBrainConnectionModel as BibleBrainConnectionModel;
 use App\Models\Language\LanguageModel as LanguageModel;
 use PDO as PDO;
 
 class BibleBrainLanguageController extends LanguageModel {
-    private $dbConnection;
+    private $dbService;
     public $languageCodeIso;
     public $response;
     public $LanguageCodeBibleBrain;
@@ -25,7 +25,7 @@ class BibleBrainLanguageController extends LanguageModel {
 
 
     public function __construct(){
-        $this->dbConnection = new DatabaseConnectionModel();
+        $this->dbConnection = new DatabaseService();
         
     }
     /*This endpoint would be used to find all content available for each Bible for a specific language.
@@ -54,7 +54,7 @@ https://4.dbt.io/api/bibles?language_code=HAE&page=1&limit=25
         $query = "SELECT languageCodeIso FROM hl_languages 
             WHERE languageCodeBibleBrain IS NULL
             AND checkedBBBibles IS NOT NULL LIMIT 1";
-        $this->dbConnection = new DatabaseConnectionModel();
+        $this->dbConnection = new DatabaseService();
         $statement = $this->dbConnection->executeQuery($query);
         $languageCodeIso = $statement->fetch(PDO::FETCH_COLUMN);
         $this->languageCodeIso = $languageCodeIso;

@@ -5,7 +5,7 @@ use PDO as PDO;
 use Exception as Exception;
 
 class DatabaseConnectionUtf8Model{
-    private $dbConnection;
+    private $dbService;
     private $host;
     private $username;
     private $password;

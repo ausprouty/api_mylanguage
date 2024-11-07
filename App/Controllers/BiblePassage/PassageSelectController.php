@@ -10,13 +10,13 @@ use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController as  
 use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BiblePassageModel as BiblePassageModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use App\Models\Language\LanguageModel as LanguageModel;
 
 class PassageSelectController extends BiblePassageModel
 {
 
-    //private $dbConnection;
+    //private $dbService;
     protected $bibleReferenceInfo;
     private $bible;
     private $passageId;// used to see if data is stored
@@ -25,7 +25,7 @@ class PassageSelectController extends BiblePassageModel
     public  $referenceLocalLanguage;
 
     public function __construct( BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
-        //$this->dbConnection = new DatabaseConnectionModel();
+        //$this->dbConnection = new DatabaseService();
             $this->bibleReferenceInfo=$bibleReferenceInfo;
             $this->bible = $bible;
             $this->passageText= null;
@@ -112,7 +112,7 @@ class PassageSelectController extends BiblePassageModel
         if ($direction == 'rtl'){
             $dir = 'rtl';
         }
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "UPDATE bibles
             SET direction = :dir
             WHERE languageCodeHL = :languageCodeHL";
@@ -120,7 +120,7 @@ class PassageSelectController extends BiblePassageModel
             ':languageCodeHL'=>  $languageCodeHL,
             ':dir'=> $dir
         );
-        $statement = $dbConnection->executeQuery($query, $params);
+        $statement = $dbService->executeQuery($query, $params);
         return $dir;
     }
 

@@ -4,8 +4,8 @@ namespace App\Models\Data;
 use PDO;
 use Exception;
 
-class DatabaseConnectionModel{
-    private $dbConnection;
+class DatabaseService{
+    private $dbService;
     public function __construct(){
         $this->host = 'localhost';
         $this->username = USERNAME;

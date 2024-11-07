@@ -2,7 +2,7 @@
 
 namespace App\Models\Language;
 
-use App\Models\Data\DatabaseConnectionModel as DatabaseConnectionModel;
+use App\Services\Database\DatabaseService
 use PDO as PDO;
 
 class DbsLanguageModel  {
@@ -17,13 +17,13 @@ class DbsLanguageModel  {
         $this->updateDatabase();
     }
     protected function updateDatabase(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "SELECT languageCodeHL FROM dbs_languages 
             WHERE languageCodeHL = :code 
             LIMIT 1";
         $params = array(':code'=> $this->languageCodeHL);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
             $data = $statement->fetchAll(PDO::FETCH_COLUMN);
             if ($data){
                 $this->updateRecord();
@@ -37,7 +37,7 @@ class DbsLanguageModel  {
         }
     }
     private function updateRecord(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "UPDATE  dbs_languages
             SET collectionCode = :collectionCode, format = :format
             WHERE languageCodeHL = :languageCodeHL 
@@ -47,14 +47,14 @@ class DbsLanguageModel  {
             ':format' => $this->format,
             ':languageCodeHL'=> $this->languageCodeHL);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
         }
     }
     private function insertRecord(){
-        $dbConnection = new DatabaseConnectionModel();
+        $dbService = new DatabaseService();
         $query = "INSERT INTO dbs_languages 
             (languageCodeHL, collectionCode, format)
             VALUES  (:languageCodeHL, :collectionCode, :format)";
@@ -63,7 +63,7 @@ class DbsLanguageModel  {
             ':collectionCode' => $this->collectionCode,
             ':format' => $this->format);
         try {
-            $statement = $dbConnection->executeQuery($query, $params);
+            $statement = $dbService->executeQuery($query, $params);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
