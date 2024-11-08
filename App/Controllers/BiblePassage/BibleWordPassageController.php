@@ -13,7 +13,7 @@ class BibleWordPassageController extends BiblePassageModel {
     private $bible;
 
 
-    public function __construct( BibleReferenceInfo $bibleReferenceInfo, Bible $bible){
+    public function __construct( BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
  
         $this->bibleReferenceInfo=$bibleReferenceInfo;
         $this->bible = $bible;
@@ -53,10 +53,11 @@ class BibleWordPassageController extends BiblePassageModel {
        return $bookNumber . '/'.  $chapterNumber;
     }
     public function getExternal(){
-       $dir = ROOT_RESOURCES . '/bibles/wordproject/';
+       $dir = ROOT_RESOURCES . 'bibles/wordproject/';
        $externalId = $this->bible->getExternalId();
        $bibleDir = $dir .  $externalId. '/'.  $externalId . '/';
        $fileName = $bibleDir . $this->chapterPage();
+       writeLog('BibleWordPassageController', 'getExternal: ' . $fileName);    
        $webpage = null;
        if (file_exists ($fileName . '.html')){
             $webpage = file_get_contents($fileName . '.html');

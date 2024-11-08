@@ -65,9 +65,9 @@ echo "
 <p><a href = '/api_mylanguage/test/biblebrain/passage/usx'>Bible Text USX</a></p>
 
 <h2>Bible Gateway</h2>
-<p> <a href= '/api_mylanguage/test/biblegateway'>Get Passage </a></p>
+<p> <a href= '/api_mylanguage/test/biblegateway'>Get Passage  -ok </a></p>
 <h2>Word(local)</h2>
-<p> <a href= '/api_mylanguage/test/word/passage/af'>Get af Passage from external id</a></p>
+<p> <a href= '/api_mylanguage/test/word/passage/al'>Get af Passage from external id</a></p>
 
 <h2>YOuVersion</h2>
 <p> <a href= '/api_mylanguage/test/youversion/link'>Get Passage Link</a></p>

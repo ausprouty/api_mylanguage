@@ -22,3 +22,7 @@ REPAIR TABLE pma__users;
 cd C:/ampp82/mysql/data/phpmyadmin
 
 ../../bin/myisamchk --force --recover pma__users.MYI
+cd c://ampp82/htdocs/api_mylanguage
+git add .
+git commit -m "Apply consistent line endings"
+git push origin main

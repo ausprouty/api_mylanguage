@@ -1,16 +1,18 @@
 <?php
 namespace App\Models\Bible;
 
-use App\Services\Database\DatabaseService;
-use PDO as PDO;
+
+use App\Repositories\BibleRepository;
+
 
 class BibleModel {
-    private $databaseService;
+
+    private $repository;
     
     private $bid;
     private $source;
     private $externalId;
-    private$abbreviation;
+    private $abbreviation;
     private $volumeName;
     private $volumeNameAlt;
     private $languageCode;
@@ -20,43 +22,46 @@ class BibleModel {
     private $languageCodeDrupal;
     private $idBibleGateway;
     private $collectionCode;
-    public $direction;
-    public $numerals;
-    public $spacePdf;
-    public $noBoldPdf;
-    public $format;
-    public $text;
-    public $audio;
-    public $video;
+    private $direction;
+    private $numerals;
+    private $spacePdf;
+    private $noBoldPdf;
+    private $format;
+    private $text;
+    private $audio;
+    private $video;
     private $weight;
     private $dateVerified;
 
  
 
-    public function __construct(DatabaseService $databaseService){
-        $this->databaseService = $databaseService;
-
-        $this->bid = ' ';
-        $this->source = ' ';
-        $this->externalId = NULL;
-        $this->volumeName = ' ';
-        $this->volumeNameAlt = NULL;
-        $this->languageCodeHL = ' ';
-        $this->languageName = ' ';
-        $this->languageEnglish = ' ';
-        $this->idBibleGateway = ' ';
-        $this->collectionCode = ' ';
-        $this->format = '';
-        $this->audio = '';
-        $this->text = '';
-        $this->video = '';
-        $this->numerals = ' ';
-        $this->direction = ' ';
-        $this->spacePdf = NULL;
-        $this->noBoldPdf = ' ';
-        $this->weight = ' ';
-        $this->dateVerified = ' ';
+    public function __construct(BibleRepository $repository){
+        $this->repository = $repository;
+        $this->initializeDefaultValues();
     }
+    private function initializeDefaultValues(){
+        $this->bid = 0;
+        $this->source = '';
+        $this->externalId = '';
+        $this->volumeName = '';
+        $this->volumeNameAlt = '';
+        $this->languageName = '';
+        $this->languageEnglish = '';
+        $this->languageCodeHL = '';
+        $this->idBibleGateway = '';
+        $this->collectionCode = '';
+        $this->direction = '';
+        $this->numerals = '';
+        $this->spacePdf = '';
+        $this->noBoldPdf = '';
+        $this->format = '';
+        $this->text = '';
+        $this->audio = '';
+        $this->video = '';
+        $this->weight = 0;
+        $this->dateVerified = '';
+    }
+
     public function getBid(){
         return $this->bid;
     }
@@ -78,196 +83,44 @@ class BibleModel {
     public function getVolumeName(){
         return $this->volumeName;
     }
-    public function oldTestamentAvailable($languageCodeHL){
-        $available = FALSE;
-        $query = "SELECT bid FROM  bibles WHERE languageCodeHL = :languageCodeHL AND
-          (collectionCode = :OT OR collectionCode = :AL OR collectionCode = :C ) LIMIT 1";
-        $params = array(
-            ':languageCodeHL' => $languageCodeHL,
-            ':OT' => 'OT',
-            ':AL' => 'AL',
-            ':C' => 'C'
-        );
-        $results =$this->databaseService->executeQuery($query, $params);
-        $data = $results->fetch(PDO::FETCH_COLUMN);
-        if ($data){
-            $available = TRUE;
+    
+    public function loadBestBibleByLanguageCodeHL($languageCodeHL){
+        $data = $this->repository->findBestBibleByLanguageCodeHL($languageCodeHL);
+        if ($data) {
+            $this->setBibleValues($data);  // Set the model state with retrieved data
+        } else {
+            throw new \Exception("Best Bible for $languageCodeHL not found");
         }
-         return $available;
+    }
 
+
+    public function loadBestDbsBibleByLanguageCodeHL($code, $testament = 'C'){
+        $data = $this->repository->findBestDbsBibleByLanguageCodeHL($code, $testament = 'C');
+        if ($data) {
+            $this->setBibleValues($data);  // Set the model state with retrieved data
+        } else {
+            throw new \Exception("Best DBS Bible for $code not found");
+        }
+    }
+    public function loadBibleByBid($bid){
+        $data = $this->repository->findBibleByBid($bid);
+        if ($data) {
+            $this->setBibleValues($data);  // Set the model state with retrieved data
+        } else {
+            throw new \Exception("Bible not found for Bid: $bid");
+        }
+    }
+    public function loadtBibleByExternalId($externalId) {
+        $data = $this->repository->findBibleByExternalId($externalId);
+        if ($data) {
+            $this->setBibleValues($data);  // Set the model state with retrieved data
+        } else {
+            throw new \Exception("Bible not found for ExternalId: $externalId");
+        }
     }
    
-    public function getAllBiblesByLanguageCodeHL($languageCodeHL){
-        $query = "SELECT * FROM bibles WHERE languageCodeHL = :code 
-            ORDER BY volumeName";
-        $params = array(':code'=>$languageCodeHL);
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $data = $results->fetchAll(PDO::FETCH_ASSOC);
-            return $data;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-
-    }
-    public function updateWeight($bid, $weight){
-        $query = "UPDATE bibles 
-            SET weight = :weight
-            WHERE bid = :bid
-            LIMIT 1";
-        $params = array(':weight'=>$weight, 
-            ':bid' => $bid, 
-        );
-        try {
-           $this->databaseService->executeQuery($query, $params);
-            return 'success';
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-
-
-    }
-    public function getTextBiblesByLanguageCodeHL($languageCodeHL){
-
-        $query = "SELECT * FROM bibles 
-            WHERE languageCodeHL = :code 
-            AND format NOT LIKE :audio 
-            AND format NOT LIKE :video 
-            AND format != :usx 
-            AND format IS NOT NULL
-            AND source != :dbt
-            ORDER BY volumeName";
-        $params = array(':code'=>$languageCodeHL, 
-            ':audio' => 'audio%', 
-            ':video' => 'video%',
-            ':usx'=> 'text_usx',
-            ':dbt' => 'dbt'
-        );
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $data = $results->fetchAll(PDO::FETCH_ASSOC);
-            return $data;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-
-    }
-    public function getBestBibleByLanguageCodeHL($code){
-        $query = "SELECT * FROM bibles 
-            WHERE languageCodeHL = :code 
-            ORDER BY weight DESC LIMIT 1";
-        $params = array(':code'=>$code);
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-           return $data;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-
-    }
-    public function setBestBibleByLanguageCodeHL($code){
-        $query = "SELECT * FROM bibles 
-            WHERE languageCodeHL = :code 
-            ORDER BY weight DESC LIMIT 1";
-        $params = array(':code'=>$code);
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-            $this->setBibleValues($data);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-
-    }
-
-    public function setBestDbsBibleByLanguageCodeHL($code, $testament){
-        // 'C' for complete will be found AFTER 'NT' or 'OT'
-        $query = "SELECT * FROM bibles 
-            WHERE languageCodeHL = :code 
-            AND (collectionCode = :complete OR collectionCode = :testament)
-            AND weight = 9 
-            ORDER BY collectionCode desc
-            LIMIT 1";
-        $params = array(
-            ':code'=>$code,
-            ':complete' => 'C',
-            ':testament' => $testament
-        );
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-            $this->setBibleValues($data);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-
-    }
-   
-    public function selectBibleByBid($bid){
-        $query = "SELECT * FROM bibles WHERE bid = :bid LIMIT 1";
-        $params = array(':bid'=>$bid);
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-            $this->setBibleValues($data);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-
-    }
-    public function selectBibleByExternalId($externalId) {
-        $query = "SELECT * FROM bibles 
-            WHERE externalId = :externalId LIMIT 1";
-        $params = array(':externalId'=>$externalId);
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-            $this->setBibleValues($data);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-    }
-  
-
-    protected function addBibleBrainBible(){
-        echo ("external id is $this->externalId<br>");
-        $query = "SELECT bid  FROM bibles WHERE externalId = :externalId";
-        $params = array(':externalId' => $this->externalId);
-        $results = $this->databaseService->executeQuery($query, $params);
-        $bid = $results->fetch(PDO::FETCH_COLUMN);
-        if (!$bid){
-            $query = "INSERT INTO bibles 
-            (source, externalId, volumeName, volumeNameAlt, languageCodeHL, 
-            languageName, languageEnglish,
-            collectionCode,format, audio, text, video, dateVerified) 
-            VALUES (:source, :externalId, :volumeName, :volumeNameAlt, 
-            :languageCodeHL, :languageName, :languageEnglish,
-            :collectionCode,:format,:audio,:text,:video,:dateVerified)";
-            $params = array(
-                ':source' => $this->source , 
-                ':externalId' => $this->externalId , 
-                ':volumeName' => $this->volumeName ,
-                ':volumeNameAlt' => $this->volumeNameAlt, 
-                ':languageCodeHL' => $this->languageCodeHL ,
-                ':languageName' => $this->languageName,
-                ':languageEnglish' => $this->languageEnglish,
-                ':collectionCode' => $this->collectionCode ,':format' => $this->format ,
-                ':audio' => $this->audio, ':text' => $this->text ,':video' => $this->video ,
-                ':dateVerified' => $this->dateVerified);
-            $this->databaseService->executeQuery($query, $params);
-        }
-
-    }
-    public function setBibleValues($data){
+    
+    protected function setBibleValues($data){
         if (!$data){
             return;
         }
@@ -291,6 +144,5 @@ class BibleModel {
         $this->video = $data->video;
         $this->weight = $data->weight;
         $this->dateVerified = $data->dateVerified;
-
     }
 }
