@@ -24,5 +24,5 @@ cd C:/ampp82/mysql/data/phpmyadmin
 ../../bin/myisamchk --force --recover pma__users.MYI
 cd c://ampp82/htdocs/api_mylanguage
 git add .
-git commit -m "Apply consistent line endings"
+git commit -m "Updated new Bible()"
 git push origin main

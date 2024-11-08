@@ -6,6 +6,7 @@ use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use App\Models\Language\TranslationModel as TranslationModel;
 use App\Models\Language\LanguageModel as LanguageModel;
+use App\Repositories\BibleRepository;
 
 abstract class MonolingualStudyTemplateController
 {
@@ -72,7 +73,7 @@ abstract class MonolingualStudyTemplateController
     
     protected function findBibleOne($languageCodeHL1, $testament='NT')
     {
-        $bible = new BibleModel();
+        $bible = new BibleModel($bibleRepository);
         $bible->setBestDbsBibleByLanguageCodeHL($languageCodeHL1, $testament);
         return $bible;
     }

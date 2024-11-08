@@ -2,8 +2,10 @@
 
 use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Repositories\BibleRepository;
 
-$bible=new BibleModel();
+$bibleRepository = new BibleRepository();
+$bible = new BibleModel($bibleRepository);
 $bible->selectBibleByBid(1026);
 
 $passage= new BibleReferenceInfoModel();
