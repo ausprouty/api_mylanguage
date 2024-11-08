@@ -8,7 +8,7 @@ use PDO as PDO;
 class LanguageModel
 
 {
-    protected $databaseService;
+    private $databaseService;
 
     private $id;
     private $dbService;

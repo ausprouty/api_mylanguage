@@ -5,17 +5,22 @@ namespace App\Controllers\BiblePassage\BibleGateway;
 use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use App\Models\Bible\BiblePassageModel as BiblePassageModel;
-use App\Models\Data\WebsiteConnectionModel as WebsiteConnectionModel;
+use App\Services\WebsiteConnectionService as WebsiteConnectionService;
+use App\Services\Database\DatabaseService;
 
 
 class BibleGatewayPassageController extends BiblePassageModel {
 
-    protected $databaseService;
+    private $databaseService;
     private $bibleReferenceInfo;
     private $bible;
 
 
-    public function __construct(DatabaseService $databaseService, BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
+    public function __construct(
+        DatabaseService $databaseService, 
+        BibleReferenceInfoModel $bibleReferenceInfo, 
+        BibleModel $bible
+        ){
         $this->databaseService = $databaseService;
         $this->bibleReferenceInfo=$bibleReferenceInfo;
         $this->bible = $bible;
@@ -40,7 +45,7 @@ class BibleGatewayPassageController extends BiblePassageModel {
 */
 	    $reference_shaped = str_replace(' ' , '%20', $this->bibleReferenceInfo->getEntry());
         $this->passageUrl= 'https://biblegateway.com/passage/?search='. $reference_shaped . '&version='. $this->bible->getExternalId() ;
-        $webpage = new WebsiteConnectionModel($this->passageUrl);
+        $webpage = new WebsiteConnectionService($this->passageUrl);
         if ($webpage->response){
             $this->passageText =  $this->formatExternal($webpage->response);
         }

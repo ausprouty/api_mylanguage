@@ -15,3 +15,10 @@ Translation at https://github.com/MicrosoftTranslator/Text-Translation-API-V3-PH
 
 Added Middleware;
 Cut out custom composer
+
+
+USE phpmyadmin;
+REPAIR TABLE pma__users;
+cd C:/ampp82/mysql/data/phpmyadmin
+
+../../bin/myisamchk --force --recover pma__users.MYI

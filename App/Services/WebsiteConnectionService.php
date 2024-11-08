@@ -1,11 +1,11 @@
 <?php
 /*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
 */
-namespace App\Models\Data;
+namespace App\Services;
 
 use Exception as Exception;
 
-class WebsiteConnectionModel
+class WebsiteConnectionService
 
 {
     protected $url;

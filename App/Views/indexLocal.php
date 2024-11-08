@@ -52,20 +52,20 @@ echo "
 <p><a href= '/api_mylanguage/test'>Current Test</a></p>
 
 <h2>Web Access</h2>
-<p><a href= '/api_mylanguage/webpage'>Access Webpage -OK</a></p>
+<p><a href= '/api_mylanguage/webpage'>Access Webpage -ok </a></p>
 
 <h2>Bible Brain</h2>
 
-<p><a href = '/api_mylanguage/test/biblebrain/languages/country'>Languages for Country -OK</a></p>
-<p><a href = '/api_mylanguage/test/biblebrain/bible/default'>Default Bible for Language -OK</a></p>
-<p><a href = '/api_mylanguage/test/biblebrain/bible/formats'>Format Types -OK<</a></p>
-<p><a href = '/api_mylanguage/test/biblebrain/passage/json'>Bible Text Json -OK</a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/languages/country'>Languages for Country  -ok </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/bible/default'>Default Bible for Language -ok  </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/bible/formats'>Format Types-ok </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/json'>Bible Text Json -ok </a></p>
 <p><a href = '/api_mylanguage/test/biblebrain/passage/plain'>Bible Text Plain</a></p>
-<p><a href = '/api_mylanguage/test/biblebrain/passage/formatted'>Bible Text Formatted -OK</a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/formatted'>Bible Text Formatted </a></p>
 <p><a href = '/api_mylanguage/test/biblebrain/passage/usx'>Bible Text USX</a></p>
 
 <h2>Bible Gateway</h2>
-<p> <a href= '/api_mylanguage/test/biblegateway'>Get Passage -OK</a></p>
+<p> <a href= '/api_mylanguage/test/biblegateway'>Get Passage </a></p>
 <h2>Word(local)</h2>
 <p> <a href= '/api_mylanguage/test/word/passage/af'>Get af Passage from external id</a></p>
 

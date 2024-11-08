@@ -3,9 +3,9 @@
 */
 namespace App\Models\Data;
 
-use App\Models\Data\WebsiteConnectionModel as WebsiteConnectionModel;
+use App\Services\WebsiteConnectionService as WebsiteConnectionService;
 
-class BibleBrainConnectionModel extends WebsiteConnectionModel
+class BibleBrainConnectionModel extends WebsiteConnectionService
 {
     public function __construct(string $url){
       $this->url = $url . '&v=4&key=' .  BIBLE_BRAIN_KEY;

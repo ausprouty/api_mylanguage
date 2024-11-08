@@ -10,6 +10,7 @@ use PDO as PDO;
 
 class BibleBrainLanguageController extends LanguageModel {
     private $databaseService;
+    
     public $languageCodeIso;
     public $response;
     public $LanguageCodeBibleBrain;

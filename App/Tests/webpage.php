@@ -1,8 +1,8 @@
 <?php
-use App\Models\Data\WebsiteConnectionModel as WebsiteConnectionModel;
+use App\Services\WebsiteConnectionService as WebsiteConnectionService;
 
 $url = 'https://hereslife.com';
 
-$website = new WebsiteConnectionModel($url);
+$website = new WebsiteConnectionService($url);
 echo "You should see the hereslife website below<br><hr>";
 echo ($website->response);

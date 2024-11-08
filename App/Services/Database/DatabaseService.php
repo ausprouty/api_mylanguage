@@ -28,7 +28,7 @@ class DatabaseService {
     private $charset;
     private $collation;
     private $prefix;
-    private $dbService;
+    private $dbConnection;
 
     /**
      * Constructor that initializes database configuration and establishes a connection.
@@ -64,8 +64,8 @@ class DatabaseService {
     private function connect() {
         try {
             $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->database};charset={$this->charset}";
-            $this->databaseService = new PDO($dsn, $this->username, $this->password);
-            $this->databaseService->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->dbConnection = new PDO($dsn, $this->username, $this->password);
+            $this->dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             throw new Exception("Failed to connect to the database: " . $e->getMessage());
         }
@@ -88,7 +88,7 @@ class DatabaseService {
     public function executeQuery(string $query, array $params = []) {
         try {
             // Prepare the query using the PDO connection
-            $results = $this->databaseService->prepare($query);
+            $results = $this->dbConnection->prepare($query);
             
             // Iterate over the provided parameters and bind each based on its type
             foreach ($params as $key => $value) {
@@ -119,7 +119,7 @@ class DatabaseService {
      */
     public function executeUpdate(string $query, array $params = []) {
         try {
-            $results = $this->databaseService->prepare($query);
+            $results = $this->dbConnection->prepare($query);
             $results->execute($params);
             return $results->rowCount();
         } catch (PDOException $e) {
@@ -137,7 +137,7 @@ class DatabaseService {
  */
 public function fetchColumn(string $query, array $params = []): array {
     try {
-        $results = $this->databaseService->prepare($query);
+        $results = $this->dbConnection->prepare($query);
         $results->execute($params);
         return $results->fetchAll(PDO::FETCH_COLUMN);
     } catch (PDOException $e) {
@@ -155,7 +155,7 @@ public function fetchColumn(string $query, array $params = []): array {
 public function fetchSingleValue(string $query, array $params = [])
 {
     try {
-        $results = $this->databaseService->prepare($query);
+        $results = $this->dbConnection->prepare($query);
         $results->execute($params);
         return $results->fetchColumn();
     } catch (PDOException $e) {
@@ -173,7 +173,7 @@ public function fetchSingleValue(string $query, array $params = [])
 public function fetchAll(string $query, array $params = []): array
 {
     try {
-        $results = $this->databaseService->prepare($query);
+        $results = $this->dbConnection->prepare($query);
         $results->execute($params);
         return $results->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -188,13 +188,13 @@ public function fetchAll(string $query, array $params = []): array
      * @return string The last inserted ID.
      */
     public function getLastInsertId(): string {
-        return $this->databaseService->lastInsertId();
+        return $this->dbConnection->lastInsertId();
     }
 
     /**
      * Closes the database connection.
      */
     public function closeConnection() {
-        $this->databaseService = null;
+        $this->dbConnection = null;
     }
 }
