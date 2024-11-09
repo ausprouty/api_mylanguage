@@ -1,12 +1,7 @@
 <?php
 namespace App\Models\BibleStudy;
 
-use App\Services\Database\DatabaseService;
-use PDO as PDO;
-//todo  I think this needs a rewrite
 class LifePrincipleReferenceModel {
-    protected $databaseService;
-
     private $lesson;
     private $description;
     private $reference;
@@ -17,62 +12,102 @@ class LifePrincipleReferenceModel {
     private $startTime;
     private $endTime;
 
-    public function __construct(DatabaseService $databaseService, $lesson = null, $reference= null, $description= null) {
-        $this->databaseService = $databaseService;
-        
+    public function __construct($lesson = null, $reference = null, $description = null) {
         $this->lesson = $lesson;
         $this->reference = $reference;
         $this->description = $description;
     }
 
-    public function setLesson($lesson)
+    // Getters
+    public function getLesson()
     {
-        $query = "SELECT * FROM life_principle_references WHERE lesson = :lesson";
-        $params = array('lesson'=>$lesson);
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-            if($data){
-                $this->lesson =$data->lesson;
-                $this->description =$data->description;
-                $this->reference= $data->reference;
-                $this->testament = $data->testament;
-                $this->question = $data->question;
-                $this->videoCode = $data->videoCode;
-                $this->videoSegment = $data->videoSegment;
-                $this->startTime = $data->startTime;
-                $this->endTime = $data->endTime;
-            }
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+        return $this->lesson;
     }
-    public function getDescription(){
+
+    public function getDescription()
+    {
         return $this->description;
     }
-    public function getEntry(){
+
+    public function getReference()
+    {
         return $this->reference;
     }
-    public function getTestament(){
+
+    public function getTestament()
+    {
         return $this->testament;
     }
-    public function getQuestion(){
+
+    public function getQuestion()
+    {
         return $this->question;
     }
-    public function getVideoCode(){
+
+    public function getVideoCode()
+    {
         return $this->videoCode;
     }
-    public function getVideoSegment(){
+
+    public function getVideoSegment()
+    {
         return $this->videoSegment;
     }
-    public function getStartTime(){
+
+    public function getStartTime()
+    {
         return $this->startTime;
     }
-    public function getendTime(){
+
+    public function getEndTime()
+    {
         return $this->endTime;
     }
-   
 
+    // Setters
+    public function setLesson($lesson)
+    {
+        $this->lesson = $lesson;
+    }
+
+    public function setDescription($description)
+    {
+        $this->description = $description;
+    }
+
+    public function setReference($reference)
+    {
+        $this->reference = $reference;
+    }
+
+    public function setTestament($testament)
+    {
+        $this->testament = $testament;
+    }
+
+    public function setQuestion($question)
+    {
+        $this->question = $question;
+    }
+
+    public function setVideoCode($videoCode)
+    {
+        $this->videoCode = $videoCode;
+    }
+
+    public function setVideoSegment($videoSegment)
+    {
+        $this->videoSegment = $videoSegment;
+    }
+
+    public function setStartTime($startTime)
+    {
+        $this->startTime = $startTime;
+    }
+
+    public function setEndTime($endTime)
+    {
+        $this->endTime = $endTime;
+    }
 }
 ?>

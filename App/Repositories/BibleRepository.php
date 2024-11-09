@@ -10,6 +10,35 @@ class BibleRepository {
     public function __construct(DatabaseService $databaseService) {
         $this->databaseService = $databaseService;
     }
+    public function addBibleBrainBible(){
+        echo ("external id is $this->externalId<br>");
+        $query = "SELECT bid  FROM bibles WHERE externalId = :externalId";
+        $params = array(':externalId' => $this->externalId);
+        $results = $this->databaseService->executeQuery($query, $params);
+        $bid = $results->fetch(PDO::FETCH_COLUMN);
+        if (!$bid){
+            $query = "INSERT INTO bibles 
+            (source, externalId, volumeName, volumeNameAlt, languageCodeHL, 
+            languageName, languageEnglish,
+            collectionCode,format, audio, text, video, dateVerified) 
+            VALUES (:source, :externalId, :volumeName, :volumeNameAlt, 
+            :languageCodeHL, :languageName, :languageEnglish,
+            :collectionCode,:format,:audio,:text,:video,:dateVerified)";
+            $params = array(
+                ':source' => $this->source , 
+                ':externalId' => $this->externalId , 
+                ':volumeName' => $this->volumeName ,
+                ':volumeNameAlt' => $this->volumeNameAlt, 
+                ':languageCodeHL' => $this->languageCodeHL ,
+                ':languageName' => $this->languageName,
+                ':languageEnglish' => $this->languageEnglish,
+                ':collectionCode' => $this->collectionCode ,':format' => $this->format ,
+                ':audio' => $this->audio, ':text' => $this->text ,':video' => $this->video ,
+                ':dateVerified' => $this->dateVerified);
+            $this->databaseService->executeQuery($query, $params);
+        }
+
+    }
 
     private function executeAndFetchAll($query, $params) {
         try {
@@ -116,35 +145,7 @@ class BibleRepository {
     }
 
     
-    public function addBibleBrainBible(){
-        echo ("external id is $this->externalId<br>");
-        $query = "SELECT bid  FROM bibles WHERE externalId = :externalId";
-        $params = array(':externalId' => $this->externalId);
-        $results = $this->databaseService->executeQuery($query, $params);
-        $bid = $results->fetch(PDO::FETCH_COLUMN);
-        if (!$bid){
-            $query = "INSERT INTO bibles 
-            (source, externalId, volumeName, volumeNameAlt, languageCodeHL, 
-            languageName, languageEnglish,
-            collectionCode,format, audio, text, video, dateVerified) 
-            VALUES (:source, :externalId, :volumeName, :volumeNameAlt, 
-            :languageCodeHL, :languageName, :languageEnglish,
-            :collectionCode,:format,:audio,:text,:video,:dateVerified)";
-            $params = array(
-                ':source' => $this->source , 
-                ':externalId' => $this->externalId , 
-                ':volumeName' => $this->volumeName ,
-                ':volumeNameAlt' => $this->volumeNameAlt, 
-                ':languageCodeHL' => $this->languageCodeHL ,
-                ':languageName' => $this->languageName,
-                ':languageEnglish' => $this->languageEnglish,
-                ':collectionCode' => $this->collectionCode ,':format' => $this->format ,
-                ':audio' => $this->audio, ':text' => $this->text ,':video' => $this->video ,
-                ':dateVerified' => $this->dateVerified);
-            $this->databaseService->executeQuery($query, $params);
-        }
-
-    }
+    
     public function updateWeight($bid, $weight){
         $query = "UPDATE bibles 
             SET weight = :weight
@@ -164,16 +165,5 @@ class BibleRepository {
 
     }
 
-
-
-
-
-
-
-
-
-
-
-    
-    
+   
 }

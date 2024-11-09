@@ -1,49 +1,47 @@
 <?php
 namespace App\Models\BibleStudy;
 
-use App\Services\Database\DatabaseService;
-use PDO as PDO;
-//todo  I think this needs a rewrite
 class DbsReferenceModel {
-    private $dbService;
     private $lesson;
     public $reference;
     public $description;
 
-    public function __construct(DatabaseService $databaseService, $lesson = null, $reference= null, $description= null) {
-        $this->databaseService = $databaseService;
-        
+    public function __construct($lesson = null, $reference = null, $description = null) {
         $this->lesson = $lesson;
         $this->reference = $reference;
         $this->description = $description;
     }
 
-    public function setLesson($lesson)
+    // Getters
+    public function getLesson()
     {
-        $query = "SELECT * FROM dbs_references WHERE lesson = :lesson";
-        $params = array('lesson'=>$lesson);
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-            if($data){
-                $this->lesson =$data->lesson;
-                $this->reference= $data->reference;
-                $this->description =$data->description;
-            }
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+        return $this->lesson;
     }
-    public function getEntry(){
+
+    public function getReference()
+    {
         return $this->reference;
     }
-    public function getDescription(){
+
+    public function getDescription()
+    {
         return $this->description;
     }
 
+    // Setters
+    public function setLesson($lesson)
+    {
+        $this->lesson = $lesson;
+    }
 
+    public function setReference($reference)
+    {
+        $this->reference = $reference;
+    }
 
-
+    public function setDescription($description)
+    {
+        $this->description = $description;
+    }
 }
 ?>
