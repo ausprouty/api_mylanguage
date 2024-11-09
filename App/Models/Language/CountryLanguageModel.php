@@ -2,54 +2,72 @@
 
 namespace App\Models\Language;
 
-use App\Services\Database\DatabaseService;
-use App\Models\Video\VideoModel as VideoModel;
-use PDO as PDO;
-use stdClass as stdClass;
+use stdClass;
 
 class CountryLanguageModel
 {
-    protected $databaseService;
-
     private $id;
     private $countryCode;
     private $languageCodeIso;
     private $languageCodeHL;
     private $languageNameEnglish;
-   
 
-    public function __construct(DatabaseService $databaseService){
-        $this->databaseService = $databaseService;
-        
-        $this->countryCode= '';
-        $this->langaugeCodeHL = '';
-        $this->languageNameEnglish= '';
+    public function __construct($countryCode = '', $languageCodeHL = '', $languageNameEnglish = '')
+    {
+        $this->countryCode = $countryCode;
+        $this->languageCodeHL = $languageCodeHL;
+        $this->languageNameEnglish = $languageNameEnglish;
     }
-    public function getLanguagesWithContentForCountry($countryCode){
-       $query = "SELECT *
-            FROM country_languages 
-            WHERE countryCode = :countryCode
-            AND languageCodeHL != :blank
-            GROUP BY languageCodeHL
-            ORDER BY languageNameEnglish";
-        $params = array(':countryCode'=> $countryCode,
-                    ':blank'=> '');
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $data = $results->fetchAll(PDO::FETCH_OBJ);
-            return $data;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+
+    // Getters
+    public function getCountryCode()
+    {
+        return $this->countryCode;
     }
-    public function addLanguageCodeJF($result){
+
+    public function getLanguageCodeIso()
+    {
+        return $this->languageCodeIso;
+    }
+
+    public function getLanguageCodeHL()
+    {
+        return $this->languageCodeHL;
+    }
+
+    public function getLanguageNameEnglish()
+    {
+        return $this->languageNameEnglish;
+    }
+
+    // Setters
+    public function setCountryCode($countryCode)
+    {
+        $this->countryCode = $countryCode;
+    }
+
+    public function setLanguageCodeIso($languageCodeIso)
+    {
+        $this->languageCodeIso = $languageCodeIso;
+    }
+
+    public function setLanguageCodeHL($languageCodeHL)
+    {
+        $this->languageCodeHL = $languageCodeHL;
+    }
+
+    public function setLanguageNameEnglish($languageNameEnglish)
+    {
+        $this->languageNameEnglish = $languageNameEnglish;
+    }
+
+    // Process languages to add custom language code JF
+    public function addLanguageCodeJF(array $languages)
+    {
         $data = [];
-        foreach ($result as $language){
-            $obj = new stdClass;
-            $obj = $language;
-            $obj->languageCodeJF = VideoModel::getLanguageCodeJF($language->languageCodeHL);
-            $data[] = $obj;
+        foreach ($languages as $language) {
+            $language->languageCodeJF = VideoModel::getLanguageCodeJF($language->languageCodeHL);
+            $data[] = $language;
         }
         return $data;
     }

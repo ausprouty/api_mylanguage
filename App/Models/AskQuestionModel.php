@@ -1,14 +1,10 @@
 <?php
-namespace App\Model;
+namespace App\Models;
 
-use App\Services\Database\DatabaseService;
-use PDO as PDO;
-
-class AskQuestionModel{
-    protected $databaseService;
-
+class AskQuestionModel
+{
     private $id;
-    private $langaugeCodeHL;
+    private $languageCodeHL;
     private $name;
     private $ethnicName;
     private $url;
@@ -19,54 +15,81 @@ class AskQuestionModel{
     private $tagline;
     private $weight;
 
-    public function __construct(DatabaseService $databaseService){
-        $this->databaseService = $databaseService;
-        $this->databaseService= '';
-        $this->id= '';
-        $this->langaugeCodeHL= '';
-        $this->name= '';
-        $this->ethnicName= '';
-        $this->url= '';
-        $this->contactPage= '';
-        $this->languageCodeTracts= '';
-        $this->promoText= '';
-        $this->promoImage= '';
-        $this->tagline= '';
-        $this->weight= '';
+    public function __construct($languageCodeHL = '', $name = '', $ethnicName = '', $url = '', $contactPage = '', $languageCodeTracts = '', $promoText = '', $promoImage = '', $tagline = '', $weight = 0)
+    {
+        $this->languageCodeHL = $languageCodeHL;
+        $this->name = $name;
+        $this->ethnicName = $ethnicName;
+        $this->url = $url;
+        $this->contactPage = $contactPage;
+        $this->languageCodeTracts = $languageCodeTracts;
+        $this->promoText = $promoText;
+        $this->promoImage = $promoImage;
+        $this->tagline = $tagline;
+        $this->weight = $weight;
     }
-    public function setBestSiteByLanguageCodeHL($code){
-        $dbService = new DatabaseService();
-        $query = "SELECT * FROM ask_questions 
-            WHERE languageCodeHL = :code 
-            ORDER BY weight DESC LIMIT 1";
-        $params = array(':code'=>$code);
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-            $this->setValues($data);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+
+    // Getters
+    public function getId()
+    {
+        return $this->id;
     }
-    static function getBestSiteByLanguageCodeHL($code){
-        $dbService = new DatabaseService();
-        $query = "SELECT * FROM ask_questions 
-            WHERE languageCodeHL = :code 
-            ORDER BY weight DESC LIMIT 1";
-        $params = array(':code'=>$code);
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-            return $data;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+
+    public function getLanguageCodeHL()
+    {
+        return $this->languageCodeHL;
     }
-    private function setValues($data){
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function getEthnicName()
+    {
+        return $this->ethnicName;
+    }
+
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
+    public function getContactPage()
+    {
+        return $this->contactPage;
+    }
+
+    public function getLanguageCodeTracts()
+    {
+        return $this->languageCodeTracts;
+    }
+
+    public function getPromoText()
+    {
+        return $this->promoText;
+    }
+
+    public function getPromoImage()
+    {
+        return $this->promoImage;
+    }
+
+    public function getTagline()
+    {
+        return $this->tagline;
+    }
+
+    public function getWeight()
+    {
+        return $this->weight;
+    }
+
+    // Method to set values from a database object
+    public function setValues($data)
+    {
         $this->id = $data->id;
-        $this->langaugeCodeHL = $data->angaugeCodeHL;
+        $this->languageCodeHL = $data->languageCodeHL;
         $this->name = $data->name;
         $this->ethnicName = $data->ethnicName;
         $this->url = $data->url;
