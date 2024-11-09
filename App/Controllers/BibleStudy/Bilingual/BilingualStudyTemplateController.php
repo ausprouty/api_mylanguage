@@ -7,10 +7,12 @@ use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use App\Models\Language\TranslationModel as TranslationModel;
 use App\Models\Language\LanguageModel as LanguageModel;
+use App\Repositories\LanguageRepository;
 use App\Repositories\BibleRepository;
 
 abstract class BilingualStudyTemplateController
 {
+    protected  $languageRepository;
     protected  $bible1;
     protected  $bible2;
     protected  $bibleBlock;
@@ -45,9 +47,9 @@ abstract class BilingualStudyTemplateController
    
     public function __construct( string $languageCodeHL1, string $languageCodeHL2, $lesson)
     {   
-        $this->language1 = new LanguageModel();
+        $this->language1 = new LanguageModel($this->languageRepository);
         $this->language1->findOneByLanguageCodeHL( $languageCodeHL1);
-        $this->language2 = new LanguageModel();
+        $this->language2 = new LanguageModel($this->languageRepository);
         $this->language2->findOneByLanguageCodeHL( $languageCodeHL2);
         $this->bibleBlock = '';
         $this->biblePassage1 = '';
@@ -89,13 +91,13 @@ abstract class BilingualStudyTemplateController
     
     protected function findBibleOne($languageCodeHL1, $testament='NT')
     {
-        $bible = new BibleModel($bibleRepository);
+        $bible = new BibleModel($this->bibleRepository);
         $bible->setBestDbsBibleByLanguageCodeHL($languageCodeHL1, $testament);
         return $bible;
     }
     protected function findBibleTwo($languageCodeHL2, $testament= 'NT')
     {
-        $bible = new BibleModel($bibleRepository);
+        $bible = new BibleModel($this->bibleRepository);
         $bible->setBestDbsBibleByLanguageCodeHL($languageCodeHL2, $testament);
         return $bible;
     }

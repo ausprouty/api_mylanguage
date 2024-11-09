@@ -2,20 +2,13 @@
 
 namespace App\Models\Language;
 
-use App\Services\Database\DatabaseService;
-use PDO as PDO;
+use App\Repositories\LanguageRepository;
 
-class LanguageModel
-
-{
-    private $databaseService;
-
+class LanguageModel {
     private $id;
-    private $dbService;
     private $name;
     private $ethnicName;
     private $languageCodeBibleBrain;
-    private $languageCodeDrupal;
     private $languageCodeHL;
     private $languageCodeIso;
     private $languageCodeBing;
@@ -25,219 +18,131 @@ class LanguageModel
     private $numeralSet;
     private $isChinese;
     private $font;
-    private $fontData; // array used by PDFContoller;
+    private $fontData;
 
-    public function __construct(DatabaseService $databaseService){
-        $this->databaseService = $databaseService;
-        }
+    private $repository;
 
-    public function findOneByLanguageCodeHL($languageCodeHL){
-        $data =  $this->findOneByCode('HL', $languageCodeHL);
-        return $data;
+    public function __construct(LanguageRepository $repository) {
+        $this->repository = $repository;
     }
 
-    public function findOneByCode(string $source, string $code){
-        $field ='languageCode'.$source;
-        $query = 'SELECT * FROM hl_languages WHERE ' .$field .'= :id ';
-        $params = array(':id'=> $code );
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_OBJ);
-            if ($data) {
-                $this->id = $data->id  ;
-                $this->name = $data->name  ;
-                $this->ethnicName = $data->ethnicName  ;
-                $this->languageCodeBibleBrain = $data->languageCodeBibleBrain  ;
-                $this->languageCodeHL = $data->languageCodeHL  ;
-                $this->languageCodeIso = $data->languageCodeIso  ;
-                $this->languageCodeBing = $data->languageCodeBing  ;
-                $this->languageCodeBrowser = $data->languageCodeBrowser  ;
-                $this->languageCodeDrupal = $data->languageCodeDrupal  ;
-                $this->languageCodeGoogle = $data->languageCodeGoogle  ;
-                $this->direction = $data->direction  ;
-                $this->numeralSet = $data->numeralSet  ;
-                $this->isChinese = $data->isChinese  ;
-                $this->font = $data->font;
-                $this->fontData = null;
-                if ($data->fontData !== null){
-                    $this->fontData = json_decode($data->fontData, true);
-                }
-            }
-            return $data;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
+    /**
+     * Loads a language by its HL code and populates the model's properties
+     */
+    public function loadByCodeHL($languageCodeHL) {
+        $data = $this->repository->findOneByLanguageCodeHL($languageCodeHL);
+        if ($data) {
+            $this->populate($data);
         }
     }
-   
-    static function getCodeIsoFromCodeHL ($languageCodeHL){
-        $dbService = new DatabaseService();
-        $query = "SELECT languageCodeIso
-            FROM hl_languages
-            WHERE languageCodeHL = :languageCodeHL
-            LIMIT 1";
-        $params = array(':languageCodeHL'=>$languageCodeHL);
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $languageCodeIso = $results->fetch(PDO::FETCH_COLUMN);
-            return $languageCodeIso;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
 
+    /**
+     * Populates model properties with data
+     */
+    private function populate($data) {
+        $this->id = $data->id;
+        $this->name = $data->name;
+        $this->ethnicName = $data->ethnicName;
+        $this->languageCodeBibleBrain = $data->languageCodeBibleBrain;
+        $this->languageCodeHL = $data->languageCodeHL;
+        $this->languageCodeIso = $data->languageCodeIso;
+        $this->languageCodeBing = $data->languageCodeBing;
+        $this->languageCodeBrowser = $data->languageCodeBrowser;
+        $this->languageCodeGoogle = $data->languageCodeGoogle;
+        $this->direction = $data->direction;
+        $this->numeralSet = $data->numeralSet;
+        $this->isChinese = $data->isChinese;
+        $this->font = $data->font;
+        $this->fontData = $data->fontData ? json_decode($data->fontData, true) : null;
+    }
 
+    // Getters for accessing properties of the language model
+    public function getId() {
+        return $this->id;
     }
-    static function getEnglishNameFromCodeHL ($languageCodeHL){
-        $dbService = new DatabaseService();
-        $query = "SELECT name
-            FROM hl_languages
-            WHERE languageCodeHL = :languageCodeHL
-            LIMIT 1";
-        $params = array(':languageCodeHL'=>$languageCodeHL);
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $languageCodeIso = $results->fetch(PDO::FETCH_COLUMN);
-            return $languageCodeIso;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-    }
-    static function getFontDataFromCodeHL($languageCodeHL){
-        $dbService = new DatabaseService();
-        $query = "SELECT fontData
-            FROM hl_languages
-            WHERE languageCodeHL = :languageCodeHL
-            LIMIT 1";
-        $params = array(':languageCodeHL'=>$languageCodeHL);
-        try {
-            $results =$this->databaseService->executeQuery($query, $params);
-            $data = $results->fetch(PDO::FETCH_COLUMN);
-            if ($data != NULL){
-                return json_decode($data, true);
-            }
-            else{
-                return NULL;
-            }
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
 
-    }
     public function getName() {
         return $this->name;
     }
+
     public function getEthnicName() {
         return $this->ethnicName;
     }
+
     public function getLanguageCodeBibleBrain() {
         return $this->languageCodeBibleBrain;
     }
+
     public function getLanguageCodeHL() {
         return $this->languageCodeHL;
     }
+
     public function getLanguageCodeIso() {
         return $this->languageCodeIso;
     }
+
     public function getLanguageCodeBing() {
         return $this->languageCodeBing;
     }
+
     public function getLanguageCodeBrowser() {
         return $this->languageCodeBrowser;
     }
-    public function getLanguageCodeDrupal() {
-        return $this->languageCodeDrupal;
-    }
+
     public function getLanguageCodeGoogle() {
         return $this->languageCodeGoogle;
     }
-    public function getDirection() {
-        if ($this->direction == 'rtl'){
-            return $this->direction;
-        }
-        else{
-            return 'ltr';
 
-        }
-       
+    public function getDirection() {
+        // Ensure default to 'ltr' if not 'rtl'
+        return $this->direction === 'rtl' ? 'rtl' : 'ltr';
     }
+
     public function getNumeralSet() {
         return $this->numeralSet;
     }
+
     public function getIsChinese() {
         return $this->isChinese;
     }
+
     public function getFont() {
         return $this->font;
     }
-    public function getFontData(){
+
+    public function getFontData() {
         return $this->fontData;
     }
-    protected function CreateLanguageFromBibleBrainRecord($record){
-        $languageCodeHL = $record->iso . '23';
-        if ($record->name == NULL){
-            writeLogAppend ('ERROR - CreateLanguageFromBibleBrainRecord', $record);
-            $record->name = ' ';
-        }
-        $query = 'INSERT INTO hl_languages (languageCodeHL,  languageCodeIso, name, ethnicName, languageCodeBibleBrain) 
-        VALUES (:languageCodeHL, :languageCodeIso, :name, :ethnicName, :languageCodeBibleBrain)';
-        $params = array(
-            ':languageCodeHL' => $languageCodeHL,
-            ':languageCodeIso' => $record->iso,
-            ':name' => $record->name,
-            ':ethnicName'=> $record->autonym, 
-            ':languageCodeBibleBrain'=> $record->id
-        );
-        $this->databaseService = new DatabaseService();
-        $this->databaseService->executeQuery($query, $params);
 
+    /**
+     * Creates a new language entry from a BibleBrain API record
+     */
+    public function createFromBibleBrainRecord($record) {
+        $languageCodeHL = $record->iso . '24';
+        $this->name = $record->name ?? 'Unknown';
+        $this->ethnicName = $record->autonym;
+        $this->languageCodeIso = $record->iso;
+        $this->languageCodeBibleBrain = $record->id;
+        $this->languageCodeHL = $languageCodeHL;
+
+        $this->repository->createLanguage($this); // Save to database through repository
     }
-    protected function LanguageIsoRecordExists($languageCodeIso)
-    {
-        $query = 'SELECT id FROM hl_languages WHERE languageCodeIso = :languageCodeIso LIMIT 1';
-        $params = array(':languageCodeIso' => $languageCodeIso);
-        try {
-            $this->databaseService = new DatabaseService();
-            $results = $this->databaseService->executeQuery($query, $params);
-            $id = $results->fetch(PDO::FETCH_COLUMN);
-            return $id;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+
+    /**
+     * Updates the ethnic name for a given ISO code.
+     * This modifies both the model's property and updates the database.
+     */
+    public function updateEthnicName($ethnicName) {
+        $this->ethnicName = $ethnicName;
+        $this->repository->updateEthnicNameFromIso($this->languageCodeIso, $ethnicName);
     }
-    protected function EthnicNamesForLanguageIso($languageCodeIso)
-    {
-        $query = 'SELECT ethnicName FROM hl_languages WHERE languageCodeIso = :languageCodeIso';
-        $params = array(':languageCodeIso' => $languageCodeIso);
-        try {
-            $this->databaseService = new DatabaseService();
-            $results = $this->databaseService->executeQuery($query, $params);
-            $ethnicNames = $results->fetchALL(PDO::FETCH_COLUMN);
-            return $ethnicNames;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-    }
-    protected function UpdateEthnicNameFromIso($languageCodeIso, $ethnicName){
-        $query = 'UPDATE hl_languages SET ethnicName = :ethnicName 
-             WHERE languageCodeIso = :languageCodeIso';
-        $params = array(':languageCodeIso' => $languageCodeIso, ':ethnicName'=> $ethnicName
-        );
-        $this->databaseService = new DatabaseService();
-        $this->databaseService->executeQuery($query, $params);
-    }
-    protected function UpdateLanguageCodeBibleBrainFromIso($languageCodeIso, $languageCodeBibleBrain)
-    {
-        $query = 'UPDATE hl_languages SET languageCodeBibleBrain = :languageCodeBibleBrain 
-             WHERE languageCodeIso = :languageCodeIso';
-        $params = array(
-            ':languageCodeIso' => $languageCodeIso, ':languageCodeBibleBrain' => $languageCodeBibleBrain
-        );
-        $this->databaseService = new DatabaseService();
-        $this->databaseService->executeQuery($query, $params);
+
+    /**
+     * Updates the BibleBrain language code for a given ISO code.
+     * This modifies both the model's property and updates the database.
+     */
+    public function updateBibleBrainCode($languageCodeBibleBrain) {
+        $this->languageCodeBibleBrain = $languageCodeBibleBrain;
+        $this->repository->updateLanguageCodeBibleBrainFromIso($this->languageCodeIso, $languageCodeBibleBrain);
     }
 }

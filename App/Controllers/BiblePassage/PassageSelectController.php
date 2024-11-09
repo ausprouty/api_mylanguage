@@ -12,10 +12,11 @@ use App\Models\Bible\BiblePassageModel as BiblePassageModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use App\Services\Database\DatabaseService;
 use App\Models\Language\LanguageModel as LanguageModel;
+use App\Repositories\LanguageRepository as LanguageRepository;
 
 class PassageSelectController extends BiblePassageModel
 {
-
+    private $languageRepository;
     protected $databaseService;
     protected $bibleReferenceInfo;
     private $bible;
@@ -24,9 +25,15 @@ class PassageSelectController extends BiblePassageModel
     public  $passageUrl;
     public  $referenceLocalLanguage;
 
-    public function __construct(DatabaseService $databaseService,  BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
+    public function __construct(
+        DatabaseService $databaseService,  
+        BibleReferenceInfoModel $bibleReferenceInfo, 
+        BibleModel $bible,
+        LanguageRepository $languageRepository
+        ){
             $this->databaseService = $databaseService;
-            $this->bibleReferenceInfo=$bibleReferenceInfo;
+            $this->bibleReferenceInfo = $bibleReferenceInfo;
+            $this->languageRepository = $languageRepository;
             $this->bible = $bible;
             $this->passageText= null;
             $this->passageUrl= null;
@@ -105,14 +112,13 @@ class PassageSelectController extends BiblePassageModel
     }
     private function updateDirection(){
         $languageCodeHL = $this->bible->getLanguageCodeHL();
-        $language = new LanguageModel();
+        $language = new LanguageModel($lthis->anguageRepository);
         $language->findOneByLanguageCodeHL( $languageCodeHL);
         $direction = $language->getDirection();
         $dir = 'ltr';
         if ($direction == 'rtl'){
             $dir = 'rtl';
         }
-        $databaseService = new DatabaseService();
         $query = "UPDATE bibles
             SET direction = :dir
             WHERE languageCodeHL = :languageCodeHL";
@@ -120,7 +126,7 @@ class PassageSelectController extends BiblePassageModel
             ':languageCodeHL'=>  $languageCodeHL,
             ':dir'=> $dir
         );
-        $results = $databaseService->executeQuery($query, $params);
+        $results = $this->databaseService->executeQuery($query, $params);
         return $dir;
     }
 

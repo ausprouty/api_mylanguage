@@ -7,6 +7,7 @@ use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use App\Models\Language\TranslationModel as TranslationModel;
 use App\Models\Language\LanguageModel as LanguageModel;
 use App\Repositories\BibleRepository;
+use App\Repositories\LanguageRepository;
 
 abstract class MonolingualStudyTemplateController
 {
@@ -39,9 +40,9 @@ abstract class MonolingualStudyTemplateController
     abstract protected function setFileName();
 	abstract protected function setUniqueTemplateValues();
    
-    public function __construct( string $lesson, $languageCodeHL1)
+    public function __construct( LanguageRepository $languageRepository, string $lesson, string $languageCodeHL1)
     {   
-        $this->language1 = new LanguageModel();
+        $this->language1 = new LanguageModel($this->languageRepository);
         $this->language1->findOneByLanguageCodeHL( $languageCodeHL1);
         $this->bibleBlock = '';
         $this->biblePassage1 = '';
@@ -73,7 +74,7 @@ abstract class MonolingualStudyTemplateController
     
     protected function findBibleOne($languageCodeHL1, $testament='NT')
     {
-        $bible = new BibleModel($bibleRepository);
+        $bible = new BibleModel($this->bibleRepository);
         $bible->setBestDbsBibleByLanguageCodeHL($languageCodeHL1, $testament);
         return $bible;
     }

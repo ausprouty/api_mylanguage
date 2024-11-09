@@ -145,4 +145,31 @@ class BibleModel {
         $this->weight = $data->weight;
         $this->dateVerified = $data->dateVerified;
     }
+
+    public function setLanguageData($autonym, $language, $iso) {
+        $this->languageName = $autonym;
+        $this->languageEnglish = $language;
+        $this->languageCodeIso = $iso;
+    }
+
+    public function resetMediaFlags() {
+        $this->text = 0;
+        $this->audio = 0;
+        $this->video = 0;
+    }
+
+    public function determineMediaType($type, $audioTypes, $textTypes, $videoTypes) {
+        if (in_array($type, $textTypes)) $this->text = 1;
+        if (in_array($type, $audioTypes)) $this->audio = 1;
+        if (in_array($type, $videoTypes)) $this->video = 1;
+    }
+
+    public function prepareForSave($source, $externalId, $volume = null, $collectionCode, $format) {
+        $this->source = $source;
+        $this->externalId = $externalId;
+        $this->volumeName = $volume ?? $this->volumeName;
+        $this->collectionCode = $collectionCode;
+        $this->dateVerified = date('Y-m-d');
+        $this->format = $format;
+    }
 }
