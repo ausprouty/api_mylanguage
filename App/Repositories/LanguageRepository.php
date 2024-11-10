@@ -4,28 +4,31 @@ namespace App\Repositories;
 
 use App\Services\Database\DatabaseService;
 use App\Models\Language\LanguageModel;
-use PDO;
-use Exception;
 
-class LanguageRepository {
+class LanguageRepository
+{
     private $databaseService;
 
-    public function __construct(DatabaseService $databaseService) {
+    public function __construct(DatabaseService $databaseService)
+    {
         $this->databaseService = $databaseService;
     }
 
-    public function bibleBrainLanguageRecordExists($languageCodeBibleBrain) {
+    public function bibleBrainLanguageRecordExists($languageCodeBibleBrain): bool
+    {
         $query = 'SELECT id FROM hl_languages WHERE languageCodeBibleBrain = :languageCodeBibleBrain LIMIT 1';
         $params = [':languageCodeBibleBrain' => $languageCodeBibleBrain];
-        return $this->fetchColumn($query, $params) !== false;
+        return $this->databaseService->fetchSingleValue($query, $params) !== null;
     }
 
-    public function clearCheckedBBBibles() {
+    public function clearCheckedBBBibles(): void
+    {
         $query = 'UPDATE hl_languages SET CheckedBBBibles = NULL';
         $this->databaseService->executeQuery($query);
     }
 
-    public function createLanguageFromBibleBrainRecord(LanguageModel $language) {
+    public function createLanguageFromBibleBrainRecord(LanguageModel $language): void
+    {
         $query = 'INSERT INTO hl_languages (languageCodeBibleBrain, languageCodeIso, name, ethnicName) 
                   VALUES (:languageCodeBibleBrain, :languageCodeIso, :name, :ethnicName)';
         $params = [
@@ -37,53 +40,53 @@ class LanguageRepository {
         $this->databaseService->executeQuery($query, $params);
     }
 
-    public function ethnicNamesForLanguageIso($languageCodeIso) {
+    public function getEthnicNamesForLanguageIso($languageCodeIso): ?array
+    {
         $query = 'SELECT ethnicName FROM hl_languages WHERE languageCodeIso = :languageCodeIso';
-        return $this->fetchAll($query, [':languageCodeIso' => $languageCodeIso], PDO::FETCH_COLUMN);
+        return $this->databaseService->fetchColumn($query, [':languageCodeIso' => $languageCodeIso]);
     }
 
-    public function findOneByCode(string $source, string $code) {
+    public function findOneByCode(string $source, string $code): ?LanguageModel
+    {
         $field = 'languageCode' . $source;
         $query = 'SELECT * FROM hl_languages WHERE ' . $field . ' = :id';
-        return $this->fetchSingle($query, [':id' => $code]);
+        $data = $this->databaseService->fetchRow($query, [':id' => $code]);
+        return $data ? new LanguageModel($data) : null;
     }
 
-    public function findOneByLanguageCodeHL($languageCodeHL) {
-        return $this->findOneByCode('HL', $languageCodeHL);
-    }
-
-    public function getCodeIsoFromCodeHL($languageCodeHL) {
+    public function getCodeIsoFromCodeHL($languageCodeHL): ?string
+    {
         $query = "SELECT languageCodeIso FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
-        return $this->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
+        return $this->databaseService->fetchSingleValue($query, [':languageCodeHL' => $languageCodeHL]);
     }
 
-    public function getEnglishNameFromCodeHL($languageCodeHL) {
+    public function getEnglishNameFromCodeHL($languageCodeHL): ?string
+    {
         $query = "SELECT name FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
-        return $this->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
+        return $this->databaseService->fetchSingleValue($query, [':languageCodeHL' => $languageCodeHL]);
     }
 
-    public function getEthnicNamesForLanguageIso($languageCodeIso) {
-        $query = 'SELECT ethnicName FROM hl_languages WHERE languageCodeIso = :languageCodeIso';
-        return $this->fetchAll($query, [':languageCodeIso' => $languageCodeIso], PDO::FETCH_COLUMN);
-    }
-
-    public function getFontDataFromCodeHL($languageCodeHL) {
+    public function getFontDataFromCodeHL($languageCodeHL): ?array
+    {
         $query = "SELECT fontData FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
-        $data = $this->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
+        $data = $this->databaseService->fetchSingleValue($query, [':languageCodeHL' => $languageCodeHL]);
         return $data ? json_decode($data, true) : null;
     }
 
-    public function getLanguageCodes($languageCodeIso) {
+    public function getLanguageCodes($languageCodeIso): ?array
+    {
         $query = 'SELECT languageCodeHL, languageCodeBibleBrain FROM hl_languages WHERE languageCodeIso = :languageCodeIso LIMIT 1';
-        return $this->fetchSingle($query, [':languageCodeIso' => $languageCodeIso]);
+        return $this->databaseService->fetchRow($query, [':languageCodeIso' => $languageCodeIso]);
     }
 
-    public function getNextLanguageForLanguageDetails() {
+    public function getNextLanguageForLanguageDetails(): ?string
+    {
         $query = "SELECT languageCodeIso FROM hl_languages WHERE languageCodeBibleBrain IS NULL AND checkedBBBibles IS NOT NULL LIMIT 1";
-        return $this->fetchColumn($query);
+        return $this->databaseService->fetchSingleValue($query);
     }
 
-    public function insertLanguage($languageCodeIso, $name) {
+    public function insertLanguage($languageCodeIso, $name): void
+    {
         $languageCodeHL = $languageCodeIso . date('y');
         $query = 'INSERT INTO hl_languages (languageCodeIso, languageCodeHL, name) VALUES (:languageCodeIso, :languageCodeHL, :name)';
         $params = [
@@ -94,63 +97,33 @@ class LanguageRepository {
         $this->databaseService->executeQuery($query, $params);
     }
 
-    public function languageIsoRecordExists($languageCodeIso) {
+    public function languageIsoRecordExists($languageCodeIso): bool
+    {
         $query = 'SELECT id FROM hl_languages WHERE languageCodeIso = :languageCodeIso LIMIT 1';
-        return $this->fetchColumn($query, [':languageCodeIso' => $languageCodeIso]);
+        return $this->databaseService->fetchSingleValue($query, [':languageCodeIso' => $languageCodeIso]) !== null;
     }
 
-    public function setLanguageDetailsComplete($languageCodeIso) {
+    public function setLanguageDetailsComplete($languageCodeIso): void
+    {
         $query = "UPDATE hl_languages SET checkedBBBibles = NULL WHERE languageCodeIso = :languageCodeIso LIMIT 1";
-        $params = [':languageCodeIso' => $languageCodeIso];
-        $this->databaseService->executeQuery($query, $params);
+        $this->databaseService->executeQuery($query, [':languageCodeIso' => $languageCodeIso]);
     }
 
-    public function updateEthnicName($languageCodeIso, $ethnicName) {
+    public function updateEthnicName($languageCodeIso, $ethnicName): void
+    {
         $query = "UPDATE hl_languages SET ethnicName = :ethnicName WHERE languageCodeIso = :languageCodeIso";
-        $params = [
+        $this->databaseService->executeQuery($query, [
             ':ethnicName' => $ethnicName,
             ':languageCodeIso' => $languageCodeIso
-        ];
-        $this->databaseService->executeQuery($query, $params);
+        ]);
     }
 
-    public function updateLanguageCodeBibleBrain($languageCodeIso, $languageCodeBibleBrain) {
+    public function updateLanguageCodeBibleBrain($languageCodeIso, $languageCodeBibleBrain): void
+    {
         $query = "UPDATE hl_languages SET languageCodeBibleBrain = :languageCodeBibleBrain WHERE languageCodeIso = :languageCodeIso";
-        $params = [
+        $this->databaseService->executeQuery($query, [
             ':languageCodeBibleBrain' => $languageCodeBibleBrain,
             ':languageCodeIso' => $languageCodeIso
-        ];
-        $this->databaseService->executeQuery($query, $params);
-    }
-
-    // Utility methods
-    private function fetchAll($query, $params, $fetchStyle) {
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            return $results->fetchAll($fetchStyle);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return [];
-        }
-    }
-
-    private function fetchColumn($query, $params) {
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            return $results->fetch(PDO::FETCH_COLUMN);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
-    }
-
-    private function fetchSingle($query, $params) {
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            return $results->fetch(PDO::FETCH_OBJ);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+        ]);
     }
 }

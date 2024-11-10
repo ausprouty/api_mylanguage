@@ -4,10 +4,9 @@ namespace App\Repositories;
 
 use App\Services\Database\DatabaseService;
 use App\Models\Language\DbsLanguageModel;
-use PDO;
-use Exception;
 
-class DbsLanguageRepository {
+class DbsLanguageRepository
+{
     private $databaseService;
 
     public function __construct(DatabaseService $databaseService)
@@ -15,9 +14,14 @@ class DbsLanguageRepository {
         $this->databaseService = $databaseService;
     }
 
+    /**
+     * Save the DbsLanguageModel to the database.
+     * Inserts a new record if it doesn't exist; updates it if it does.
+     *
+     * @param DbsLanguageModel $dbsLanguage
+     */
     public function save(DbsLanguageModel $dbsLanguage)
     {
-        // Check if the record exists
         if ($this->recordExists($dbsLanguage->getLanguageCodeHL())) {
             $this->updateRecord($dbsLanguage);
         } else {
@@ -25,20 +29,25 @@ class DbsLanguageRepository {
         }
     }
 
-    private function recordExists($languageCodeHL)
+    /**
+     * Checks if a record exists by languageCodeHL.
+     *
+     * @param string $languageCodeHL
+     * @return bool
+     */
+    private function recordExists(string $languageCodeHL): bool
     {
         $query = "SELECT languageCodeHL FROM dbs_languages WHERE languageCodeHL = :code LIMIT 1";
         $params = [':code' => $languageCodeHL];
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            return $results->fetch(PDO::FETCH_COLUMN) !== false;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return false;
-        }
+        return (bool) $this->databaseService->fetchSingleValue($query, $params);
     }
 
-    private function insertRecord(DbsLanguageModel $dbsLanguage)
+    /**
+     * Inserts a new record into dbs_languages.
+     *
+     * @param DbsLanguageModel $dbsLanguage
+     */
+    private function insertRecord(DbsLanguageModel $dbsLanguage): void
     {
         $query = "INSERT INTO dbs_languages (languageCodeHL, collectionCode, format)
                   VALUES (:languageCodeHL, :collectionCode, :format)";
@@ -47,14 +56,15 @@ class DbsLanguageRepository {
             ':collectionCode' => $dbsLanguage->getCollectionCode(),
             ':format' => $dbsLanguage->getFormat()
         ];
-        try {
-            $this->databaseService->executeQuery($query, $params);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-        }
+        $this->databaseService->executeQuery($query, $params);
     }
 
-    private function updateRecord(DbsLanguageModel $dbsLanguage)
+    /**
+     * Updates an existing record in dbs_languages.
+     *
+     * @param DbsLanguageModel $dbsLanguage
+     */
+    private function updateRecord(DbsLanguageModel $dbsLanguage): void
     {
         $query = "UPDATE dbs_languages
                   SET collectionCode = :collectionCode, format = :format
@@ -65,10 +75,6 @@ class DbsLanguageRepository {
             ':format' => $dbsLanguage->getFormat(),
             ':languageCodeHL' => $dbsLanguage->getLanguageCodeHL()
         ];
-        try {
-            $this->databaseService->executeQuery($query, $params);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-        }
+        $this->databaseService->executeQuery($query, $params);
     }
 }

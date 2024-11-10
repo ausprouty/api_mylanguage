@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Services\Database\DatabaseService;
 use App\Models\Language\CountryLanguageModel;
 use PDO;
+use Exception;
 
 class CountryLanguageRepository
 {
@@ -28,20 +29,18 @@ class CountryLanguageRepository
         ];
 
         try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            $data = $results->fetchAll(PDO::FETCH_OBJ);
+            $data = $this->databaseService->fetchAll($query, $params);
 
-            $languages = [];
-            foreach ($data as $row) {
-                $languages[] = new CountryLanguageModel(
+            return array_map(function ($row) {
+                return new CountryLanguageModel(
                     $row->countryCode,
                     $row->languageCodeHL,
                     $row->languageNameEnglish
                 );
-            }
-            return $languages;
+            }, $data);
+
         } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
+            error_log("Error fetching languages for country code $countryCode: " . $e->getMessage());
             return null;
         }
     }

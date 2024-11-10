@@ -3,9 +3,6 @@
 namespace App\Repositories;
 
 use App\Services\Database\DatabaseService;
-use App\Models\Video\VideoModel;
-use PDO;
-use Exception;
 
 class VideoRepository
 {
@@ -23,13 +20,7 @@ class VideoRepository
                   ORDER BY weight DESC LIMIT 1";
         $params = [':languageCodeHL' => $languageCodeHL];
         
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            return $results->fetch(PDO::FETCH_COLUMN);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+        return $this->databaseService->fetchSingleValue($query, $params);
     }
 
     public function getLanguageCodeJFFollowingJesus($languageCodeHL)
@@ -43,26 +34,14 @@ class VideoRepository
             ':following' => '%Following Jesus%'
         ];
         
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            return $results->fetch(PDO::FETCH_COLUMN);
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+        return $this->databaseService->fetchSingleValue($query, $params);
     }
 
-    public function videoExists($videoCode)
+    public function videoExists($videoCode): bool
     {
         $query = "SELECT videoCode FROM jesus_video_languages WHERE videoCode = :videoCode LIMIT 1";
         $params = [':videoCode' => $videoCode];
         
-        try {
-            $results = $this->databaseService->executeQuery($query, $params);
-            return $results->fetch(PDO::FETCH_COLUMN) !== false;
-        } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+        return (bool) $this->databaseService->fetchSingleValue($query, $params);
     }
 }
