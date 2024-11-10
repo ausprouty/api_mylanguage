@@ -2,58 +2,60 @@
 
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Controllers\BiblePassage\BibleBrain\BibleBrainPassageController;
-use App\Models\Data\CloudFrontConnectionModel as CloudFrontConnectionModel;
+use App\Services\BibleBrainPassageService;
+use App\Models\Data\CloudFrontConnectionModel;
 
-class BibleBrainTextJsonController extends BibleBrainPassageController
+class BibleBrainTextJsonController
 {
+    private $passageService;
+    private $cloudFrontConnection;
+    public $json;
 
-  public $json;
-    /*array(1) {
-  [0]=>
-  object(stdClass)#11 (14) {
-    ["book_id"]=>
-    string(3) "LUK"
-    ["book_name"]=>
-    string(27) "Evankeliumi Luukkaan mukaan"
-    ["chapter_start"]=>
-    int(1)
-    ["chapter_end"]=>
-    NULL
-    ["verse_start"]=>
-    int(1)
-    ["verse_start_alt"]=>
-    string(1) "1"
-    ["verse_end"]=>
-    NULL
-    ["verse_end_alt"]=>
-    NULL
-    ["timestamp"]=>
-    NULL
-    ["path"]=>
-    string(515) "https://d1gd73roq7kqw6.cloudfront.net/text/FIN38CB/FIN38VN_ET-json/042LUK_001.json?x-amz-transaction=1760104&Expires=1688199679&Signature=OTJ34iUv8rVQOLz-GC5jb0j1P3ulmbF6DB8muGpo9cP7SsttyYMdSKSgVZ7fQXCW0Ioh183zRjeO33iRWBdeX4Y~bz139Bp28aR5mZ7rSDRPWwJhmApQf2rif1jDcniR1OzEGTt9vJryCUNBkt7TT~A2QG96cusEFWi9sLrT3GLEmtrct1UG-6MmbijOfkrCZCmoa0qbg7w9IMKwdCrfsNUFTzf~FTG~TxZ1cxLYVfoAugnP282LjBtBTzYt8v49nHp5rRIb~OEDwQLfB3Rc~XP-ZmvXISe67wUiQeNxtantFgjIIO22f7fj6YyPH4OmyuG~Y631ELA7lSreybWpyg__&Key-Pair-Id=APKAI4ULLVMANLYYPTLQ"
-    ["duration"]=>
-    NULL
-    ["thumbnail"]=>
-    NULL
-    ["filesize_in_bytes"]=>
-    int(70597)
-    ["youtube_url"]=>
-    NULL
-  }
-}*/
-  public function getExternal(){
-    parent::getExternal();
-    $response = $this->response->data[0];
-    $this->getPassageJson($response->path);  
-  }
+    public function __construct(BibleBrainPassageService $passageService)
+    {
+        $this->passageService = $passageService;
+    }
 
-  private function getPassageJson($url){
-      $json =  new CloudFrontConnectionModel($url);
-      $this->json = $json->response;
-  }
-  public function getJson(){
-    return $this->json;
-  }
-    
+    /**
+     * Fetch external passage data from BibleBrain and retrieve JSON data from CloudFront.
+     *
+     * @param string $languageCodeHL The language code in HL format.
+     * @param string $bookId The book ID (e.g., "LUK" for Luke).
+     * @param int $chapterStart The starting chapter number.
+     * @param int|null $verseStart The starting verse number.
+     * @param int|null $verseEnd The ending verse number.
+     * @return void
+     */
+    public function fetchPassageJson($languageCodeHL, $bookId, $chapterStart, $verseStart = null, $verseEnd = null)
+    {
+        $response = $this->passageService->getExternalPassage($languageCodeHL, $bookId, $chapterStart, $verseStart, $verseEnd);
+
+        if (isset($response->data[0]->path)) {
+            $this->getPassageJson($response->data[0]->path);
+        } else {
+            $this->json = null; // Handle the case where no data is returned
+        }
+    }
+
+    /**
+     * Retrieves JSON passage data from a CloudFront URL.
+     *
+     * @param string $url The URL to fetch JSON data from.
+     * @return void
+     */
+    private function getPassageJson($url)
+    {
+        $jsonData = new CloudFrontConnectionModel($url);
+        $this->json = $jsonData->response;
+    }
+
+    /**
+     * Get the fetched JSON data.
+     *
+     * @return mixed The JSON response data.
+     */
+    public function getJson()
+    {
+        return $this->json;
+    }
 }

@@ -2,14 +2,26 @@
 
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Controllers\BiblePassage\BibleBrain\BibleBrainPassageController;
+use App\Services\BibleBrainPassageService;
+use App\Models\Bible\BibleReferenceInfoModel;
 
-class BibleBrainTextFormatController extends BibleBrainPassageController
+class BibleBrainTextFormatController
 {
- 
-    public function getPassageText()
+    private $passageService;
+
+    public function __construct(BibleBrainPassageService $passageService)
     {
-        return $this->passageText;
+        $this->passageService = $passageService;
     }
-    
+
+    public function getPassageText(BibleReferenceInfoModel $bibleReferenceInfo)
+    {
+        // Fetch and format passage text using the service
+        $formattedPassageText = $this->passageService->fetchAndFormatPassage(
+            $bibleReferenceInfo->getLanguageCodeIso(), 
+            $bibleReferenceInfo
+        );
+        
+        return $formattedPassageText;
+    }
 }

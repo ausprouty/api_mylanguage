@@ -117,6 +117,15 @@ class LanguageRepository
             ':languageCodeIso' => $languageCodeIso
         ]);
     }
+    public function updateLanguageCheckedDate($languageCodeIso)
+    {
+        $query = "UPDATE hl_languages SET checkedBBBibles = :today WHERE languageCodeIso = :languageCodeIso";
+        $params = [
+            ':today' => date('Y-m-d'),
+            ':languageCodeIso' => $languageCodeIso
+        ];
+        $this->databaseService->executeQuery($query, $params);
+    }
 
     public function updateLanguageCodeBibleBrain($languageCodeIso, $languageCodeBibleBrain): void
     {
