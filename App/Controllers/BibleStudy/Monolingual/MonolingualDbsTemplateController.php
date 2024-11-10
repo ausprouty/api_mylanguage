@@ -1,70 +1,75 @@
 <?php
+
 namespace App\Controllers\BibleStudy\Monolingual;
 
-use App\Controllers\BibleStudy\DbsStudyController as  DbsStudyController;
-use App\Controllers\BibleStudy\Monolingual\MonolingualStudyTemplateController as MonolingualStudyTemplateController;
-use App\Models\Language\LanguageModel as LanguageModel;
-use App\Models\BibleStudy\DbsReferenceModel as DbsReferenceModel;
-use App\Models\QrCodeGeneratorModel as QrCodeGeneratorModel;
+use App\Controllers\BibleStudy\DbsStudyController;
+use App\Models\BibleStudy\DbsReferenceModel;
+use App\Services\QrCodeGeneratorService;
+use App\Traits\MonolingualFileNamingTrait;
+use App\Traits\MonolingualTemplatePathsTrait;
+use App\Traits\MonolingualQrCodeTrait;
 
 class MonolingualDbsTemplateController extends MonolingualStudyTemplateController
 {
-    protected function createQrCode($url, $languageCodeHL){
-        $size = 240;
-        $fileName = 'DBS'. $this->lesson .'-' .$languageCodeHL . '.png';
-        $qrCodeGenerator = new QrCodeGeneratorModel($url, $size, $fileName);
-        $qrCodeGenerator->generateQrCode();
-        return $qrCodeGenerator->getQrCodeUrl();
-    }
-    static function findFileName($lesson, $languageCodeHL1){
-        $lang1 = LanguageModel::getEnglishNameFromCodeHL($languageCodeHL1);
-        $fileName =  'DBS'. $lesson .'('. $lang1 .')';
-        $fileName = str_replace( ' ', '_', $fileName);
+    use MonolingualFileNamingTrait, MonolingualTemplatePathsTrait, MonolingualQrCodeTrait;
 
-        return trim($fileName);
+    private QrCodeGeneratorService $qrCodeGeneratorService;
+
+    public function __construct(
+        QrCodeGeneratorService $qrCodeGeneratorService, 
+        string $lesson, 
+        string $languageCodeHL
+    ) {
+        $this->qrCodeGeneratorService = $qrCodeGeneratorService;
+        parent::__construct($lesson, $languageCodeHL);
     }
-    static function findFileNamePdf($lesson, $languageCodeHL1){
-        $fileName =  MonolingualDbsTemplateController::findFileName($lesson, $languageCodeHL1);
-        return $fileName . '.pdf';
+
+    protected function findTitle(string $lesson, string $languageCodeHL): string {
+        return DbsStudyController::getTitle($lesson, $languageCodeHL);
     }
-    static function findFileNameView($lesson, $languageCodeHL1){
-        $fileName =  MonolingualDbsTemplateController::findFileName($lesson, $languageCodeHL1);
-        return $fileName . '.html';
-    }
-    protected function findTitle($lesson, $languageCodeHL1){
-        return DbsStudyController::getTitle($lesson,$languageCodeHL1 );
-    }
-    protected function getMonolingualPdfTemplateName(){
+
+    protected function getMonolingualPdfTemplateName(): string {
         return 'monolingualDbsPdf.template.html';
     }
-    protected function getMonolingualViewTemplateName(){
+
+    protected function getMonolingualViewTemplateName(): string {
         return 'monolingualDbsView.template.html';
     }
-    static function getPathPdf(){
-        return ROOT_RESOURCES .'pdf/dbs/';
-    }
-    static function getUrlPdf(){
-        return WEBADDRESS_RESOURCES .'pdf/dbs/';
-    }
-    static function getPathView(){
-        return ROOT_RESOURCES .'view/dbs/';
-    }
-    static function getUrlView(){
-        return WEBADDRESS_RESOURCES .'view/dbs/';
-    }
-    protected function getStudyReferenceInfo($lesson){
+
+    protected function getStudyReferenceInfo(string $lesson): DbsReferenceModel {
         $studyReferenceInfo = new DbsReferenceModel();
         $studyReferenceInfo->setLesson($lesson);
-        return $studyReferenceInfo;  
+        return $studyReferenceInfo;
     }
-    protected function getTranslationSource(){
+
+    protected function getTranslationSource(): string {
         return 'dbs';
     }
-    protected function setFileName(){
-        $this->fileName = 'DBS' . $this->lesson .'('. $this->language1->getName() . ')';
-        $this->fileName = str_replace( ' ', '_', $this->fileName);
+
+    protected function setFileName(): void {
+        $this->fileName = 'DBS' . $this->lesson . '(' . $this->language1->getName() . ')';
+        $this->fileName = str_replace(' ', '_', $this->fileName);
     }
-    protected function setUniqueTemplateValues(){
+
+    protected function setUniqueTemplateValues(): void {
+        // Add any DBS-specific values here if needed
+    }
+
+    protected function getFileNamePrefix(): string {
+        return 'DBS';
+    }
+
+    protected static function getPathPrefix(): string {
+        return 'dbs';
+    }
+
+    // Override createQrCode to use the injected QrCodeGeneratorService
+    protected function createQrCode(string $url, string $languageCodeHL): string {
+        $fileName = $this->getFileNamePrefix() . $this->lesson . '-' . $languageCodeHL . '.png';
         
-   }
+        $this->qrCodeGeneratorService->initialize($url, 240, $fileName);
+        $this->qrCodeGeneratorService->generateQrCode();
+
+        return $this->qrCodeGeneratorService->getQrCodeUrl();
+    }
 }

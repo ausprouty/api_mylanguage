@@ -1,137 +1,157 @@
 <?php
 
-/*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
-*/
 namespace App\Controllers\BiblePassage;
 
-use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BiblePassageModel as BiblePassageModel;
-use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Bible\BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel;
 use App\Services\Database\DatabaseService;
-use App\Services\WebsiteConnectionService as WebsiteConnectionService;
-use PDO as PDO;
+use App\Services\WebsiteConnectionService;
+use PDO;
 
-class BibleYouVersionPassageController extends BiblePassageModel {
+class BibleYouVersionPassageController
+{
     private $databaseService;
-
     private $bibleReferenceInfo;
     private $bible;
     private $bookName;
-    public  $response;
+    public $response;
     private $chapterAndVerse;
-    private $retrieveBookName;
+    private $passageUrl;
+    private $referenceLocalLanguage = '';
 
-    public function __construct( DatabaseService $databaseService, BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
+    public function __construct(
+        DatabaseService $databaseService, 
+        BibleReferenceInfoModel $bibleReferenceInfo, 
+        BibleModel $bible
+    ) {
         $this->databaseService = $databaseService;
         $this->bibleReferenceInfo = $bibleReferenceInfo;
         $this->bible = $bible;
-        $this->passageText = '';
-        $this->retrieveBookName = '';
+        
         $this->setPassageUrl();
-        $this->dateLastUsed = '';
-        $this->dateChecked = '';
-        $this->timesUsed = 0;
         $this->setChapterAndVerse();
         $this->setReferenceLocalLanguage();
     }
-    public function getPassageText(){
-        return $this->passageText;
+
+    public function getPassageText()
+    {
+        return $this->response;
     }
-    public function getPassageUrl(){
+
+    public function getPassageUrl()
+    {
         return $this->passageUrl;
     }
-    public function getReferenceLocalLanguage(){
+
+    public function getReferenceLocalLanguage()
+    {
         return $this->referenceLocalLanguage;
     }
-    private function setPassageUrl(){
-        $uversionBibleBookID =  $this->bibleReferenceInfo->getUversionBookID(); //GEN
-        $bibleBookAndChapter =   $uversionBibleBookID . '.' . $this->bibleReferenceInfo->getChapterStart() . '.'; // GEN.1.
-        $bibleBookAndChapter .=   $this->bibleReferenceInfo->getVerseStart() . '-'. $this->bibleReferenceInfo->getVerseEnd() ; // GEN.1
-        $chapter = str_replace('%', $bibleBookAndChapter , $this->bible->getExternalId()); // 11/%.NIV   => /111/GEN.1.NIV
-        $this->passageUrl = 'https://www.bible.com/bible/'. $chapter;
+
+    private function setPassageUrl()
+    {
+        $uversionBibleBookID = $this->bibleReferenceInfo->getUversionBookID();
+        $bibleBookAndChapter = "{$uversionBibleBookID}.{$this->bibleReferenceInfo->getChapterStart()}.";
+        $bibleBookAndChapter .= "{$this->bibleReferenceInfo->getVerseStart()}-{$this->bibleReferenceInfo->getVerseEnd()}";
+        $this->passageUrl = 'https://www.bible.com/bible/' . str_replace('%', $bibleBookAndChapter, $this->bible->getExternalId());
     }
-    private function setChapterAndVerse(){
-        $this->chapterAndVerse =  $this->bibleReferenceInfo->getChapterStart() . ':'; 
-        $this->chapterAndVerse .=   $this->bibleReferenceInfo->getVerseStart() . '-'. $this->bibleReferenceInfo->getVerseEnd() ;
+
+    private function setChapterAndVerse()
+    {
+        $this->chapterAndVerse = "{$this->bibleReferenceInfo->getChapterStart()}:";
+        $this->chapterAndVerse .= "{$this->bibleReferenceInfo->getVerseStart()}-{$this->bibleReferenceInfo->getVerseEnd()}";
     }
-    private function setReferenceLocalLanguage(){
-        // <meta content="ԾՆՈՒՆԴ 1:1-28 ՍԿԶԲՈՒՄ Աստված ստեղծեց երկինքն ու երկիրը։
+
+    private function setReferenceLocalLanguage()
+    {
         $this->retrieveBookName();
-        $this->referenceLocalLanguage = $this->bookName . ' '. $this->chapterAndVerse;
+        $this->referenceLocalLanguage = "{$this->bookName} {$this->chapterAndVerse}";
     }
-    private function retrieveBookName(){
-        $query = "SELECT name FROM bible_book_names
-            WHERE languageCodeHL = :languageCodeHL
-            AND bookID = :bookID 
-            LIMIT 1";
-        $params = array(
-            ':languageCodeHL'=> $this->bibleReferenceInfo->getLanguageCodeHL(),
-            ':bookID' => $this->bibleReferenceInfo->getbookID(),
-        );
-        $results = $this->databaseService->executeQuery($query, $params);
-        $this->bookName = $results->fetch(PDO::FETCH_COLUMN);
-        if (!$this->bookName){
-            $this->retrieveExternalBookName();
-            if ($this->bookName){
+
+    private function retrieveBookName()
+    {
+        $query = "SELECT name FROM bible_book_names WHERE languageCodeHL = :languageCodeHL AND bookID = :bookID LIMIT 1";
+        $params = [
+            ':languageCodeHL' => $this->bibleReferenceInfo->getLanguageCodeHL(),
+            ':bookID' => $this->bibleReferenceInfo->getBookID(),
+        ];
+
+        $result = $this->databaseService->executeQuery($query, $params);
+        $this->bookName = $result->fetch(PDO::FETCH_COLUMN);
+
+        if (!$this->bookName) {
+            $this->bookName = $this->fetchExternalBookName();
+            if ($this->bookName) {
                 $this->saveBookName();
             }
         }
-        
     }
-    private function retrieveExternalBookName(){
-        $webpage = $this->getExternal();
-        $posEnd = strpos($webpage, $this->chapterAndVerse);
-        if ($posEnd){
-            $short = substr($webpage, 0, $posEnd);
-            $posBegin = strrpos($short , '"') + 1;
-            $this->bookName = trim (substr($short, $posBegin));
+
+    private function fetchExternalBookName()
+    {
+        $webpageContent = $this->fetchExternalContent();
+
+        if ($shortenedContent = $this->extractContentBeforeVerse($webpageContent)) {
+            return $this->parseBookNameFromContent($shortenedContent);
         }
-        else{
-            $find = 'class="book-chapter-text">';
-            $posBegin = strpos($webpage, $find);
-            if ($posBegin){
-                $posEnd = strpos($webpage, '</h1>', $posBegin);
-                $posBegin = $posBegin + length($find);
-                $length = $posEnd-$posBegin;
-                $this->bookName = trim (substr($webpage, $posBegin, $length));
 
-
-            }
-            else{
-                $this->bookName = null;
-            }
-
-        }
-       
+        return $this->parseBookNameFallback($webpageContent);
     }
-    private function saveBookName(){
-        $query = "INSERT INTO bible_book_names
-        (bookId, languageCodeHL, name)
-        VALUES (:bookId, :languageCodeHL, :name)";
-        $params = array(
-            ':bookId' => $this->bibleReferenceInfo->getBookId(), 
-            ':languageCodeHL'=> $this->bible->getLanguageCodeHL(),
-            ':name' => $this->bookName,
-        );
-        $results = $this->databaseService->executeQuery($query, $params);
-    }
-    /* to get verses: https://www.bible.com/bible/111/GEN.1.7-14.NIV
-    https://www.bible.com/bible/37/GEN.1.7-14.CEB
-  */
-    private function getExternal()  {
-        $uversionBibleBookID =  $this->bibleReferenceInfo->getUversionBookID(); //GEN
-        $bibleBookAndChapter =   $uversionBibleBookID . '.' . $this->bibleReferenceInfo->getChapterStart() . '.'; // GEN.1.
-        $bibleBookAndChapter .=   $this->bibleReferenceInfo->getVerseStart() . '-'. 
-                                  $this->bibleReferenceInfo->getVerseEnd() ; // GEN.1
-        $chapter = str_replace('%', $bibleBookAndChapter , $this->bible->getExternalId()); // 11/%.NIV   => /111/GEN.1.NIV
-        $chapter = str_replace(' ', '%20', $chapter); // some uversion Bibles have a space in their name
-        $url = 'https://www.bible.com/bible/'. $chapter;
+
+    private function fetchExternalContent()
+    {
+        $url = $this->getExternalUrl();
         $webpage = new WebsiteConnectionService($url);
         return $webpage->response;
     }
-    private function formatExternalText($webpage){
-        //todo: we are not yet using this.  We are using reference instead
-        $begin = '<div class="ChapterContent_label';
-        $end = '<div class="ChapterContent_version-copyright';
+
+    private function getExternalUrl()
+    {
+        $uversionBibleBookID = $this->bibleReferenceInfo->getUversionBookID();
+        $bibleBookAndChapter = "{$uversionBibleBookID}.{$this->bibleReferenceInfo->getChapterStart()}.";
+        $bibleBookAndChapter .= "{$this->bibleReferenceInfo->getVerseStart()}-{$this->bibleReferenceInfo->getVerseEnd()}";
+        $chapter = str_replace('%', $bibleBookAndChapter, $this->bible->getExternalId());
+        return 'https://www.bible.com/bible/' . str_replace(' ', '%20', $chapter);
+    }
+
+    private function extractContentBeforeVerse($webpageContent)
+    {
+        $endPosition = strpos($webpageContent, $this->chapterAndVerse);
+        if ($endPosition !== false) {
+            return substr($webpageContent, 0, $endPosition);
+        }
+        return null;
+    }
+
+    private function parseBookNameFromContent($content)
+    {
+        $start = strrpos($content, '"') + 1;
+        return trim(substr($content, $start));
+    }
+
+    private function parseBookNameFallback($webpageContent)
+    {
+        $find = 'class="book-chapter-text">';
+        $startPos = strpos($webpageContent, $find);
+
+        if ($startPos !== false) {
+            $endPos = strpos($webpageContent, '</h1>', $startPos);
+            $bookName = trim(substr($webpageContent, $startPos + strlen($find), $endPos - $startPos));
+            return $bookName;
+        }
+
+        return null;
+    }
+
+    private function saveBookName()
+    {
+        $query = "INSERT INTO bible_book_names (bookId, languageCodeHL, name) VALUES (:bookId, :languageCodeHL, :name)";
+        $params = [
+            ':bookId' => $this->bibleReferenceInfo->getBookID(),
+            ':languageCodeHL' => $this->bible->getLanguageCodeHL(),
+            ':name' => $this->bookName,
+        ];
+
+        $this->databaseService->executeQuery($query, $params);
     }
 }

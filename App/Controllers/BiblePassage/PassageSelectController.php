@@ -2,72 +2,80 @@
 
 namespace App\Controllers\BiblePassage;
 
-
-use App\Controllers\BiblePassage\BibleYouVersionPassageController as BibleYouVersionPassageController;
-use App\Controllers\BiblePassage\BibleWordPassageController as BibleWordPassageController;
-use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController as BibleBrainTextPlainController;
-use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController as  BibleGatewayPassageController;
-use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BiblePassageModel as BiblePassageModel;
-use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Controllers\BiblePassage\BibleYouVersionPassageController;
+use App\Controllers\BiblePassage\BibleWordPassageController;
+use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController;
+use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController;
+use App\Models\Bible\BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel;
 use App\Services\Database\DatabaseService;
-use App\Models\Language\LanguageModel as LanguageModel;
-use App\Repositories\LanguageRepository as LanguageRepository;
+use App\Models\Language\LanguageModel;
+use App\Repositories\LanguageRepository;
 
-class PassageSelectController extends BiblePassageModel
+class PassageSelectController
 {
     private $languageRepository;
-    protected $databaseService;
-    protected $bibleReferenceInfo;
+    private $databaseService;
+    private $bibleReferenceInfo;
     private $bible;
-    private $passageId;// used to see if data is stored
-    public  $passageText;
-    public  $passageUrl;
-    public  $referenceLocalLanguage;
+    private $passageId;
+    public $passageText;
+    public $passageUrl;
+    public $referenceLocalLanguage;
 
     public function __construct(
-        DatabaseService $databaseService,  
-        BibleReferenceInfoModel $bibleReferenceInfo, 
+        DatabaseService $databaseService,
+        BibleReferenceInfoModel $bibleReferenceInfo,
         BibleModel $bible,
         LanguageRepository $languageRepository
-        ){
-            $this->databaseService = $databaseService;
-            $this->bibleReferenceInfo = $bibleReferenceInfo;
-            $this->languageRepository = $languageRepository;
-            $this->bible = $bible;
-            $this->passageText= null;
-            $this->passageUrl= null;
-            $this->checkDatabase();
-      
+    ) {
+        $this->databaseService = $databaseService;
+        $this->bibleReferenceInfo = $bibleReferenceInfo;
+        $this->languageRepository = $languageRepository;
+        $this->bible = $bible;
+        $this->checkDatabase();
     }
-    public function getBible(){
+
+    public function getBible()
+    {
         return $this->bible;
     }
-    public function getBibleDirection(){
+
+    public function getBibleDirection()
+    {
         return $this->bible->getDirection();
     }
-    public function getBibleBid(){
+
+    public function getBibleBid()
+    {
         return $this->bible->getBid();
     }
-    public function getBibleReferenceInfo(){
+
+    public function getBibleReferenceInfo()
+    {
         return $this->bibleReferenceInfo;
     }
-    private  function checkDatabase(){
-        $this->passageId = BiblePassageModel::createBiblePassageId($this->bible->getBid(),  $this->bibleReferenceInfo);
+
+    private function checkDatabase()
+    {
+        $this->passageId = BiblePassageModel::createBiblePassageId($this->bible->getBid(), $this->bibleReferenceInfo);
         $passage = new BiblePassageModel();
         $passage->findStoredById($this->passageId);
+
         if ($passage->getReferenceLocalLanguage()) {
-            $this->passageText= $passage->getPassageText();
+            $this->passageText = $passage->getPassageText();
             $this->passageUrl = $passage->getPassageUrl();
             $this->referenceLocalLanguage = $passage->getReferenceLocalLanguage();
+        } else {
+            $this->retrieveExternalPassage();
         }
-        else{
-            $this->getExternal();
-        }
-        $this->wrapTextDir();
+        
+        $this->applyTextDirection();
     }
-    private function getExternal(){
-        switch($this->bible->getSource()){
+
+    private function retrieveExternalPassage()
+    {
+        switch ($this->bible->getSource()) {
             case 'bible_brain':
                 $passage = new BibleBrainTextPlainController($this->bibleReferenceInfo, $this->bible);
                 break;
@@ -76,58 +84,58 @@ class PassageSelectController extends BiblePassageModel
                 break;
             case 'youversion':
                 $passage = new BibleYouVersionPassageController($this->bibleReferenceInfo, $this->bible);
-                break;    
+                break;
             case 'word':
                 $passage = new BibleWordPassageController($this->bibleReferenceInfo, $this->bible);
                 break;
             default:
-                $this->passageText = '';
-                $this->passageUrl = '';
-                $this->referenceLocalLanguage = ' ';
+                $this->setDefaultPassage();
                 return;
-            break;
         }
+
         $this->passageText = $passage->getPassageText();
         $this->passageUrl = $passage->getPassageUrl();
         $this->referenceLocalLanguage = $passage->getReferenceLocalLanguage();
-        parent::savePassageRecord($this->passageId, $this->referenceLocalLanguage,  $this->passageText, $this->passageUrl); 
-    }
-    private function wrapTextDir(){
-        if ($this->passageText == NULL){
-            return;
-        }
-        if ($this->bible->direction == 'rtl'){
-            $dir = 'rtl';
-        }
-        elseif ($this->bible->direction == 'ltr'){
-            $dir = 'ltr';
-        }
-        else{
-            $dir = $this->updateDirection();
-        }
-        $text = '<div dir="' . $dir . '">' ;
-        $text .=  $this->passageText;
-        $text .=  '</div>';
-        $this->passageText = $text;
-    }
-    private function updateDirection(){
-        $languageCodeHL = $this->bible->getLanguageCodeHL();
-        $language = new LanguageModel($lthis->anguageRepository);
-        $language->findOneByLanguageCodeHL( $languageCodeHL);
-        $direction = $language->getDirection();
-        $dir = 'ltr';
-        if ($direction == 'rtl'){
-            $dir = 'rtl';
-        }
-        $query = "UPDATE bibles
-            SET direction = :dir
-            WHERE languageCodeHL = :languageCodeHL";
-        $params = array(
-            ':languageCodeHL'=>  $languageCodeHL,
-            ':dir'=> $dir
-        );
-        $results = $this->databaseService->executeQuery($query, $params);
-        return $dir;
+
+        BiblePassageModel::savePassageRecord($this->passageId, $this->referenceLocalLanguage, $this->passageText, $this->passageUrl);
     }
 
+    private function setDefaultPassage()
+    {
+        $this->passageText = '';
+        $this->passageUrl = '';
+        $this->referenceLocalLanguage = ' ';
+    }
+
+    private function applyTextDirection()
+    {
+        if (empty($this->passageText)) {
+            return;
+        }
+
+        $direction = $this->bible->getDirection() ?: $this->determineDirection();
+        $this->passageText = sprintf('<div dir="%s">%s</div>', $direction, $this->passageText);
+    }
+
+    private function determineDirection()
+    {
+        $languageCodeHL = $this->bible->getLanguageCodeHL();
+        $language = new LanguageModel($this->languageRepository);
+        $language->findOneByLanguageCodeHL($languageCodeHL);
+
+        $direction = $language->getDirection() ?: 'ltr';
+        $this->updateDirectionInDatabase($languageCodeHL, $direction);
+
+        return $direction;
+    }
+
+    private function updateDirectionInDatabase($languageCodeHL, $direction)
+    {
+        $query = "UPDATE bibles SET direction = :direction WHERE languageCodeHL = :languageCodeHL";
+        $params = [
+            ':languageCodeHL' => $languageCodeHL,
+            ':direction' => $direction
+        ];
+        $this->databaseService->executeQuery($query, $params);
+    }
 }

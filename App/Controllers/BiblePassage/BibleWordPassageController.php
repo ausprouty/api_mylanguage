@@ -2,140 +2,148 @@
 
 namespace App\Controllers\BiblePassage;
 
+use App\Models\Bible\BibleModel;
+use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\BibleReferenceInfoModel;
 
-use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BiblePassageModel as BiblePassageModel;
-use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-
-class BibleWordPassageController extends BiblePassageModel {
-
+class BibleWordPassageController
+{
     private $bibleReferenceInfo;
     private $bible;
+    private $referenceLocalLanguage = '';
+    private $passageText = '';
+    private $passageUrl = '';
+    private $dateLastUsed = '';
+    private $dateChecked = '';
+    private $timesUsed = 0;
 
-
-    public function __construct( BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible){
- 
-        $this->bibleReferenceInfo=$bibleReferenceInfo;
+    public function __construct(BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible)
+    {
+        $this->bibleReferenceInfo = $bibleReferenceInfo;
         $this->bible = $bible;
-        $this->referenceLocalLanguage = '';
-        $this->passageText = '';
-        $this->createPassageUrl();
-        $this->dateLastUsed = '';
-        $this->dateChecked = '';
-        $this->timesUsed = 0;
+        $this->passageUrl = $this->createPassageUrl();
         $this->getExternal();
     }
 
-    public function getReferenceLocalLanguage(){
+    public function getReferenceLocalLanguage()
+    {
         return $this->referenceLocalLanguage;
     }
-    public function getPassageText(){
+
+    public function getPassageText()
+    {
         return $this->passageText;
     }
-    public function getPassageURL(){
+
+    public function getPassageURL()
+    {
         return $this->passageUrl;
     }
 
+    private function createPassageUrl()
+    {
+        return 'https://wordproject.org/bibles/' . $this->bible->getExternalId() . '/' . $this->formatChapterPage() . '.htm';
+    }
 
-    private function createPassageUrl(){
-       //sample: https://wordproject.org/bibles/am/43/1.htm
-       $this->passageUrl =  'https://wordproject.org/bibles/' .  $this->bible->getExternalId()  .'/';
-       $this->passageUrl .= $this->chapterPage();
-       $this->passageUrl .= '.htm';
+    private function formatChapterPage()
+    {
+        $bookNumber = str_pad($this->bibleReferenceInfo->getBookNumber(), 2, '0', STR_PAD_LEFT);
+        $chapterNumber = $this->bibleReferenceInfo->getChapterStart();
+        return $bookNumber . '/' . $chapterNumber;
     }
- 
-    private function chapterPage(){
-       $bookNumber =  $this->bibleReferenceInfo->getBookNumber();
-       if (intval( $bookNumber)<10){
-        $bookNumber = '0' .  $bookNumber;
-       }
-       $chapterNumber = $this->bibleReferenceInfo->getChapterStart();
-       return $bookNumber . '/'.  $chapterNumber;
-    }
-    public function getExternal(){
-       $dir = ROOT_RESOURCES . 'bibles/wordproject/';
-       $externalId = $this->bible->getExternalId();
-       $bibleDir = $dir .  $externalId. '/'.  $externalId . '/';
-       $fileName = $bibleDir . $this->chapterPage();
-       writeLog('BibleWordPassageController', 'getExternal: ' . $fileName);    
-       $webpage = null;
-       if (file_exists ($fileName . '.html')){
-            $webpage = file_get_contents($fileName . '.html');
-       }
-       elseif (file_exists ($fileName . '.htm')){
-            $webpage = file_get_contents($fileName . '.htm');
+
+    private function getExternal()
+    {
+        $filePath = $this->generateFilePath();
+        writeLog('BibleWordPassageController', 'getExternal: ' . $filePath);
+
+        if ($webpage = $this->loadWebpageContent($filePath)) {
+            $this->passageText = $this->formatExternalText($webpage);
+            $this->referenceLocalLanguage = $this->extractReferenceLanguage($webpage);
         }
-       if ($webpage){
-            $this->formatExternal($webpage);
-            $this->setReferenceLocalLanguage($webpage);
-       }
     }
 
-    private function setReferenceLocalLanguage($webpage){
-        // <p class="ym-noprint"> Hoofstuk:    
+    private function generateFilePath()
+    {
+        $baseDir = ROOT_RESOURCES . 'bibles/wordproject/';
+        $externalId = $this->bible->getExternalId();
+        return $baseDir . $externalId . '/' . $externalId . '/' . $this->formatChapterPage();
+    }
+
+    private function loadWebpageContent($filePath)
+    {
+        if (file_exists($filePath . '.html')) {
+            return file_get_contents($filePath . '.html');
+        } elseif (file_exists($filePath . '.htm')) {
+            return file_get_contents($filePath . '.htm');
+        }
+        return null;
+    }
+
+    private function extractReferenceLanguage($webpage)
+    {
         $find = '<p class="ym-noprint">';
         $posStart = strpos($webpage, $find) + strlen($find);
         $posEnd = strpos($webpage, ':', $posStart);
-        $length = $posEnd-$posStart;
-        $bookName = trim (substr($webpage, $posStart, $length));
-        $verses = $this->bibleReferenceInfo->getChapterStart() . ':';
-        $verses .=  $this->bibleReferenceInfo->getVerseStart() . '-'. $this->bibleReferenceInfo->getVerseEnd();
-        $this->referenceLocalLanguage = $bookName . ' '. $verses;
+        $bookName = trim(substr($webpage, $posStart, $posEnd - $posStart));
 
-    }
-
-
-    private function formatExternal($webpage){
-        $cleanPage = $this->cleanPage($webpage);
-        $this->passageText =   "\n" . '<!-- begin bible -->';
-        $this->passageText .=   $this->selectVerses($cleanPage) ."\n" ;
-        $this->passageText .=  '<!-- end bible -->' . "\n" ;
-        $this->referenceLocalLanguage = $this->createReferenceLocalLanguage($cleanPage);
-    }
-    private function cleanPage($webpage){
-        $find = '<!--... the Word of God:-->'; // trim off front
-        $pos = strpos($webpage, $find) + strlen($find);
-        $webpage = substr($webpage, $pos);
-        $find = '<!--... sharper than any twoedged sword... -->'; // trim off end
-        $pos = strpos($webpage, $find);
-        $clean = substr($webpage, 0,  $pos);
-        return $clean;
-
-    }
-    private function selectVerses($page){
-        $text = '';
-        $firstVerse = intval($this->bibleReferenceInfo->getVerseStart());
-        $lastVerse = intval($this->bibleReferenceInfo->getVerseEnd());
-        $bad = array('<p>', '</p>');
-        $page = str_replace($bad, '', $page);
-        $bad = array ('<br/>', '<br />');
-        $page = str_replace( $bad, '<br>', $page);
-        $lines = explode('<br>', $page);
-        foreach ($lines as $line){
-            $posStart = strpos($line, '>') +1;
-            $find = '</span>';
-            $posEnd = stripos($line, $find);
-            $length = $posEnd - $posStart;
-            $verseNum = intval(substr($line, $posStart, $length));
-            if ($verseNum >= $firstVerse && $verseNum <= $lastVerse ){
-                $text .= '<p><sup>'.$verseNum . '</sup>';
-                $text .= substr($line, $posEnd + strlen($find));
-                $text .= '</p>' . "\n";
-            }
-        }
-        return $text;
-    }
-    private function createReferenceLocalLanguage($cleanPage){
-        $expectedInReference = $this->bibleReferenceInfo->getChapterStart() . ':' .
+        $verses = $this->bibleReferenceInfo->getChapterStart() . ':' .
             $this->bibleReferenceInfo->getVerseStart() . '-' . $this->bibleReferenceInfo->getVerseEnd();
 
-        //if (strpos($websiteReference, $expectedInReference) == FALSE){
-        //    $lastSpace =strrpos($websiteReference, ' ');
-        //    $websiteReference = substr($websiteReference,0, $lastSpace) .' '. $expectedInReference;
-        //}
-       // $this->referenceLocalLanguage = $websiteReference;
+        return $bookName . ' ' . $verses;
     }
 
-   
+    private function formatExternalText($webpage)
+    {
+        $cleanedPage = $this->cleanHtmlContent($webpage);
+        $selectedVerses = $this->selectVerses($cleanedPage);
 
+        return "\n<!-- begin bible -->" . $selectedVerses . "\n<!-- end bible -->\n";
+    }
+
+    private function cleanHtmlContent($webpage)
+    {
+        $startMarker = '<!--... the Word of God:-->';
+        $endMarker = '<!--... sharper than any twoedged sword... -->';
+
+        $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
+        $endPos = strpos($webpage, $endMarker);
+
+        return substr($webpage, $startPos, $endPos - $startPos);
+    }
+
+    private function selectVerses($page)
+    {
+        $page = str_replace(['<p>', '</p>', '<br/>', '<br />'], ['', '', '<br>'], $page);
+        $lines = explode('<br>', $page);
+
+        $verseRange = range(
+            intval($this->bibleReferenceInfo->getVerseStart()),
+            intval($this->bibleReferenceInfo->getVerseEnd())
+        );
+
+        $verses = '';
+        foreach ($lines as $line) {
+            $verseNum = $this->extractVerseNumber($line);
+            if (in_array($verseNum, $verseRange)) {
+                $verses .= $this->formatVerseLine($verseNum, $line);
+            }
+        }
+
+        return $verses;
+    }
+
+    private function extractVerseNumber($line)
+    {
+        $startPos = strpos($line, '>') + 1;
+        $endPos = stripos($line, '</span>');
+        return intval(substr($line, $startPos, $endPos - $startPos));
+    }
+
+    private function formatVerseLine($verseNum, $line)
+    {
+        $startPos = stripos($line, '</span>') + strlen('</span>');
+        $verseText = substr($line, $startPos);
+        return '<p><sup>' . $verseNum . '</sup>' . $verseText . '</p>' . "\n";
+    }
 }

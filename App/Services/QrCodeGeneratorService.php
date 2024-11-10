@@ -6,28 +6,25 @@ use Endroid\QrCode\QrCode;
 
 class QrCodeGeneratorService
 {
-    private $url;
-    private $size;
-    private $filePath;
-    private $qrCodeUrl;
+    private string $url;
+    private int $size;
+    private string $filePath;
+    private string $qrCodeUrl;
 
-    public function __construct($url, $size, $fileName)
-    {
+    public function initialize(string $url, int $size, string $fileName): void {
         $this->url = $url;
         $this->size = $size;
         $this->filePath = ROOT_RESOURCES . 'qrcodes/' . $fileName;
         $this->qrCodeUrl = WEBADDRESS_RESOURCES . 'qrcodes/' . $fileName;
     }
 
-    public function generateQrCode(): void
-    {
+    public function generateQrCode(): void {
         $qrCode = new QrCode($this->url);
         $qrCode->setSize($this->size);
         $qrCode->writeFile($this->filePath);
     }
 
-    public function getQrCodeUrl(): string
-    {
+    public function getQrCodeUrl(): string {
         return $this->qrCodeUrl;
     }
 }

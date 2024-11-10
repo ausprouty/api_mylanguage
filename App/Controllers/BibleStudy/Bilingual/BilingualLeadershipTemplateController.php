@@ -1,60 +1,72 @@
 <?php
+
 namespace App\Controllers\BibleStudy\Bilingual;
 
-use App\Controllers\BibleStudy\Bilingual\BilingualStudyTemplateController as BilingualStudyTemplateController;
-use App\Controllers\BibleStudy\LeadershipStudyController as LeadershipStudyController;
-use App\Models\Language\LanguageModel as LanguageModel;
-use App\Models\QrCodeGeneratorModel as QrCodeGeneratorModel;
-use App\Models\BibleStudy\LeadershipReferenceModel as LeadershipReferenceModel;
+use App\Controllers\BibleStudy\LeadershipStudyController;
+use App\Models\Language\LanguageModel;
+use App\Models\QrCodeGeneratorModel;
+use App\Models\BibleStudy\LeadershipReferenceModel;
 
 class BilingualLeadershipTemplateController extends BilingualStudyTemplateController
 {
-    protected function createQrCode($url, $languageCodeHL){
+    protected function createQrCode(string $url, string $languageCodeHL): string {
         $size = 240;
-        $fileName = 'Leadership'. $this->lesson .'-' .$languageCodeHL . '.png';
+        $fileName = 'Leadership' . $this->lesson . '-' . $languageCodeHL . '.png';
         $qrCodeGenerator = new QrCodeGeneratorModel($url, $size, $fileName);
         $qrCodeGenerator->generateQrCode();
+        
         return $qrCodeGenerator->getQrCodeUrl();
     }
-    static function findFileName($lesson, $languageCodeHL1, $languageCodeHL2){
+
+    public static function findFileName(string $lesson, string $languageCodeHL1, string $languageCodeHL2): string {
         $lang1 = LanguageModel::getEnglishNameFromCodeHL($languageCodeHL1);
         $lang2 = LanguageModel::getEnglishNameFromCodeHL($languageCodeHL2);
-        $fileName =  'Leadership'. $lesson .'('. $lang1 . '-' . $lang2 .')';
-        $fileName = str_replace( ' ', '_', $fileName);
+        $fileName = 'Leadership' . $lesson . '(' . $lang1 . '-' . $lang2 . ')';
+        
+        return str_replace(' ', '_', trim($fileName));
+    }
 
-        return trim($fileName);
+    public static function findFileNamePdf(string $lesson, string $languageCodeHL1, string $languageCodeHL2): string {
+        return self::findFileName($lesson, $languageCodeHL1, $languageCodeHL2) . '.pdf';
     }
-    static function findFileNamePdf($lesson, $languageCodeHL1, $languageCodeHL2){
-        $fileName =  BilingualLeadershipTemplateController::findFileName($lesson, $languageCodeHL1, $languageCodeHL2);
-        return $fileName . '.pdf';
+
+    protected function findTitle(string $lesson, string $languageCodeHL1): string {
+        return LeadershipStudyController::getTitle($lesson, $languageCodeHL1);
     }
-    protected function findTitle($lesson, $languageCodeHL1){
-        return LeadershipStudyController::getTitle($lesson,$languageCodeHL1);
-    }
-    protected function getBilingualTemplateName(){
+
+    protected function getBilingualTemplateName(): string {
         return 'bilingualLeadership.template.html';
     }
-    static function getPathPdf(){
-        return ROOT_RESOURCES .'pdf/leadership/';
+
+    public static function getPathPdf(): string {
+        return ROOT_RESOURCES . 'pdf/leadership/';
     }
-    static function getUrlPdf(){
-        return WEBADDRESS_RESOURCES .'pdf/leadership/';
+
+    public static function getUrlPdf(): string {
+        return WEBADDRESS_RESOURCES . 'pdf/leadership/';
     }
-    static function getPathView(){
-        return ROOT_RESOURCES .'view/leadership/';
+
+    public static function getPathView(): string {
+        return ROOT_RESOURCES . 'view/leadership/';
     }
-    protected function getStudyReferenceInfo($lesson){
+
+    protected function getStudyReferenceInfo(string $lesson): LeadershipReferenceModel {
         $studyReferenceInfo = new LeadershipReferenceModel();
         $studyReferenceInfo->setLesson($lesson);
-        return $studyReferenceInfo;  
+        
+        return $studyReferenceInfo;
     }
-    protected function getTranslationSource(){
+
+    protected function getTranslationSource(): string {
         return 'leadership';
     }
-    protected function setFileName(){
-        $this->fileName = 'Leadership' . $this->lesson .'('. $this->language1->getName()  .'-'. $this->language2->getName() . ')';
+
+    protected function setFileName(): void {
+        $this->fileName = 'Leadership' . $this->lesson . '(' . $this->language1->getName() . '-' . $this->language2->getName() . ')';
+        $this->fileName = str_replace(' ', '_', $this->fileName);
     }
-    protected function setUniqueTemplateValues(){
-        return;
+
+    protected function setUniqueTemplateValues(): void {
+        // No unique template values for this controller
     }
 }

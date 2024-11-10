@@ -2,27 +2,26 @@
 
 namespace App\Controllers\BiblePassage\BibleGateway;
 
-use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Models\Bible\BiblePassageModel as BiblePassageModel;
-use App\Services\WebsiteConnectionService as WebsiteConnectionService;
+use App\Models\Bible\BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel;
+use App\Models\Bible\BiblePassageModel;
+use App\Services\WebsiteConnectionService;
 use App\Services\Database\DatabaseService;
+use simple_html_dom;
 
-
-class BibleGatewayPassageController extends BiblePassageModel {
-
+class BibleGatewayPassageController extends BiblePassageModel
+{
     private $databaseService;
     private $bibleReferenceInfo;
     private $bible;
 
-
     public function __construct(
-        DatabaseService $databaseService, 
-        BibleReferenceInfoModel $bibleReferenceInfo, 
+        DatabaseService $databaseService,
+        BibleReferenceInfoModel $bibleReferenceInfo,
         BibleModel $bible
-        ){
+    ) {
         $this->databaseService = $databaseService;
-        $this->bibleReferenceInfo=$bibleReferenceInfo;
+        $this->bibleReferenceInfo = $bibleReferenceInfo;
         $this->bible = $bible;
         $this->referenceLocalLanguage = '';
         $this->passageText = '';
@@ -32,159 +31,120 @@ class BibleGatewayPassageController extends BiblePassageModel {
         $this->timesUsed = 0;
         $this->getExternal();
     }
- 
 
-    public function getExternal(){
-        /* it seems that Chinese does not always like the way we enter things.// try this and see if it works/
-	    $reference_shaped = str_replace(
-            $this->bibleReferenceInfo->bookName,
-            $this->bibleReferenceInfo->bookID,
-            $this->bibleReferenceInfo->entry
-        );
-        $reference_shaped = str_replace(' ', '%20', $reference_shaped);
-*/
-	    $reference_shaped = str_replace(' ' , '%20', $this->bibleReferenceInfo->getEntry());
-        $this->passageUrl= 'https://biblegateway.com/passage/?search='. $reference_shaped . '&version='. $this->bible->getExternalId() ;
+    public function getExternal()
+    {
+        $referenceShaped = $this->shapeReference();
+        $this->passageUrl = 'https://biblegateway.com/passage/?search=' . $referenceShaped . '&version=' . $this->bible->getExternalId();
+
         $webpage = new WebsiteConnectionService($this->passageUrl);
-        if ($webpage->response){
-            $this->passageText =  $this->formatExternal($webpage->response);
-        }
-        else{
-            $this->passageText = null;
-        }
+        $this->passageText = $webpage->response ? $this->formatExternal($webpage->response) : null;
     }
-    private function formatExternal($webpage){
+
+    private function shapeReference()
+    {
+        return str_replace(' ', '%20', $this->bibleReferenceInfo->getEntry());
+    }
+
+    private function formatExternal($webpage)
+    {
         require_once(ROOT_LIBRARIES . '/simplehtmldom_1_9_1/simple_html_dom.php');
         $html = str_get_html($webpage);
-        $e = $html->find('.dropdown-display-text', 0);
-        if (!$e){
+
+        if (!$this->findAndSetLocalReference($html)) {
             return null;
         }
-        $this->createLocalReference($e->innertext);
-        $passages = $html->find('.passage-text');
-        $bible = '';
-        foreach($passages as $passage){
-            $bible .= $passage;
-        }
+
+        $bibleText = $this->extractBibleText($html);
         $html->clear();
-        unset($html);
-        //
-        // now we are working just with Bible text
-        //
-        // change all small-caps so not cut by spans later
-        $pattern = '/<span\s+style\s*=\s*["\']font-variant:\s*small-caps["\']\s+class\s*=\s*["\']small-caps["\']>(.+?)<\/span>/';
-        $replacement = '<small-caps>$1</small-caps>';
-        $bible = preg_replace($pattern, $replacement, $bible);
-    
-        $html = str_get_html($bible);
-    
-       
 
-       
-        // remove all links
-        $ret = $html->find ('a');
-        foreach ($ret as $href){
-            $href->outertext= '';
-        }
-        // remove footnotes
-        $ret= $html->find('div[class=footnotes]');
-        foreach ($ret as $footnote){
-            $footnote->outertext= '';
-        }
-        $html = str_get_html($bible);
-        $ret = $html->find ('span[class=woj]');
-        foreach ($ret as $span){
-            $span->outertext= $span->innertext;
-        }
-        $bible = $html->outertext;
+        $bibleText = $this->cleanBibleText($bibleText);
+        $this->passageText = $this->finalizeBibleText($bibleText);
 
-        $html->clear();
-        $html = str_get_html($bible);
-        // remove read chapter
-        
-        $ret= $html->find('a[class=full-chap-link]');
-        foreach ($ret as $footnote){
-            $footnote->outertext= '';
-        }
-        // remove  footnotes div
-        $ret= $html->find('div[class=footnotes]');
-        foreach ($ret as $footnote){
-            $footnote->outertext= '';
-        }
-        // remove links to footnotes
-        $ret= $html->find('sup[class=footnote]');
-        foreach ($ret as $footnote){
-            $footnote->outertext= '';
-        }
-        // remove crossreference div
-        $ret= $html->find('div[class=crossrefs hidden]');
-        foreach ($ret as $cross_reference){
-            $cross_reference->outertext= '';
-        }
-        $ret= $html->find('sup[class=crossreference]');
-        foreach ($ret as $cross_reference){
-            $cross_reference->outertext= '';
-        }
-       
-         // remove  citations
-         $ret= $html->find('span[class=citation]');
-         foreach ($ret as $citation){
-             $citation->outertext= '';
-         }
-        $ret= $html->find('div[class=il-text]');
-        foreach ($ret as $cross_reference){
-            $cross_reference->outertext= '';
-        }
-        // change chapter number to verse 1
-        // <span class="chapternum">53&nbsp;</span>
-        $ret= $html->find('span[class=chapternum]');
-        foreach ($ret as $chapter){
-            $chapter->outertext= '<sup class="versenum">1&nbsp;</sup>';
-        }
-        $bible = $html->outertext;
-        unset($html);
-        $bad= array(
-            '<!--end of crossrefs-->'
-        );
-        $good='';
-        $bible= str_replace( $bad, $good, $bible);
-        $pos_start = strpos($bible,'<p' );
-        if ($pos_start !== FALSE){
-            $bible = substr($bible, $pos_start);
-           
-        }
-        // remove all remaining div marks
-        $bible= str_ireplace('</div>', '', $bible);
-
-        $bible=  preg_replace('/<div\b[^>]*>/', '', $bible);
-        // remove id and 
-        $pattern = '/\bid="[^"]+"/';
-        $bible = preg_replace($pattern, '', $bible);
-        '/<span class="text [^"]+">/';
-        $pattern = '/class="text [^"]+">/';
-        $bible = preg_replace($pattern, 'class="text">', $bible);
-        // renove span cladd = text;
-        $pattern = '/<span\s+class\s*=\s*["\']text["\']>(.+?)<\/span>/';
-        $replacement = '$1';
-        $bible = preg_replace($pattern, $replacement, $bible);
-    
-        // remove subheadings <h3>
-        $bible = preg_replace('/<h3\b[^>]*>(.*?)<\/h3>/si', '', $bible);
-        $bible = str_replace('<!--end of footnotes-->', '', $bible);
-        // return small-caps as span
-        $bible= str_ireplace('</small-caps>', '</span>', $bible);
-        $bible= str_ireplace('<small-caps>', '<span style="font-variant: small-caps" class="small-caps">', $bible);
-
-        return $bible;
-    }
-    private function createLocalReference($websiteReference){
-        $expectedInReference = $this->bibleReferenceInfo->getChapterStart() . ':' .
-            $this->bibleReferenceInfo->getVerseStart() . '-' . $this->bibleReferenceInfo->getVerseEnd();
-        if (strpos($websiteReference, $expectedInReference) == FALSE){
-            $lastSpace =strrpos($websiteReference, ' ');
-            $websiteReference = substr($websiteReference,0, $lastSpace) .' '. $expectedInReference;
-        }
-        $this->referenceLocalLanguage =$websiteReference;
+        return $this->passageText;
     }
 
+    private function findAndSetLocalReference($html)
+    {
+        $referenceElement = $html->find('.dropdown-display-text', 0);
+        if (!$referenceElement) {
+            return false;
+        }
+        $this->createLocalReference($referenceElement->innertext);
+        return true;
+    }
+
+    private function extractBibleText($html)
+    {
+        $bibleText = '';
+        foreach ($html->find('.passage-text') as $passage) {
+            $bibleText .= $passage;
+        }
+        return $bibleText;
+    }
+
+    private function cleanBibleText($bible)
+    {
+        $html = str_get_html($bible);
+        $this->removeElements($html, [
+            'a', 'div.footnotes', 'a.full-chap-link', 'sup.footnote', 'div.crossrefs.hidden', 'sup.crossreference', 'span.citation', 'div.il-text'
+        ]);
+        $this->replaceChapterNumbersWithVerse($html);
+
+        return $html->outertext;
+    }
+
+    private function removeElements($html, $selectors)
+    {
+        foreach ($selectors as $selector) {
+            foreach ($html->find($selector) as $element) {
+                $element->outertext = '';
+            }
+        }
+    }
+
+    private function replaceChapterNumbersWithVerse($html)
+    {
+        foreach ($html->find('span.chapternum') as $chapter) {
+            $chapter->outertext = '<sup class="versenum">1&nbsp;</sup>';
+        }
+    }
+
+    private function finalizeBibleText($bibleText)
+    {
+        $bibleText = $this->replaceSmallCaps($bibleText);
+        $bibleText = $this->stripDivTags($bibleText);
+        $bibleText = preg_replace('/\bid="[^"]+"/', '', $bibleText);
+        $bibleText = preg_replace('/class="text [^"]+">/', 'class="text">', $bibleText);
+        $bibleText = preg_replace('/<span\s+class\s*=\s*["\']text["\']>(.+?)<\/span>/', '$1', $bibleText);
+        $bibleText = preg_replace('/<h3\b[^>]*>(.*?)<\/h3>/si', '', $bibleText);
+
+        return $bibleText;
+    }
+
+    private function replaceSmallCaps($bibleText)
+    {
+        $bibleText = preg_replace('/<span\s+style\s*=\s*["\']font-variant:\s*small-caps["\']\s+class\s*=\s*["\']small-caps["\']>(.+?)<\/span>/', '<small-caps>$1</small-caps>', $bibleText);
+        $bibleText = str_ireplace('</small-caps>', '</span>', $bibleText);
+        $bibleText = str_ireplace('<small-caps>', '<span style="font-variant: small-caps" class="small-caps">', $bibleText);
+        return $bibleText;
+    }
+
+    private function stripDivTags($bibleText)
+    {
+        $bibleText = str_replace(['<!--end of crossrefs-->', '</div>'], '', $bibleText);
+        return preg_replace('/<div\b[^>]*>/', '', $bibleText);
+    }
+
+    private function createLocalReference($websiteReference)
+    {
+        $expectedInReference = $this->bibleReferenceInfo->getChapterStart() . ':' . $this->bibleReferenceInfo->getVerseStart() . '-' . $this->bibleReferenceInfo->getVerseEnd();
+
+        if (strpos($websiteReference, $expectedInReference) === false) {
+            $lastSpace = strrpos($websiteReference, ' ');
+            $websiteReference = substr($websiteReference, 0, $lastSpace) . ' ' . $expectedInReference;
+        }
+
+        $this->referenceLocalLanguage = $websiteReference;
+    }
 }

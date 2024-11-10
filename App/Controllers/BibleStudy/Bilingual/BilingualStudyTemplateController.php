@@ -1,36 +1,49 @@
 <?php
 namespace App\Controllers\BibleStudy\Bilingual;
 
-use App\Controllers\BibleStudy\BibleBlockController as BibleBlockController;
-use App\Controllers\BiblePassage\PassageSelectController as PassageSelectController;
-use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Models\Language\TranslationModel as TranslationModel;
-use App\Models\Language\LanguageModel as LanguageModel;
+use App\Controllers\BibleStudy\BibleBlockController;
+use App\Controllers\BiblePassage\PassageSelectController;
+use App\Models\Bible\BibleModel;
+use App\Models\Bible\BibleReferenceInfoModel;
+use App\Models\Language\TranslationModel;
+use App\Models\Language\LanguageModel;
 use App\Repositories\LanguageRepository;
 use App\Repositories\BibleRepository;
 
 abstract class BilingualStudyTemplateController
 {
-    protected  $languageRepository;
-    protected  $bible1;
-    protected  $bible2;
-    protected  $bibleBlock;
-    protected  $biblePassage1;
-    protected  $biblePassage2;
-    protected  $bibleReferenceInfo;
-    protected  $testament;
-    protected  $fileName;  // name of pdf or view file
-    protected  $language1; // langauge object
-    protected  $language2;
-    protected  $lesson;
-    protected  $qrcode1;
-    protected  $qrcode2;
-    protected  $template;
-    protected  $studyReferenceInfo;
-    protected  $title;
-    protected  $translation1;
-    protected  $translation2;
+    protected LanguageRepository $languageRepository;
+    protected BibleRepository $bibleRepository;
+    protected BibleModel $bible1;
+    protected BibleModel $bible2;
+    protected string $bibleBlock;
+    protected PassageSelectController $biblePassage1;
+    protected PassageSelectController $biblePassage2;
+    protected BibleReferenceInfoModel $bibleReferenceInfo;
+    protected string $testament;
+    protected string $fileName;
+    protected LanguageModel $language1;
+    protected LanguageModel $language2;
+    protected string $lesson;
+    protected string $qrcode1;
+    protected string $qrcode2;
+    protected string $template;
+    protected string $studyReferenceInfo;
+    protected string $title;
+    protected string $translation1;
+    protected string $translation2;
+
+    // Define frequently used placeholders as constants
+    protected const PLACEHOLDERS = [
+        'BIBLE_BLOCK' => '{{Bible Block}}',
+        'LANGUAGE' => '{{language}}',
+        'BIBLE_REFERENCE' => '{{Bible Reference}}',
+        'URL' => '{{url}}',
+        'QRCODE1' => '{{QrCode1}}',
+        'TITLE' => '{{Title}}',
+        'FILENAME' => '{{filename}}',
+        'VIDEO_BLOCK' => '{{Video Block}}',
+    ];
 
     abstract protected function createQRCode($url, $languageCodeHL);
     abstract static function findFileName($lesson, $languageCodeHL1, $languageCodeHL2);
@@ -43,199 +56,159 @@ abstract class BilingualStudyTemplateController
     abstract protected function getStudyReferenceInfo($lesson);
     abstract protected function getTranslationSource();
     abstract protected function setFileName();
-	abstract protected function setUniqueTemplateValues();
-   
-    public function __construct( string $languageCodeHL1, string $languageCodeHL2, $lesson)
-    {   
-        $this->language1 = new LanguageModel($this->languageRepository);
-        $this->language1->findOneByLanguageCodeHL( $languageCodeHL1);
-        $this->language2 = new LanguageModel($this->languageRepository);
-        $this->language2->findOneByLanguageCodeHL( $languageCodeHL2);
-        $this->bibleBlock = '';
-        $this->biblePassage1 = '';
-        $this->biblePassage2 = '';
+    abstract protected function setUniqueTemplateValues();
+
+    public function __construct(LanguageRepository $languageRepository, BibleRepository $bibleRepository, string $languageCodeHL1, string $languageCodeHL2, $lesson)
+    {
+        $this->languageRepository = $languageRepository;
+        $this->bibleRepository = $bibleRepository;
+        
+        $this->language1 = new LanguageModel($languageRepository);
+        $this->language1->findOneByLanguageCodeHL($languageCodeHL1);
+        $this->language2 = new LanguageModel($languageRepository);
+        $this->language2->findOneByLanguageCodeHL($languageCodeHL2);
+        
         $this->lesson = $lesson;
-        $this->fileName = $this->findFileName( $lesson, $languageCodeHL1, $languageCodeHL2);
+        $this->fileName = $this->findFileName($lesson, $languageCodeHL1, $languageCodeHL2);
         $this->title = $this->findTitle($lesson, $languageCodeHL1);
+        
         $this->setTranslation($this->getTranslationSource());
         $this->studyReferenceInfo = $this->getStudyReferenceInfo($lesson);
-        $this->bibleReferenceInfo =new BibleReferenceInfoModel();
+        
+        $this->bibleReferenceInfo = new BibleReferenceInfoModel();
         $this->bibleReferenceInfo->setFromEntry($this->studyReferenceInfo->getEntry());
         $this->testament = $this->bibleReferenceInfo->getTestament();
-        $this->bible1 = $this->findBibleOne($languageCodeHL1, $this->testament);
-        $this->bible2 = $this->findBibleTwo($languageCodeHL2, $this->testament);
-        $this->setPassage($this->bibleReferenceInfo);
-        $this->qrcode1 = $this->createQrCode( $this->biblePassage1->getPassageUrl(), $languageCodeHL1);
-        $this->qrcode2 = $this->createQrCode( $this->biblePassage2->getPassageUrl(), $languageCodeHL2);
+        
+        $this->bible1 = $this->findBible($languageCodeHL1);
+        $this->bible2 = $this->findBible($languageCodeHL2);
+        
+        $this->setPassage();
+        
+        $this->qrcode1 = $this->createQRCode($this->biblePassage1->getPassageUrl(), $languageCodeHL1);
+        $this->qrcode2 = $this->createQRCode($this->biblePassage2->getPassageUrl(), $languageCodeHL2);
     }
-    protected function setTranslation ($source = 'dbs') {
+
+    protected function setTranslation(string $source = 'dbs'): void
+    {
         $translation1 = new TranslationModel($this->language1->getLanguageCodeHL(), $source);
         $this->translation1 = $translation1->getTranslationFile();
+        
         $translation2 = new TranslationModel($this->language2->getLanguageCodeHL(), $source);
-        $this->translation2 =  $translation2->getTranslationFile();
+        $this->translation2 = $translation2->getTranslationFile();
     }
-    
 
-    public function getFileName(){
+    public function getFileName(): string {
         return $this->fileName;
     }
-    public function getTranslation1(){
+
+    public function getTranslation1(): string {
         return $this->translation1;
     }
-    public function getTranslation2(){
+
+    public function getTranslation2(): string {
         return $this->translation2;
     }
-    public function getTemplate(){
+
+    public function getTemplate(): string {
         return $this->template;
     }
-    
-    protected function findBibleOne($languageCodeHL1, $testament='NT')
-    {
+
+    protected function findBible(string $languageCodeHL, string $testament = 'NT'): BibleModel {
         $bible = new BibleModel($this->bibleRepository);
-        $bible->setBestDbsBibleByLanguageCodeHL($languageCodeHL1, $testament);
+        $bible->setBestDbsBibleByLanguageCodeHL($languageCodeHL, $testament);
         return $bible;
     }
-    protected function findBibleTwo($languageCodeHL2, $testament= 'NT')
-    {
-        $bible = new BibleModel($this->bibleRepository);
-        $bible->setBestDbsBibleByLanguageCodeHL($languageCodeHL2, $testament);
-        return $bible;
+
+    public function setPassage(): void {
+        $this->biblePassage1 = new PassageSelectController($this->bibleReferenceInfo, $this->bible1);
+        $this->biblePassage2 = new PassageSelectController($this->bibleReferenceInfo, $this->bible2);
     }
-    public function setPassage(BibleReferenceInfoModel $bibleReferenceInfo)
-    {
-        $this->bibleReferenceInfo = $bibleReferenceInfo;
-        $this->biblePassage1= new PassageSelectController ($this->bibleReferenceInfo, $this->bible1);
-        $this->biblePassage2= new PassageSelectController ($this->bibleReferenceInfo, $this->bible2);
-    }
-    private function fillPlaceHolder($placeholder, $value){
-        $this->template = str_replace($placeholder, $value, $this->template);
-    }
-    private function fillPlaceHolderSpanLanguage1($placeholder, $value){
-        $span = '<span dir="{{dir_language1}}" style="font-family:{{font_language1}};" >';
-        $span .= $value . '</span>';
-        $this->template = str_replace($placeholder, $span, $this->template);
-    }
-    private function fillPlaceHolderSpanLanguage2($placeholder, $value){
-        $span = '<span dir="||dir_language2||" style="font-family:||font_language2||;" >';
-        $span .= $value . '</span>';
-        $this->template = str_replace($placeholder, $span, $this->template);
-    }
-    public function setBilingualTemplate($template)
-    {
-        $file = ROOT_TEMPLATES . $template;
-        if (!file_exists($file)){
-            writeLogError('BilingualStudyTemplateController-124', 'template does not exist');
-            return 'Template does not exist';
+
+    private function replacePlaceholders(array $placeholders): void {
+        foreach ($placeholders as $key => $value) {
+            $this->template = str_replace($key, $value, $this->template);
         }
+    }
+
+    public function setBilingualTemplate(string $template): void {
+        $file = ROOT_TEMPLATES . $template;
+        if (!file_exists($file)) {
+            throw new \Exception('Template does not exist: ' . $file);
+        }
+        
         $this->template = file_get_contents($file);
         $this->createBibleBlock();
-        $this->fillPlaceHolderSpanLanguage1('{{Bible Block}}', $this->bibleBlock);
-        $this->fillPlaceHolderSpanLanguage1('{{language}}', $this->language1->getName());
-        $this->fillPlaceHolder('||language||', $this->language2->getName());
-        $this->fillPlaceHolder('{{Bible Reference}}', $this->biblePassage1->getReferenceLocalLanguage());
-        $this->fillPlaceHolder('||Bible Reference||', $this->biblePassage2->getReferenceLocalLanguage());
-        $this->fillPlaceHolder('{{url}}', $this->biblePassage1->getPassageUrl());
-        $this->fillPlaceHolder('||url||', $this->biblePassage2->getPassageUrl());
-        $this->fillPlaceHolder('{{QrCode1}}', $this->qrcode1);
-        $this->fillPlaceHolder('||QrCode2||', $this->qrcode2);
-        $this->fillPlaceHolderSpanLanguage1('{{Title}}', $this->title);
-        $this->fillPlaceHolderSpanLanguage1('{{filename}}', $this->getFileName());
-        $this->fillPlaceHolderSpanLanguage1('{{Video Block}}', '');
-       
-        foreach ($this->translation1 as $key => $value){
-            $find= '{{' . $key . '}}';
-            $this->fillPlaceHolderSpanLanguage1($find, $value);
-        }
-        foreach ($this->translation2 as $key => $value){
-            $find= '||' . $key . '||';
-            $this->fillPlaceHolderSpanLanguage2($find, $value);
-        }
-        $this->fillPlaceHolder('{{dir_language1}}', $this->language1->getDirection());
-        $this->fillPlaceHolder('||dir_language2||', $this->language2->getDirection());
-        $this->fillPlaceHolder('{{font_language1}}', $this->language1->getFont());
-        $this->fillPlaceHolder('||font_language2||', $this->language2->getFont());
+        
+        $placeholders = [
+            self::PLACEHOLDERS['BIBLE_BLOCK'] => $this->bibleBlock,
+            self::PLACEHOLDERS['LANGUAGE'] => $this->language1->getName(),
+            '||language||' => $this->language2->getName(),
+            self::PLACEHOLDERS['BIBLE_REFERENCE'] => $this->biblePassage1->getReferenceLocalLanguage(),
+            '||Bible Reference||' => $this->biblePassage2->getReferenceLocalLanguage(),
+            self::PLACEHOLDERS['URL'] => $this->biblePassage1->getPassageUrl(),
+            '||url||' => $this->biblePassage2->getPassageUrl(),
+            self::PLACEHOLDERS['QRCODE1'] => $this->qrcode1,
+            '||QrCode2||' => $this->qrcode2,
+            self::PLACEHOLDERS['TITLE'] => $this->title,
+            self::PLACEHOLDERS['FILENAME'] => $this->getFileName(),
+            '{{dir_language1}}' => $this->language1->getDirection(),
+            '||dir_language2||' => $this->language2->getDirection(),
+            '{{font_language1}}' => $this->language1->getFont(),
+            '||font_language2||' => $this->language2->getFont()
+        ];
+
+        $this->replacePlaceholders($placeholders);
         $this->setUniqueTemplateValues();
     }
-    private function createBibleBlock(){
-        // a blank record is NULL
-        if ($this->biblePassage1->getPassageText() !==  NULL 
-            && $this->biblePassage2->getPassageText() !== NULL
-            && $this->biblePassage1->getPassageText() !==  '' 
-            && $this->biblePassage2->getPassageText() !== '')
-            {
-           $bibleBlock = new BibleBlockController(
-                    $this->biblePassage1->getPassageText(),
-                    $this->biblePassage2->getPassageText(), 
-                    $this->bibleReferenceInfo->getVerseRange()
+
+    private function createBibleBlock(): void {
+        if ($this->biblePassage1->getPassageText() && $this->biblePassage2->getPassageText()) {
+            $bibleBlockController = new BibleBlockController(
+                $this->biblePassage1->getPassageText(),
+                $this->biblePassage2->getPassageText(),
+                $this->bibleReferenceInfo->getVerseRange()
             );
-            $this->bibleBlock =$bibleBlock->getBlock();
-        }
-        else{
+            $this->bibleBlock = $bibleBlockController->getBlock();
+        } else {
             $this->createBibleBlockWhenTextMissing();
         }
     }
-    private function createBibleBlockWhenTextMissing(){
-        $this->bibleBlock = '';
-        if ($this->biblePassage2->getPassageText() !== NULL
-            && $this->biblePassage2->getPassageText() !== ''){
-            $this->bibleBlock .= $this->showTextOrLink($this->biblePassage1);
-            $this->bibleBlock .= $this->showTextOrLink($this->biblePassage2);
-        }
-        else{
-            $this->bibleBlock .= $this->showTextOrLink($this->biblePassage2);
-            $this->bibleBlock .= $this->showTextOrLink($this->biblePassage1);
-        }
-    }
-    private function showTextOrLink($biblePassage){
-        if ($biblePassage->getPassageText() == NULL){
-            return $this->showDivLink($biblePassage); 
-        }else{
-            return $this->showDivText($biblePassage);
-        }
-    }
-    private function showDivLink($biblePassage){
-        $template = file_get_contents(ROOT_TEMPLATES . 'bibleBlockDivLink.template.html');
-        $existing = array(
-            '{{dir_language}}',
-            '{{url}}',
-            '{{Bible Reference}}',
-            '{{Bid}}'
-        );
-        $new = array(
-            $biblePassage->getBibleDirection(),
-            $biblePassage->passageUrl,
-            $biblePassage->referenceLocalLanguage,
-            $biblePassage->getBibleBid()
-        );
-        $template = str_replace($existing, $new, $template);
-        return $template;
 
+    private function createBibleBlockWhenTextMissing(): void {
+        $this->bibleBlock = $this->showTextOrLink($this->biblePassage1) . $this->showTextOrLink($this->biblePassage2);
     }
-    private function showDivText($biblePassage){
-        $template = file_get_contents(ROOT_TEMPLATES . 'bibleBlockDivText.template.html');
-        $existing = array(
-            '{{dir_language}}',
-            '{{url}}',
-            '{{Bible Reference}}',
-            '{{Bid}}',
-            '{{passage_text}}'
-        );
-        $new = array(
-            $biblePassage->getBibleDirection(),
-            $biblePassage->passageUrl,
-            $biblePassage->referenceLocalLanguage,
-            $biblePassage->getBibleBid(),
-            $biblePassage->getPassageText()
-        );
-        $template = str_replace($existing, $new, $template);
-        return $template;
-    }
-    
-    
 
-    public function saveBilingualView(){
-        $filePath= $this->getPathView() . $this->fileName .'.html';
-        $text = $this->template;
-        file_put_contents($filePath, $text);
+    private function showTextOrLink(PassageSelectController $biblePassage): string {
+        return $biblePassage->getPassageText() ? $this->showDivText($biblePassage) : $this->showDivLink($biblePassage);
+    }
+
+    private function showDivLink(PassageSelectController $biblePassage): string {
+        $template = $this->loadTemplateFile(ROOT_TEMPLATES . 'bibleBlockDivLink.template.html');
+        return str_replace(
+            ['{{dir_language}}', '{{url}}', '{{Bible Reference}}', '{{Bid}}'],
+            [$biblePassage->getBibleDirection(), $biblePassage->getPassageUrl(), $biblePassage->getReferenceLocalLanguage(), $biblePassage->getBibleBid()],
+            $template
+        );
+    }
+
+    private function showDivText(PassageSelectController $biblePassage): string {
+        $template = $this->loadTemplateFile(ROOT_TEMPLATES . 'bibleBlockDivText.template.html');
+        return str_replace(
+            ['{{dir_language}}', '{{url}}', '{{Bible Reference}}', '{{Bid}}', '{{passage_text}}'],
+            [$biblePassage->getBibleDirection(), $biblePassage->getPassageUrl(), $biblePassage->getReferenceLocalLanguage(), $biblePassage->getBibleBid(), $biblePassage->getPassageText()],
+            $template
+        );
+    }
+
+    private function loadTemplateFile(string $filePath): string {
+        if (!file_exists($filePath)) {
+            throw new \Exception("Template file does not exist: $filePath");
+        }
+        return file_get_contents($filePath);
+    }
+
+    public function saveBilingualView(): void {
+        $filePath = $this->getPathView() . $this->fileName . '.html';
+        file_put_contents($filePath, $this->template);
     }
 }

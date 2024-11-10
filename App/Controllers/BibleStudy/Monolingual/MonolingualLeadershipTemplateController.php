@@ -1,70 +1,53 @@
 <?php
+
 namespace App\Controllers\BibleStudy\Monolingual;
 
-use App\Controllers\BibleStudy\LeadershipStudyController as LeadershipStudyController;
-use App\Controllers\BibleStudy\Monolingual\MonolingualStudyTemplateController as MonolingualStudyTemplateController;
-use App\Models\Language\LanguageModel as LanguageModel;
-use App\Models\QrCodeGeneratorModel as QrCodeGeneratorModel;
-use App\Models\BibleStudy\LeadershipReferenceModel as LeadershipReferenceModel;
+use App\Controllers\BibleStudy\LeadershipStudyController;
+use App\Models\BibleStudy\LeadershipReferenceModel;
+use App\Traits\MonolingualQrCodeTrait;
+use App\Traits\MonolingualFileNamingTrait;
+use App\Traits\MonolingualTemplatePathsTrait;
 
 class MonolingualLeadershipTemplateController extends MonolingualStudyTemplateController
 {
-    protected function createQrCode($url, $languageCodeHL){
-        $size = 240;
-        $fileName = 'Leadership'. $this->lesson .'-' .$languageCodeHL . '.png';
-        $qrCodeGenerator = new QrCodeGeneratorModel($url, $size, $fileName);
-        $qrCodeGenerator->generateQrCode();
-        return $qrCodeGenerator->getQrCodeUrl();
-    }
-    static function findFileName($lesson, $languageCodeHL1){
-        $lang1 = LanguageModel::getEnglishNameFromCodeHL($languageCodeHL1);
-        $fileName =  'Leadership'. $lesson .'('. $lang1 .')';
-        $fileName = str_replace( ' ', '_', $fileName);
+    use MonolingualQrCodeTrait, MonolingualFileNamingTrait, MonolingualTemplatePathsTrait;
 
-        return trim($fileName);
+    protected function findTitle(string $lesson, string $languageCodeHL): string {
+        return LeadershipStudyController::getTitle($lesson, $languageCodeHL);
     }
-    static function findFileNamePdf($lesson, $languageCodeHL1){
-        $fileName =  MonolingualLeadershipTemplateController::findFileName($lesson, $languageCodeHL1);
-        return $fileName . '.pdf';
-    }
-    static function findFileNameView($lesson, $languageCodeHL1){
-        $fileName =  MonolingualLeadershipTemplateController::findFileName($lesson, $languageCodeHL1);
-        return $fileName . '.html';
-    }
-    protected function findTitle($lesson, $languageCodeHL1){
-        return LeadershipStudyController::getTitle($lesson, $languageCodeHL1 );
-    }
-    protected function getMonolingualPdfTemplateName(){
+
+    protected function getMonolingualPdfTemplateName(): string {
         return 'monolingualLeadershipPdf.template.html';
     }
-    protected function getMonolingualViewTemplateName(){
+
+    protected function getMonolingualViewTemplateName(): string {
         return 'monolingualLeadershipView.template.html';
     }
-    static function getPathPdf(){
-        return ROOT_RESOURCES .'pdf/leadership/';
-    }
-    static function getUrlPdf(){
-        return WEBADDRESS_RESOURCES .'pdf/leadership/';
-    }
-    static function getPathView(){
-        return ROOT_RESOURCES .'view/leadership/';
-    }
-    static function getUrlView(){
-        return WEBADDRESS_RESOURCES .'view/leadership/';
-    }
-  
-    protected function getStudyReferenceInfo($lesson){
+
+    protected function getStudyReferenceInfo(string $lesson): LeadershipReferenceModel {
         $studyReferenceInfo = new LeadershipReferenceModel();
         $studyReferenceInfo->setLesson($lesson);
-        return $studyReferenceInfo;  
+        return $studyReferenceInfo;
     }
-    protected function getTranslationSource(){
+
+    protected function getTranslationSource(): string {
         return 'leadership';
     }
-    protected function setFileName(){
-        $this->fileName = 'Leadership' . $this->lesson .'('. $this->language1->getName() . ')';
-        $this->fileName = str_replace( ' ', '_', $this->fileName);
+
+    protected function setFileName(): void {
+        $this->fileName = 'Leadership' . $this->lesson . '(' . $this->language1->getName() . ')';
+        $this->fileName = str_replace(' ', '_', $this->fileName);
     }
-    protected function setUniqueTemplateValues(){
-   }
+
+    protected function setUniqueTemplateValues(): void {
+        // Add any leadership-specific values
+    }
+
+    protected function getFileNamePrefix(): string {
+        return 'Leadership';
+    }
+
+    protected static function getPathPrefix(): string {
+        return 'leadership';
+    }
 }
