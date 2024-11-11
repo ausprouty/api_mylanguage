@@ -5,8 +5,9 @@ namespace App\Controllers\BibleStudy\Bilingual;
 use App\Repositories\BibleRepository;
 use App\Repositories\LanguageRepository;
 use App\Services\QrCodeGeneratorService;
-use App\Traits\FileNamingTrait;
+use App\Traits\DbsFileNamingTrait;
 use App\Traits\TemplatePlaceholderTrait;
+use App\Controllers\BibleStudy\BibleBlockController;
 
 /**
  * Class BilingualStudyTemplateController
@@ -20,11 +21,12 @@ use App\Traits\TemplatePlaceholderTrait;
  */
 abstract class BilingualStudyTemplateController
 {
-    use FileNamingTrait, TemplatePlaceholderTrait;
+    use DbsFileNamingTrait, TemplatePlaceholderTrait;
 
     protected LanguageRepository $languageRepository;
     protected BibleRepository $bibleRepository;
     protected QrCodeGeneratorService $qrCodeService;
+    protected BibleBlockController $bibleBlockController;
     protected string $fileName;
     protected string $bibleBlock;
     protected string $qrcode1;
@@ -42,28 +44,18 @@ abstract class BilingualStudyTemplateController
      * @param LanguageRepository $languageRepository The repository for managing language data.
      * @param BibleRepository $bibleRepository The repository for managing Bible data.
      * @param QrCodeGeneratorService $qrCodeService The service for generating QR codes.
+     * @param BibleBlockController $bibleBlockController The controller for creating Bible text blocks.
      */
     public function __construct(
         LanguageRepository $languageRepository,
         BibleRepository $bibleRepository,
-        QrCodeGeneratorService $qrCodeService
+        QrCodeGeneratorService $qrCodeService,
+        BibleBlockController $bibleBlockController
     ) {
         $this->languageRepository = $languageRepository;
         $this->bibleRepository = $bibleRepository;
         $this->qrCodeService = $qrCodeService;
-    }
-
-    /**
-     * Sets the filename for the template, using a prefix, lesson, and language codes.
-     * It utilizes the `generateFileName` method from `FileNamingTrait`.
-     */
-    protected function setFileName(): void {
-        $this->fileName = $this->generateFileName(
-            $this->getFileNamePrefix(),
-            $this->lesson,
-            $this->language1->getLanguageCodeHL(),
-            $this->language2->getLanguageCodeHL()
-        );
+        $this->bibleBlockController = $bibleBlockController;
     }
 
     /**
@@ -72,15 +64,37 @@ abstract class BilingualStudyTemplateController
      */
     protected function createBibleBlock(): void {
         if ($this->biblePassage1->getPassageText() && $this->biblePassage2->getPassageText()) {
-            $bibleBlockController = new BibleBlockController(
+            $this->bibleBlockController->load(
                 $this->biblePassage1->getPassageText(),
                 $this->biblePassage2->getPassageText(),
                 $this->bibleReferenceInfo->getVerseRange()
             );
-            $this->bibleBlock = $bibleBlockController->getBlock();
+            $this->bibleBlock = $this->bibleBlockController->getBlock();
         } else {
             $this->createBibleBlockWhenTextMissing();
         }
+    }
+
+    /**
+     * Creates a Bible block when text is missing for a passage.
+     */
+    private function createBibleBlockWhenTextMissing(): void {
+        $this->bibleBlock = $this->showTextOrLink($this->biblePassage1);
+    }
+
+    /**
+     * Helper method to create a QR code for a specific passage URL and language code.
+     *
+     * @param string $url The URL to encode in the QR code.
+     * @param string $languageCode The language code to append to the file name for the QR code.
+     * @return string The URL to the generated QR code image.
+     */
+    protected function createQrCodeForPassage(string $url, string $languageCode): string {
+        $fileName = $this->getFileNamePrefix() . $this->lesson . '-' . $languageCode . '.png';
+        $this->qrCodeService->initialize($url, 240, $fileName);
+        $this->qrCodeService->generateQrCode();
+        
+        return $this->qrCodeService->getQrCodeUrl();
     }
 
     /**
@@ -100,17 +114,64 @@ abstract class BilingualStudyTemplateController
     }
 
     /**
-     * Helper method to create a QR code for a specific passage URL and language code.
+     * Returns the Bible passage text or a link if the passage text is missing.
      *
-     * @param string $url The URL to encode in the QR code.
-     * @param string $languageCode The language code to append to the file name for the QR code.
-     * @return string The URL to the generated QR code image.
+     * @param mixed $biblePassage The Bible passage object or identifier.
+     * @return string A formatted div containing either the passage text or a link.
      */
-    protected function createQrCodeForPassage(string $url, string $languageCode): string {
-        $fileName = $this->getFileNamePrefix() . $this->lesson . '-' . $languageCode . '.png';
-        $this->qrCodeService->initialize($url, 240, $fileName);
-        $this->qrCodeService->generateQrCode();
-        
-        return $this->qrCodeService->getQrCodeUrl();
+    private function showTextOrLink($biblePassage): string {
+        return $biblePassage->getPassageText() === null 
+            ? $this->showDivLink($biblePassage) 
+            : $this->showDivText($biblePassage);
+    }
+
+    /**
+     * Formats a div with a link when Bible passage text is missing.
+     *
+     * @param mixed $biblePassage The Bible passage object.
+     * @return string HTML string with a link to the passage.
+     */
+    private function showDivLink($biblePassage): string {
+        $template = file_get_contents(ROOT_TEMPLATES . 'bibleBlockDivLink.template.html');
+        $existing = ['{{dir_language}}', '{{url}}', '{{Bible Reference}}', '{{Bid}}'];
+        $new = [
+            $biblePassage->getBibleDirection(),
+            $biblePassage->passageUrl,
+            $biblePassage->referenceLocalLanguage,
+            $biblePassage->getBibleBid()
+        ];
+        return str_replace($existing, $new, $template);
+    }
+
+    /**
+     * Formats a div with the passage text.
+     *
+     * @param mixed $biblePassage The Bible passage object.
+     * @return string HTML string with the passage text.
+     */
+    private function showDivText($biblePassage): string {
+        $template = file_get_contents(ROOT_TEMPLATES . 'bibleBlockDivText.template.html');
+        $existing = ['{{dir_language}}', '{{url}}', '{{Bible Reference}}', '{{Bid}}', '{{passage_text}}'];
+        $new = [
+            $biblePassage->getBibleDirection(),
+            $biblePassage->passageUrl,
+            $biblePassage->referenceLocalLanguage,
+            $biblePassage->getBibleBid(),
+            $biblePassage->getPassageText()
+        ];
+        return str_replace($existing, $new, $template);
+    }
+
+    /**
+     * Sets the filename for the template, using a prefix, lesson, and language codes.
+     * It utilizes the `generateFileName` method from `FileNamingTrait`.
+     */
+    protected function setFileName(): void {
+        $this->fileName = $this->generateFileName(
+            $this->getFileNamePrefix(),
+            $this->lesson,
+            $this->language1->getLanguageCodeHL(),
+            $this->language2->getLanguageCodeHL()
+        );
     }
 }

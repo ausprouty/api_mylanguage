@@ -19,7 +19,17 @@ class BibleBlockController{
     private $paragraphs2;
     private $template;
 
-    public function __construct($textLanguage1, $textLanguage2, $verseRange)
+    public function __construct(){
+        $this->bibleBlock = '';
+        $this->textLanguage1 = '';
+        $this->textLanguage2 = '';
+        $this->verseRange = 0;
+        $this->paragraphs1 = array();
+        $this->paragraphs2 = array();
+        $this->template = '';
+    }
+
+    public function load($textLanguage1, $textLanguage2, $verseRange)
     {
         $this->textLanguage1 = $textLanguage1;
         $this->textLanguage2 = $textLanguage2;
@@ -122,7 +132,7 @@ class BibleBlockController{
         //writeLogDebug('BibleBlockController-116', 'readjustUsingLanguage2');
         $language2Paragraphs = $this->findParagraphs($this->textLanguage2);
         $language1Text = $this->removeParagraphsAndDivs($this->textLanguage1);
-        $language2Paragraphs = $this->createEqualParagraphs($language2Paragraphs, $language1Text);
+        $language1Paragraphs = $this->createEqualParagraphs($language2Paragraphs, $language1Text);
         $this->paragraphs1 = $this->findParagraphs($language1Paragraphs);
     }
     private function createEqualParagraphs($paragraphs, $text){
