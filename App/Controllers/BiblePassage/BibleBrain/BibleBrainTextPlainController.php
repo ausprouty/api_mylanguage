@@ -2,8 +2,8 @@
 
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Services\PassageFormatterService;
-use App\Models\Data\BibleBrainConnectionModel;
+use App\Services\Bible\PassageFormatterService;
+use App\Services\Web\BibleBrainConnectionService;
 use App\Repositories\BibleReferenceInfoRepository;
 
 class BibleBrainTextPlainController
@@ -23,7 +23,7 @@ class BibleBrainTextPlainController
     public function fetchPassageData($languageCodeHL, $bookId, $chapter, $verseStart = null, $verseEnd = null)
     {
         $url = "https://4.dbt.io/api/bibles/filesets/{$languageCodeHL}/{$bookId}/{$chapter}?verse_start={$verseStart}&verse_end={$verseEnd}";
-        $this->response = (new BibleBrainConnectionModel($url))->response;
+        $this->response = (new BibleBrainConnectionService($url))->response;
         $this->passageText = $this->formatter->formatPassageText($this->response->data ?? []);
     }
 

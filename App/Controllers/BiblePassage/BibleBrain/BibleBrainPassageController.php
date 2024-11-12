@@ -2,9 +2,8 @@
 
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Services\BibleBrainPassageService;
-use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceInfoModel;
+use App\Services\Bible\BibleBrainPassageService;
+
 
 class BibleBrainPassageController
 {

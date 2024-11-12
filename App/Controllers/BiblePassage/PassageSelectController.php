@@ -7,6 +7,7 @@ use App\Controllers\BiblePassage\BibleWordPassageController;
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController;
 use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController;
 use App\Models\Bible\BibleModel;
+use App\Models\Bible\BiblePassageModel;
 use App\Models\Bible\BibleReferenceInfoModel;
 use App\Services\Database\DatabaseService;
 use App\Models\Language\LanguageModel;

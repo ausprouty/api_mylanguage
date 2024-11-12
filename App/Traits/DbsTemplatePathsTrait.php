@@ -15,7 +15,7 @@ namespace App\Traits;
  *
  * @package App\Traits
  */
-trait TemplatePathsTrait
+trait DbsTemplatePathsTrait
 {
     /**
      * Returns the server file path for PDF files associated with the resource.

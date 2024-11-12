@@ -1,39 +1,38 @@
 <?php
-
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Services\BibleUpdateService;
+use App\Services\Bible\BibleUpdateService;
 use App\Repositories\LanguageRepository;
-use App\Models\Data\BibleBrainConnectionModel;
+use App\Factories\BibleBrainConnectionFactory;
 
 class BibleBrainBibleController
 {
     private $bibleUpdateService;
     private $languageRepository;
+    private $bibleBrainConnectionFactory;
     public $response;
 
-    public function __construct(BibleUpdateService $bibleUpdateService, LanguageRepository $languageRepository)
-    {
+    public function __construct(
+        BibleUpdateService $bibleUpdateService,
+        LanguageRepository $languageRepository,
+        BibleBrainConnectionFactory $bibleBrainConnectionFactory
+    ) {
         $this->bibleUpdateService = $bibleUpdateService;
         $this->languageRepository = $languageRepository;
+        $this->bibleBrainConnectionFactory = $bibleBrainConnectionFactory;
     }
 
     public function getBiblesForLanguageIso($languageCodeIso, $limit)
     {
         $url = 'https://4.dbt.io/api/bibles?language_code=' . strtoupper($languageCodeIso) . '&page=1&limit=' . $limit;
-        $bibles = new BibleBrainConnectionModel($url);
+        $bibles = $this->bibleBrainConnectionFactory->createModelForEndpoint($url);
         $this->response = $bibles->response->data;
-    }
-
-    public function showResponse()
-    {
-        return $this->response;
     }
 
     public function getFormatTypes()
     {
         $url = 'https://4.dbt.io/api/bibles/filesets/media/types';
-        $formatTypes = new BibleBrainConnectionModel($url);
+        $formatTypes = $this->bibleBrainConnectionFactory->createModelForEndpoint($url);
         $this->response = $formatTypes->response;
         return $formatTypes->response;
     }
@@ -41,7 +40,7 @@ class BibleBrainBibleController
     public function getDefaultBible($languageCodeIso)
     {
         $url = 'https://4.dbt.io/api/bibles/defaults/types?language_code=' . $languageCodeIso;
-        $bible = new BibleBrainConnectionModel($url);
+        $bible = $this->bibleBrainConnectionFactory->createModelForEndpoint($url);
         $this->response = $bible->response;
     }
 

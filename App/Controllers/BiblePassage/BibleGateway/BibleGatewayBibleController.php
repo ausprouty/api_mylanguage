@@ -2,8 +2,10 @@
 namespace App\Controllers\BiblePassage\BibleGateway;
 
 use App\Repositories\BibleGatewayRepository;
-use App\Services\BibleGatewayDataParser;
-use App\Services\LanguageLookupService;
+use App\Services\Bible\BibleGatewayDataParserService;
+use App\Services\Language\LanguageLookupService;
+use App\Configuration\Config;
+use App\Services\LoggerService;
 
 class BibleGatewayBibleController
 {
@@ -13,7 +15,7 @@ class BibleGatewayBibleController
 
     public function __construct(
         BibleGatewayRepository $repository,
-        BibleGatewayDataParser $parser,
+        BibleGatewayDataParserService $parser,
         LanguageLookupService $languageLookupService
     ) {
         $this->repository = $repository;
@@ -23,9 +25,10 @@ class BibleGatewayBibleController
 
     public function import()
     {
-        $filename = ROOT_IMPORT_DATA . 'BibleGatewayBibles.txt';
+        $filename = Config::get('ROOT_IMPORT_DATA') . 'BibleGatewayBibles.txt';
         if (!file_exists($filename)) {
-            // Display error or instructions
+            // Log an error, display an error message, or provide instructions
+            LoggerService::logError("File not found: {$filename}");
             return;
         }
 

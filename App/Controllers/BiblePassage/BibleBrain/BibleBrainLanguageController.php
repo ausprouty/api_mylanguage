@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Services\BibleBrainLanguageService;
+use App\Services\Bible\BibleBrainLanguageService;
 use App\Repositories\LanguageRepository;
 
 class BibleBrainLanguageController

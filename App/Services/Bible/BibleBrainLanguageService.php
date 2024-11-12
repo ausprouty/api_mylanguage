@@ -1,7 +1,8 @@
 <?php
+
 namespace App\Services\Bible;
 
-use App\Models\Data\BibleBrainConnectionModel;
+use App\Services\Web\BibleBrainConnectionService;
 use App\Models\Language\LanguageModel;
 use App\Repositories\LanguageRepository;
 
@@ -17,7 +18,7 @@ class BibleBrainLanguageService
     public function fetchLanguagesByCountry($countryCode)
     {
         $url = 'https://4.dbt.io/api/languages?country=' . $countryCode;
-        $languages = new BibleBrainConnectionModel($url);
+        $languages = new BibleBrainConnectionService($url);
         return $languages->response;
     }
 
@@ -37,7 +38,7 @@ class BibleBrainLanguageService
     private function fetchLanguageDetails($languageCodeIso)
     {
         $url = 'https://4.dbt.io/api/languages?language_code=' . $languageCodeIso;
-        $languageDetails = new BibleBrainConnectionModel($url);
+        $languageDetails = new BibleBrainConnectionService($url);
 
         if (isset($languageDetails->response->data[0])) {
             $data = $languageDetails->response->data[0];

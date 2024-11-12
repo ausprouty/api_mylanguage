@@ -5,7 +5,7 @@ namespace App\Controllers\BiblePassage;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel;
 use App\Services\Database\DatabaseService;
-use App\Services\WebsiteConnectionService;
+use App\Services\Web\WebsiteConnectionService;
 use PDO;
 
 class BibleYouVersionPassageController

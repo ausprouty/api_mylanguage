@@ -6,7 +6,8 @@ use App\Models\Language\TranslationModel;
 use App\Models\Language\LanguageModel;
 use App\Repositories\LanguageRepository;
 
-class MonolingualTemplateTranslationController {
+class MonolingualTemplateTranslationController
+{
     private LanguageRepository $languageRepository;
     private string $templateName;
     private ?string $template = null;
@@ -15,7 +16,8 @@ class MonolingualTemplateTranslationController {
     private LanguageModel $language1;
     private string $translationFile;
 
-    public function __construct(LanguageRepository $languageRepository, string $templateName, string $translationFile, string $languageCodeHL1) {
+    public function __construct(LanguageRepository $languageRepository, string $templateName, string $translationFile, string $languageCodeHL1)
+    {
         $this->languageRepository = $languageRepository;
         $this->templateName = $templateName;
         $this->translationFile = $translationFile;
@@ -24,44 +26,51 @@ class MonolingualTemplateTranslationController {
         $this->initializeTemplate();
     }
 
-    public function getTemplate(): ?string {
+    public function getTemplate(): ?string
+    {
         return $this->template;
     }
 
-    private function initializeTemplate(): void {
+    private function initializeTemplate(): void
+    {
         $this->setLanguage();
         $this->loadTemplate();
         $this->loadTranslation();
         $this->applyPlaceholders();
     }
 
-    private function setLanguage(): void {
+    private function setLanguage(): void
+    {
         $this->language1 = new LanguageModel($this->languageRepository);
         $this->language1->findOneByLanguageCodeHL($this->languageCodeHL1);
     }
 
-    private function loadTemplate(): void {
+    private function loadTemplate(): void
+    {
         $filePath = ROOT_TEMPLATES . $this->templateName . '.template.html';
-        
+
         if (!file_exists($filePath)) {
             writeLogError('MonolingualTemplateTranslationController-28', 'ERROR - no such template as ' . $filePath);
             return;
         }
-        
+
         $this->template = file_get_contents($filePath);
     }
 
-    private function loadTranslation(): void {
+    private function loadTranslation(): void
+    {
         $translationModel = new TranslationModel($this->languageCodeHL1, $this->translationFile);
         $this->translation1 = $translationModel->getTranslationFile();
     }
 
-    private function applyPlaceholders(): void {
+    private function applyPlaceholders(): void
+    {
         $this->replaceTranslationPlaceholders();
         $this->replaceFontPlaceholders();
     }
 
-    private function replaceTranslationPlaceholders(): void {
+    private function replaceTranslationPlaceholders(): void
+    {
         if ($this->template === null) {
             return;
         }
@@ -73,7 +82,8 @@ class MonolingualTemplateTranslationController {
         }
     }
 
-    private function replaceFontPlaceholders(): void {
+    private function replaceFontPlaceholders(): void
+    {
         if ($this->template === null) {
             return;
         }

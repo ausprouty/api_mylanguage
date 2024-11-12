@@ -1,15 +1,24 @@
 <?php
-/*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
-*/
-namespace App\Web\Services;
 
-use App\Services\WebsiteConnectionService as WebsiteConnectionService;
+namespace App\Services\Web;
+
+use App\Services\Web\WebsiteConnectionService;
+use App\Configuration\Config;
 
 class BibleBrainConnectionService extends WebsiteConnectionService
 {
-    public function __construct(string $url){
-      $this->url = $url . '&v=4&key=' .  BIBLE_BRAIN_KEY;
-      parent::connect();
-      $this->response = json_decode($this->response);
-    }
+  public function __construct(string $url)
+  {
+    // Fetch the API key from the Config class
+    $apiKey = Config::get('BIBLE_BRAIN_KEY', '');
+
+    // Append API version and key to the URL
+    $url .= '&v=4&key=' . $apiKey;
+
+    // Call the parent constructor to initialize the URL and connection
+    parent::__construct($url);
+
+    // Decode the JSON response after the connection
+    $this->response = json_decode($this->response);
+  }
 }

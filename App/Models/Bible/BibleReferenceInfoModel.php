@@ -6,6 +6,7 @@ class BibleReferenceInfoModel
 {
     private $entry;
     private $languageCodeHL;
+    private $languageCodeIso;
     private $bookName;
     private $bookID;
     private $uversionBookID;
@@ -20,6 +21,7 @@ class BibleReferenceInfoModel
     {
         $this->entry = ' ';
         $this->languageCodeHL = null;
+        $this->languageCodeIso = null;
         $this->bookName = ' ';
         $this->bookID = null;
         $this->uversionBookID = null;
@@ -60,6 +62,10 @@ class BibleReferenceInfoModel
     public function getLanguageCodeHL()
     {
         return $this->languageCodeHL;
+    }
+    public function getLanguageCodeIso()
+    {
+        return $this->languageCodeIso;
     }
 
     public function getTestament()

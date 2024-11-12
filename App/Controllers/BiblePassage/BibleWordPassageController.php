@@ -5,6 +5,7 @@ namespace App\Controllers\BiblePassage;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\BiblePassageModel;
 use App\Models\Bible\BibleReferenceInfoModel;
+use App\Configuration\Config;
 
 class BibleWordPassageController
 {
@@ -65,7 +66,7 @@ class BibleWordPassageController
 
     private function generateFilePath()
     {
-        $baseDir = ROOT_RESOURCES . 'bibles/wordproject/';
+        $baseDir = Config::get('ROOT_RESOURCES') . 'bibles/wordproject/';
         $externalId = $this->bible->getExternalId();
         return $baseDir . $externalId . '/' . $externalId . '/' . $this->formatChapterPage();
     }

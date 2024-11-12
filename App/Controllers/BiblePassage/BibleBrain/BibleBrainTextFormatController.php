@@ -2,7 +2,7 @@
 
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Services\BibleBrainPassageService;
+use App\Services\Bible\BibleBrainPassageService;
 use App\Models\Bible\BibleReferenceInfoModel;
 
 class BibleBrainTextFormatController

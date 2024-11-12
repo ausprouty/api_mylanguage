@@ -5,8 +5,9 @@ namespace App\Controllers\BiblePassage\BibleGateway;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel;
 use App\Models\Bible\BiblePassageModel;
-use App\Services\WebsiteConnectionService;
+use App\Services\Web\WebsiteConnectionService;
 use App\Services\Database\DatabaseService;
+use App\Configuration\Config;
 use simple_html_dom;
 
 class BibleGatewayPassageController extends BiblePassageModel
@@ -48,7 +49,7 @@ class BibleGatewayPassageController extends BiblePassageModel
 
     private function formatExternal($webpage)
     {
-        require_once(ROOT_LIBRARIES . '/simplehtmldom_1_9_1/simple_html_dom.php');
+        require_once Config::get('ROOT_LIBRARIES') . 'simplehtmldom_1_9_1/simple_html_dom.php';
         $html = str_get_html($webpage);
 
         if (!$this->findAndSetLocalReference($html)) {
@@ -113,38 +114,4 @@ class BibleGatewayPassageController extends BiblePassageModel
     private function finalizeBibleText($bibleText)
     {
         $bibleText = $this->replaceSmallCaps($bibleText);
-        $bibleText = $this->stripDivTags($bibleText);
-        $bibleText = preg_replace('/\bid="[^"]+"/', '', $bibleText);
-        $bibleText = preg_replace('/class="text [^"]+">/', 'class="text">', $bibleText);
-        $bibleText = preg_replace('/<span\s+class\s*=\s*["\']text["\']>(.+?)<\/span>/', '$1', $bibleText);
-        $bibleText = preg_replace('/<h3\b[^>]*>(.*?)<\/h3>/si', '', $bibleText);
-
-        return $bibleText;
-    }
-
-    private function replaceSmallCaps($bibleText)
-    {
-        $bibleText = preg_replace('/<span\s+style\s*=\s*["\']font-variant:\s*small-caps["\']\s+class\s*=\s*["\']small-caps["\']>(.+?)<\/span>/', '<small-caps>$1</small-caps>', $bibleText);
-        $bibleText = str_ireplace('</small-caps>', '</span>', $bibleText);
-        $bibleText = str_ireplace('<small-caps>', '<span style="font-variant: small-caps" class="small-caps">', $bibleText);
-        return $bibleText;
-    }
-
-    private function stripDivTags($bibleText)
-    {
-        $bibleText = str_replace(['<!--end of crossrefs-->', '</div>'], '', $bibleText);
-        return preg_replace('/<div\b[^>]*>/', '', $bibleText);
-    }
-
-    private function createLocalReference($websiteReference)
-    {
-        $expectedInReference = $this->bibleReferenceInfo->getChapterStart() . ':' . $this->bibleReferenceInfo->getVerseStart() . '-' . $this->bibleReferenceInfo->getVerseEnd();
-
-        if (strpos($websiteReference, $expectedInReference) === false) {
-            $lastSpace = strrpos($websiteReference, ' ');
-            $websiteReference = substr($websiteReference, 0, $lastSpace) . ' ' . $expectedInReference;
-        }
-
-        $this->referenceLocalLanguage = $websiteReference;
-    }
-}
+        $bibleText = $this->stripDivTags($bibleText)

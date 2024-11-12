@@ -1,51 +1,73 @@
 <?php
 
-function writeLog($filename, $content){
-	if (LOG_MODE !== 'write_log' &&  LOG_MODE !== 'write_time_log'){
-       return;
-	}
-	if ( LOG_MODE == 'write_time_log'){
-       $filename =   time() . '-' . $filename;
-	}
-	$text = var_dump_ret($content);
-    if (!file_exists(ROOT_LOG)){
-		mkdir(ROOT_LOG);
-	}
-	$fh = fopen(ROOT_LOG . $filename . '.txt', 'w');
-	fwrite($fh, $text);
-    fclose($fh);
-}
-function writeLogAppend($filename, $content){
-	$text = var_dump_ret($content);
-    if (!file_exists(ROOT_LOG)){
-		mkdir(ROOT_LOG);
-	}
-	$fh = ROOT_LOG .  'APPEND-'. $filename . '.txt';
-    file_put_contents($fh, $text,  FILE_APPEND | LOCK_EX );
-}
+namespace App\Services;
 
-function writeLogDebug($filename, $content){
-	$text = var_dump_ret($content);
-    if (!file_exists(ROOT_LOG)){
-		mkdir(ROOT_LOG);
-	}
-	$fh = fopen(ROOT_LOG . 'DEBUG-'. $filename . '.txt', 'w');
-	fwrite($fh, $text);
-	fclose($fh);
-}
-function writeLogError($filename, $content){
-	$text = var_dump_ret($content);
-    if (!file_exists(ROOT_LOG)){
-		mkdir(ROOT_LOG);
-	}
-	$fh = fopen(ROOT_LOG . 'ERROR-'. $filename . '.txt', 'w');
-	fwrite($fh, $text);
-	fclose($fh);
-}
-function var_dump_ret($mixed = null) {
-  ob_start();
-  var_dump($mixed);
-  $content = ob_get_contents();
-  ob_end_clean();
-  return $content;
+use App\Configuration\Config;
+
+class LoggerService
+{
+    private static function ensureLogDirectoryExists()
+    {
+        $logDirectory = Config::get('ROOT_LOG');
+        if (!file_exists($logDirectory)) {
+            mkdir($logDirectory, 0755, true);
+        }
+    }
+
+    private static function getFilePath(string $filename, string $prefix = ''): string
+    {
+        $logMode = Config::get('LOG_MODE');
+        $timestamp = ($logMode === 'write_time_log') ? time() . '-' : '';
+        $logDirectory = Config::get('ROOT_LOG');
+
+        return $logDirectory . $prefix . $timestamp . $filename . '.txt';
+    }
+
+    public static function writeLog(string $filename, $content)
+    {
+        $logMode = Config::get('LOG_MODE');
+        if ($logMode !== 'write_log' && $logMode !== 'write_time_log') {
+            return;
+        }
+
+        $filePath = self::getFilePath($filename);
+        $text = self::varDumpRet($content);
+
+        self::ensureLogDirectoryExists();
+        file_put_contents($filePath, $text);
+    }
+
+    public static function writeLogAppend(string $filename, $content)
+    {
+        $filePath = self::getFilePath($filename, 'APPEND-');
+        $text = self::varDumpRet($content);
+
+        self::ensureLogDirectoryExists();
+        file_put_contents($filePath, $text, FILE_APPEND | LOCK_EX);
+    }
+
+    public static function writeLogDebug(string $filename, $content)
+    {
+        $filePath = self::getFilePath($filename, 'DEBUG-');
+        $text = self::varDumpRet($content);
+
+        self::ensureLogDirectoryExists();
+        file_put_contents($filePath, $text);
+    }
+
+    public static function writeLogError(string $filename, $content)
+    {
+        $filePath = self::getFilePath($filename, 'ERROR-');
+        $text = self::varDumpRet($content);
+
+        self::ensureLogDirectoryExists();
+        file_put_contents($filePath, $text);
+    }
+
+    private static function varDumpRet($mixed): string
+    {
+        ob_start();
+        var_dump($mixed);
+        return ob_get_clean();
+    }
 }

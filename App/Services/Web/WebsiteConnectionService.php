@@ -1,24 +1,26 @@
 <?php
-/*  see https://documenter.getpostman.com/view/12519377/Tz5p6dp7
-*/
-namespace App\Web\Services;
 
-use Exception as Exception;
+namespace App\Services\Web;
+
+use Exception;
+use App\Services\LoggerService;
 
 class WebsiteConnectionService
-
 {
     protected $url;
     public $response;
     
-    public function __construct(string $url){
-      $this->url = $url;
-      $this->connect();
+    public function __construct(string $url)
+    {
+        $this->url = $url;
+        $this->connect();
     }
-    protected function connect() {
+    
+    protected function connect()
+    {
         try {
             $curl = curl_init();
-            curl_setopt_array($curl, array(
+            curl_setopt_array($curl, [
                 CURLOPT_URL => $this->url,
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
@@ -27,32 +29,39 @@ class WebsiteConnectionService
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => 'GET',
-            ));
+            ]);
             $this->response = curl_exec($curl);
-    
+
             // Check for cURL errors
             if (curl_errno($curl)) {
-                throw new Exception("cURL error: " . curl_error($curl));
+                $errorMessage = "cURL error: " . curl_error($curl);
+                LoggerService::logError($errorMessage);
+                throw new Exception($errorMessage);
             }
-    
+
             curl_close($curl);
-    
+
         } catch (Exception $e) {
-            throw new Exception("Failed to connect to the website: " . $e->getMessage());
+            $errorMessage = "Failed to connect to the website: " . $e->getMessage();
+            LoggerService::logError($errorMessage);
+            throw new Exception($errorMessage);
         }
     }
-    protected function decode(){
+
+    protected function decode()
+    {
         $decoded = json_decode($this->response);
-        if (isset($decoded->data)){
-            $this->response = $decoded->data;
-        }
-        else{
-            $this->response = $decoded;
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $errorMessage = "JSON decode error: " . json_last_error_msg();
+            LoggerService::logError($errorMessage);
+            throw new Exception($errorMessage);
         }
 
+        $this->response = isset($decoded->data) ? $decoded->data : $decoded;
     }
-    public function getResponse(){
+
+    public function getResponse()
+    {
         return $this->response;
     }
-
 }

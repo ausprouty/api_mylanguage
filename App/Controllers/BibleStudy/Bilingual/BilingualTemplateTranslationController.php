@@ -6,6 +6,7 @@ use App\Models\Language\TranslationModel as TranslationModel;
 class BilingualTemplateTranslationController {
     
      private $templateName;
+     private $translationFile;
      private $template;
      private $translation1;
      private $translation2;
