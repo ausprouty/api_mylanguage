@@ -15,12 +15,12 @@ $fileName =  BilingualLifeTemplateController::findFileNamePdf($lesson, $language
 $path = BilingualLifeTemplateController::getPathPdf();
 $filePath = $path . $fileName;
 //if (!file_exists($filePath)){
-    $study = new BilingualLifeTemplateController($languageCodeHL1, $languageCodeHL2, $lesson);
-    $study->setBilingualTemplate('bilingualLifePrinciplesPdf.template.html');
-    $html =  $study->getTemplate();
-    $styleSheet = 'dbs.css';
-    $mpdf = new PdfController($languageCodeHL1, $languageCodeHL2);
-    $mpdf->writePdfToComputer($html, $styleSheet, $filePath);
+$study = new BilingualLifeTemplateController($languageCodeHL1, $languageCodeHL2, $lesson);
+$study->setBilingualTemplate('bilingualLifePrinciplesPdf.twig');
+$html =  $study->getTemplate();
+$styleSheet = 'dbs.css';
+$mpdf = new PdfController($languageCodeHL1, $languageCodeHL2);
+$mpdf->writePdfToComputer($html, $styleSheet, $filePath);
 //}
 $url = BilingualLifeTemplateController::getUrlPdf();
 $response['url'] = $url . $fileName;

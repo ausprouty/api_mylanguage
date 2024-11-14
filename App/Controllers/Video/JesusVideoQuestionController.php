@@ -1,14 +1,18 @@
 <?php
+
 namespace App\Controllers\Video;
 
-class JesusVideoQuestionController{
+class JesusVideoQuestionController
+{
     private $template;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->template = null;
     }
 
-    public function getBilingualTemplate ($languageCodeHL1, $languageCodeHL2){
-        $template = file_get_contents(ROOT_TEMPLATES . 'bilingualJesusVideoQuestions.template.html');
+    public function getBilingualTemplate($languageCodeHL1, $languageCodeHL2)
+    {
+        $template = file_get_contents(ROOT_TEMPLATES . 'bilingualJesusVideoQuestions.twig');
     }
 }

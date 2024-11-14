@@ -6,6 +6,7 @@ require_once __DIR__ .'/router.php';
 $path = WEB_ROOT;
 
 get($path  . 'remote', 'App/views/indexRemote.php');
+get($path  . 'tests', 'App/views/indexTests.php');
 
 //API
 get($path  . 'api/test/passage', 'App/API/BiblePassages/passageTest.php');
@@ -141,6 +142,19 @@ if (ENVIRONMENT == 'local') {
     get($path  . 'test/dbs/translation',  'App/Tests/canGetDBSTranslation.php');
     get($path  . 'test/dbs/bilingual',  'App/Tests/canMakeStandardBilingualDBS.php');
     get($path  . 'test/dbs/pdf',  'App/Tests/canPrintDbsPdf.php');
+    get($path . 'test/bibles/best', 'App/Tests/canGetBestBibleForLanguage.php');
+get($path . 'test/biblebrain/bible/default', 'App/Tests/canGetDefaultBibleForLanguage.php');
+get($path . 'test/biblebrain/bible/formats', 'App/Tests/canGetBibleFormatTypes.php');
+get($path . 'test/biblebrain/languages/country', 'App/Tests/canGetLanguagesForCountry.php');
+get($path . 'test/biblebrain/passage/formatted', 'App/Tests/canGetBibleTextFormatted.php');
+get($path . 'test/biblebrain/passage/json', 'App/Tests/canGetBibleTextJson.php');
+get($path . 'test/biblebrain/passage/plain', 'App/Tests/canGetBibleTextPlain.php');
+get($path . 'test/biblebrain/passage/usx', 'App/Tests/canGetBibleTextUsx.php');
+get($path . 'test/biblegateway', 'App/Tests/canGetBibleGatewayPassage.php');
+get($path . 'test/passage/select', 'App/Tests/canSelectPassage.php');
+get($path . 'test/word/passage/al', 'App/Tests/canGetWordPassageFromExternalId.php');
+get($path . 'test/youversion/link', 'App/Tests/canGetBibleYouVersionLink.php');
+
 
 
     //Bibles

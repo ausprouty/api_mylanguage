@@ -4,6 +4,7 @@
    Then store it
    Then send you the text you need
 */
+
 use App\Controller\ReturnDataController as ReturnDataController;
 use App\Controller\BibleStudy\Monolingual\MonolingualLeadershipTemplateController as MonolingualLeadershipTemplateController;
 use App\Controllers\PdfController as PdfController;
@@ -12,12 +13,12 @@ $fileName = MonolingualLeadershipTemplateController::findFileNamePdf($lesson, $l
 $path = MonolingualLeadershipTemplateController::getPathPdf();
 $filePath = $path . $fileName;
 //if (!file_exists($filePath)){
-    $study = new MonolingualLeadershipTemplateController($lesson, $languageCodeHL1);
-    $study->setMonolingualTemplate('monolingualLeadershipPdf.template.html');
-    $html =  $study->getTemplate();
-    $styleSheet = 'dbs.css';
-    $mpdf = new PdfController($languageCodeHL1);
-    $mpdf->writePdfToComputer($html, $styleSheet, $filePath);
+$study = new MonolingualLeadershipTemplateController($lesson, $languageCodeHL1);
+$study->setMonolingualTemplate('monolingualLeadershipPdf.twig');
+$html =  $study->getTemplate();
+$styleSheet = 'dbs.css';
+$mpdf = new PdfController($languageCodeHL1);
+$mpdf->writePdfToComputer($html, $styleSheet, $filePath);
 //}
 $url =  MonolingualLeadershipTemplateController::getUrlPdf();
 $response['url'] = $url . $fileName;

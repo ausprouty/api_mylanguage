@@ -19,12 +19,12 @@ class MonolingualLifeTemplateController extends MonolingualStudyTemplateControll
 
     protected function getMonolingualPdfTemplateName(): string
     {
-        return 'monolingualLifePrinciplesPdf.template.html';
+        return 'monolingualLifePrinciplesPdf.twig';
     }
 
     protected function getMonolingualViewTemplateName(): string
     {
-        return 'monolingualLifePrinciplesView.template.html';
+        return 'monolingualLifePrinciplesView.twig';
     }
 
     protected function getStudyReferenceInfo(string $lesson): LifePrincipleReferenceModel

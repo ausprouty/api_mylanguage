@@ -1,9 +1,9 @@
 <?php
 // index.php
-
+$mode = 'tests';
 
 // Load the appropriate environment configuration
-require_once __DIR__ . '/App/Configuration/config.php'; // Load environment-specific config
+require_once __DIR__ . '/App/Configuration/EnvironmentLoader.php'; // Load environment-specific config
 
 // Load Debugging tools
 require_once __DIR__ . '/App/Services/Debugging.php'; 
@@ -48,8 +48,11 @@ function applyMiddleware(array $middlewares, $request) {
 }
 
 $postData = PostAuthorizationMiddleware::getDataSet();
-writeLog('index-52', $postData);
-writeLog('index-54', $_SERVER['REQUEST_URI']);
+
 
 // Main application logic or routing
-require_once __DIR__ . '/routes.php';
+if ($mode == 'tests'){
+    require_once  __DIR__ . '/App/Configuration/TestLoader.php'; 
+} else {
+ require_once __DIR__ . '/routes.php';
+}

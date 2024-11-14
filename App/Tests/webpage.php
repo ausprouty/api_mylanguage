@@ -1,5 +1,5 @@
 <?php
-use App\Services\WebsiteConnectionService as WebsiteConnectionService;
+use App\Services\Web\WebsiteConnectionService as WebsiteConnectionService;
 
 $url = 'https://hereslife.com';
 

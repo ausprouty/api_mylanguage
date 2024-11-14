@@ -47,6 +47,33 @@ echo "
 <p><a href = '/api_mylanguage/import/dbs/words'>Import DBS Words from local file</a></p>
 <p><a href = '/api_mylanguage/import/dbs/database'>Update DBS Database to show languages we have questions and Bibles for</a></p>
 
+Tests by Alphabet
+
+<p><a href = '/api_mylanguage/test/biblebrain/bible/default'>Default Bible for Language   </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/bible/formats'>Format Types </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/languages/country'>Languages for Country -ok   </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/formatted'>Bible Text Formatted </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/json'>Bible Text Json  </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/plain'>Bible Text Plain</a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/usx'>Bible Text USX</a></p>
+<p> <a href= '/api_mylanguage/test/biblegateway'>Get Passage   </a></p>
+<p><a href = '/api_mylanguage/test/bibles/best'> Best Bible for Language</a></p>
+<p><a href = '/api_mylanguage/test/passage/select'>Select Passage</a></p>
+<p> <a href= '/api_mylanguage/test/word/passage/al'>Get af Passage from external id</a></p>
+<p> <a href= '/api_mylanguage/test/youversion/link'>Get Passage Link</a></p>
+<p><a href = '/api_mylanguage/test/bibles/best'> Best Bible for Language</a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/bible/default'>Default Bible for Language   </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/bible/formats'>Format Types </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/languages/country'>Languages for Country -ok   </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/formatted'>Bible Text Formatted </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/json'>Bible Text Json  </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/plain'>Bible Text Plain</a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/usx'>Bible Text USX</a></p>
+<p><a href= '/api_mylanguage/test/biblegateway'>Get Passage   </a></p>
+<p><a href = '/api_mylanguage/test/passage/select'>Select Passage</a></p>
+<p><a href= '/api_mylanguage/test/word/passage/al'>Get af Passage from external id</a></p>
+<p><a href= '/api_mylanguage/test/youversion/link'>Get Passage Link</a></p>
+
 
 <h1> Tests for MyLanguage OOPHP</h1>
 <p><a href= '/api_mylanguage/test'>Current Test</a></p>
@@ -56,16 +83,16 @@ echo "
 
 <h2>Bible Brain</h2>
 
-<p><a href = '/api_mylanguage/test/biblebrain/languages/country'>Languages for Country  -ok </a></p>
-<p><a href = '/api_mylanguage/test/biblebrain/bible/default'>Default Bible for Language -ok  </a></p>
-<p><a href = '/api_mylanguage/test/biblebrain/bible/formats'>Format Types-ok </a></p>
-<p><a href = '/api_mylanguage/test/biblebrain/passage/json'>Bible Text Json -ok </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/languages/country'>Languages for Country -ok   </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/bible/default'>Default Bible for Language   </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/bible/formats'>Format Types </a></p>
+<p><a href = '/api_mylanguage/test/biblebrain/passage/json'>Bible Text Json  </a></p>
 <p><a href = '/api_mylanguage/test/biblebrain/passage/plain'>Bible Text Plain</a></p>
 <p><a href = '/api_mylanguage/test/biblebrain/passage/formatted'>Bible Text Formatted </a></p>
 <p><a href = '/api_mylanguage/test/biblebrain/passage/usx'>Bible Text USX</a></p>
 
 <h2>Bible Gateway</h2>
-<p> <a href= '/api_mylanguage/test/biblegateway'>Get Passage  -ok </a></p>
+<p> <a href= '/api_mylanguage/test/biblegateway'>Get Passage   </a></p>
 <h2>Word(local)</h2>
 <p> <a href= '/api_mylanguage/test/word/passage/al'>Get af Passage from external id</a></p>
 

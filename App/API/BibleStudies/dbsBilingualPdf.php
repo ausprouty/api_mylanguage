@@ -6,8 +6,8 @@
 */
 
 use App\Controller\ReturnDataController;
-use App\Controllers\PdfController ;
-use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController ;
+use App\Controllers\PdfController;
+use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController;
 
 
 
@@ -17,13 +17,13 @@ $filePath = $path . $fileName;
 writeLogDebug('dbsBilingualPdf-17', $filePath);
 //TODO: eliminate commented
 //if (!file_exists($filePath)){
-    $study= new BilingualDbsTemplateController($languageCodeHL1, $languageCodeHL2, $lesson);
-    $study->setBilingualTemplate('bilingualDbsPdf.template.html');
-    $html =  $study->getTemplate();
-    writeLogDebug('dbsBilingualPdf-23', $html);
-    $styleSheet = 'dbs.css';
-    $mpdf = new PdfController($languageCodeHL1, $languageCodeHL2);
-    $mpdf->writePdfToComputer($html, $styleSheet, $filePath);
+$study = new BilingualDbsTemplateController($languageCodeHL1, $languageCodeHL2, $lesson);
+$study->setBilingualTemplate('bilingualDbsPdf.twig');
+$html =  $study->getTemplate();
+writeLogDebug('dbsBilingualPdf-23', $html);
+$styleSheet = 'dbs.css';
+$mpdf = new PdfController($languageCodeHL1, $languageCodeHL2);
+$mpdf->writePdfToComputer($html, $styleSheet, $filePath);
 //}
 $url = BilingualDbsTemplateController::getUrlPdf();
 $response['url'] = $url . $fileName;

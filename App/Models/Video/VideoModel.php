@@ -70,7 +70,7 @@ class VideoModel
 
     public function loadArclightTemplate()
     {
-        $templatePath = ROOT_TEMPLATES . 'videoArclight.template.html';
+        $templatePath = ROOT_TEMPLATES . 'videoArclight.twig';
         if (file_exists($templatePath)) {
             $this->template = file_get_contents($templatePath);
         }

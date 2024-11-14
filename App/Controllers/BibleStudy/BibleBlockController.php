@@ -4,12 +4,14 @@
 where the gap after the  18 is a non-breaking space
 
 */
+
 namespace App\Controllers\BibleStudy;
 
 use stdClass as stdClass;
 
 
-class BibleBlockController{
+class BibleBlockController
+{
 
     private $bibleBlock;
     private $textLanguage1;
@@ -19,7 +21,8 @@ class BibleBlockController{
     private $paragraphs2;
     private $template;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->bibleBlock = '';
         $this->textLanguage1 = '';
         $this->textLanguage2 = '';
@@ -39,26 +42,28 @@ class BibleBlockController{
         //writeLogDebug('BibleBlockController-29', $this->paragraphs1);
         $this->paragraphs2 = $this->findParagraphs($this->textLanguage2);
         //writeLogDebug('BibleBlockController-31', $this->paragraphs2);
-        $message = count($this->paragraphs1) . '--' .  count($this->paragraphs2) . '('. $verseRange . ')';
-        if (count($this->paragraphs1) != count($this->paragraphs2)){
+        $message = count($this->paragraphs1) . '--' .  count($this->paragraphs2) . '(' . $verseRange . ')';
+        if (count($this->paragraphs1) != count($this->paragraphs2)) {
             $this->readjustParagraphs();
         }
         $this->fillBibleBlock();
     }
 
-    public function getBlock(){
+    public function getBlock()
+    {
         return $this->bibleBlock;
     }
-    private function fillBibleBlock(){
+    private function fillBibleBlock()
+    {
         $passageRows = '';
-        foreach ($this->paragraphs1 as $key => $paragraphLanguage1){
+        foreach ($this->paragraphs1 as $key => $paragraphLanguage1) {
             $paragraphLanguage2Text = '';
-            if (isset($this->paragraphs2[$key])){
-                $paragraphLanguage2Text= $this->paragraphs2[$key]->text;
+            if (isset($this->paragraphs2[$key])) {
+                $paragraphLanguage2Text = $this->paragraphs2[$key]->text;
             }
-            $column1 = '<td class="{{dir_language1}} dbs" style="font-family:{{font_language1}}" dir ="{{dir_language1}}" >' ;
-            $column2 = '<td class="||dir_language2|| dbs" style="font-family:||font_language2||"  dir ="||dir_language2||" >' ;
-            if ($key == 1){
+            $column1 = '<td class="{{dir_language1}} dbs" style="font-family:{{font_language1}}" dir ="{{dir_language1}}" >';
+            $column2 = '<td class="||dir_language2|| dbs" style="font-family:||font_language2||"  dir ="||dir_language2||" >';
+            if ($key == 1) {
                 $column1 .=  '<span class="biblereference">{{Bible Reference}}</span>';
                 $column2 .=  '<span class="biblereference">||Bible Reference||</span>';
             }
@@ -72,19 +77,21 @@ class BibleBlockController{
         $this->bibleBlock = str_replace('{{passage_rows}}', $passageRows, $this->template);
     }
 
-    private function setTemplate(){
-        $file = ROOT_TEMPLATES . 'bibleBlockTable.template.html';
-        if (!file_exists($file)){
+    private function setTemplate()
+    {
+        $file = ROOT_TEMPLATES . 'bibleBlockTable.twig';
+        if (!file_exists($file)) {
             $this->template = NULL;
         }
         $this->template = file_get_contents($file);
-    } 
-    private function findParagraphs($text){
+    }
+    private function findParagraphs($text)
+    {
         $lines = explode('<p', $text);
         $rows = array();
-        foreach ($lines as $index=> $line){
+        foreach ($lines as $index => $line) {
             $startingVerse = $this->firstVerse($line);
-            if ($startingVerse){
+            if ($startingVerse) {
                 $obj = new stdClass();
                 $obj->startingVerseNumber = $this->firstVerse($line);
                 $obj->text = '<p' . $line;
@@ -94,28 +101,30 @@ class BibleBlockController{
         return $rows;
     }
 
-    private function firstVerse($line){
+    private function firstVerse($line)
+    {
         $posEnd = strpos($line, '</sup');
-        if (!$posEnd){
+        if (!$posEnd) {
             return null;
         }
         $short = substr($line, 0, $posEnd);
-        $posStart = strrpos($short, '>') +1;
+        $posStart = strrpos($short, '>') + 1;
         $firstVerse = substr($short, $posStart);
         $bad = array('&nbsp;', ' ');
         $firstVerse = str_replace($bad, '', $firstVerse);
         return intval($firstVerse);
     }
 
-    private function readjustParagraphs(){
-        if (count($this->paragraphs1) != 1 && count($this->paragraphs1) < $this->verseRange){
+    private function readjustParagraphs()
+    {
+        if (count($this->paragraphs1) != 1 && count($this->paragraphs1) < $this->verseRange) {
             $this->readjustUsingLanguage1();
-        }
-        else{
+        } else {
             $this->readjustUsingLanguage2();
         }
     }
-    private function readjustUsingLanguage1(){
+    private function readjustUsingLanguage1()
+    {
         //writeLogDebug('BibleBlockController-109', 'readjustUsingLanguage1');
         $language1Paragraphs = $this->findParagraphs($this->textLanguage1);
         //writeLogDebug('BibleBlockController-111', $language1Paragraphs);
@@ -128,48 +137,51 @@ class BibleBlockController{
         $this->paragraphs2 = $this->findParagraphs($language2Paragraphs);
         //writeLogDebug('BibleBlockController-117', $this->paragraphs2);
     }
-    private function readjustUsingLanguage2(){
+    private function readjustUsingLanguage2()
+    {
         //writeLogDebug('BibleBlockController-116', 'readjustUsingLanguage2');
         $language2Paragraphs = $this->findParagraphs($this->textLanguage2);
         $language1Text = $this->removeParagraphsAndDivs($this->textLanguage1);
         $language1Paragraphs = $this->createEqualParagraphs($language2Paragraphs, $language1Text);
         $this->paragraphs1 = $this->findParagraphs($language1Paragraphs);
     }
-    private function createEqualParagraphs($paragraphs, $text){
-         foreach ($paragraphs as $paragraph){
-            $pattern = '/<sup class="versenum">' . $paragraph->startingVerseNumber .'\s*<\/sup>/';
-            $replacement = '</p><p><sup class="versenum">' . $paragraph->startingVerseNumber .'&nbsp;</sup>';
+    private function createEqualParagraphs($paragraphs, $text)
+    {
+        foreach ($paragraphs as $paragraph) {
+            $pattern = '/<sup class="versenum">' . $paragraph->startingVerseNumber . '\s*<\/sup>/';
+            $replacement = '</p><p><sup class="versenum">' . $paragraph->startingVerseNumber . '&nbsp;</sup>';
             //  this handles situations where the the translator has put verses together.
-            if (!preg_match ($pattern, $text)){
+            if (!preg_match($pattern, $text)) {
                 $startingVerseNumber = $paragraph->startingVerseNumber;
-                for ($i = 1; $i <10; $i++){
+                for ($i = 1; $i < 10; $i++) {
                     $endingVerseNumber = $startingVerseNumber + $i;
                     $pattern = '/<sup class="versenum">' .
-                     $startingVerseNumber .'-' . $endingVerseNumber .'\s*<\/sup>/';
-                    if (preg_match ($pattern, $text)){
+                        $startingVerseNumber . '-' . $endingVerseNumber . '\s*<\/sup>/';
+                    if (preg_match($pattern, $text)) {
                         $replacement = '</p><p><sup class="versenum">' .
-                        $startingVerseNumber .'-' . $endingVerseNumber .'&nbsp;</sup>';
+                            $startingVerseNumber . '-' . $endingVerseNumber . '&nbsp;</sup>';
                         break;
                     }
                 }
             }
-            writeLogAppend('BibleBlockController-136-Match', $pattern . "\n". $replacement . "\n\n");
-            $newText = preg_replace($pattern, $replacement, $text, 1 );
+            writeLogAppend('BibleBlockController-136-Match', $pattern . "\n" . $replacement . "\n\n");
+            $newText = preg_replace($pattern, $replacement, $text, 1);
             $text = $newText;
         }
-        $text = trim(substr($text, 4 ) ). '</p>';
+        $text = trim(substr($text, 4)) . '</p>';
         //writeLogDebug('BibleBlockController-136', $text);
         return $text;
     }
 
-    private function findVerses($text){
+    private function findVerses($text)
+    {
         $output = array();
         $text = $this->removeParagraphsAndDivs($text);
         $pattern = '<sup class="versenum">';
         $verses = explode($pattern, $text);
-        foreach ($verses as $verse){
+        foreach ($verses as $verse) {
             $posSup = strpos($verse, '</sup>');
-            if ($posSup !== FALSE){
+            if ($posSup !== FALSE) {
                 $posSupEnd = $posSup + 6;
                 $verseNumber = substr($verse, 0, $posSup);
                 $verseNumber = preg_replace("/[^0-9]/", "", $verseNumber);
@@ -179,7 +191,8 @@ class BibleBlockController{
         }
         return $output;
     }
-    private function removeParagraphsAndDivs($text){
+    private function removeParagraphsAndDivs($text)
+    {
         $pattern = '/<p\b[^>]*>(.*?)<\/p>/s';
         $replacement = '$1';
         $text = preg_replace($pattern, $replacement, $text);
@@ -187,7 +200,7 @@ class BibleBlockController{
         $text = preg_replace($pattern, $replacement, $text);
         //alsi remove non-breaking space
         $text = preg_replace('/\xC2\xA0/', ' ', $text);
-        $bad = array('&nbsp;</sup', ' </sup' );
+        $bad = array('&nbsp;</sup', ' </sup');
         $text = str_ireplace($bad, '</sup', $text);
         return $text;
     }

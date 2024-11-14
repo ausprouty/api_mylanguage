@@ -51,7 +51,8 @@ abstract class BilingualStudyTemplateController
         $this->bibleBlockController = $bibleBlockController;
     }
 
-    protected function createBibleBlock(): void {
+    protected function createBibleBlock(): void
+    {
         if ($this->biblePassage1->getPassageText() && $this->biblePassage2->getPassageText()) {
             $this->bibleBlockController->load(
                 $this->biblePassage1->getPassageText(),
@@ -64,35 +65,40 @@ abstract class BilingualStudyTemplateController
         }
     }
 
-    private function createBibleBlockWhenTextMissing(): void {
+    private function createBibleBlockWhenTextMissing(): void
+    {
         $this->bibleBlock = $this->showTextOrLink($this->biblePassage1);
     }
 
-    protected function createQrCodeForPassage(string $url, string $languageCode): string {
+    protected function createQrCodeForPassage(string $url, string $languageCode): string
+    {
         $fileName = $this->getFileNamePrefix() . $this->lesson . '-' . $languageCode . '.png';
         $this->qrCodeService->initialize($url, 240, $fileName);
         $this->qrCodeService->generateQrCode();
-        
+
         return $this->qrCodeService->getQrCodeUrl();
     }
 
     protected abstract function getFileNamePrefix(): string;
 
-    protected function generateQrCodes(): void {
+    protected function generateQrCodes(): void
+    {
         $this->qrcode1 = $this->createQrCodeForPassage($this->biblePassage1->getPassageUrl(), $this->language1->getLanguageCodeHL());
         $this->qrcode2 = $this->createQrCodeForPassage($this->biblePassage2->getPassageUrl(), $this->language2->getLanguageCodeHL());
     }
 
-    private function showTextOrLink($biblePassage): string {
-        return $biblePassage->getPassageText() === null 
-            ? $this->showDivLink($biblePassage) 
+    private function showTextOrLink($biblePassage): string
+    {
+        return $biblePassage->getPassageText() === null
+            ? $this->showDivLink($biblePassage)
             : $this->showDivText($biblePassage);
     }
 
-    private function showDivLink($biblePassage): string {
-        $templatePath = Config::get('ROOT_TEMPLATES') . 'bibleBlockDivLink.template.html';
+    private function showDivLink($biblePassage): string
+    {
+        $templatePath = Config::get('ROOT_TEMPLATES') . 'bibleBlockDivLink.twig';
         $template = file_get_contents($templatePath);
-        
+
         $existing = ['{{dir_language}}', '{{url}}', '{{Bible Reference}}', '{{Bid}}'];
         $new = [
             $biblePassage->getBibleDirection(),
@@ -103,10 +109,11 @@ abstract class BilingualStudyTemplateController
         return str_replace($existing, $new, $template);
     }
 
-    private function showDivText($biblePassage): string {
-        $templatePath = Config::get('ROOT_TEMPLATES') . 'bibleBlockDivText.template.html';
+    private function showDivText($biblePassage): string
+    {
+        $templatePath = Config::get('ROOT_TEMPLATES') . 'bibleBlockDivText.twig';
         $template = file_get_contents($templatePath);
-        
+
         $existing = ['{{dir_language}}', '{{url}}', '{{Bible Reference}}', '{{Bid}}', '{{passage_text}}'];
         $new = [
             $biblePassage->getBibleDirection(),
@@ -118,7 +125,8 @@ abstract class BilingualStudyTemplateController
         return str_replace($existing, $new, $template);
     }
 
-    protected function setFileName(): void {
+    protected function setFileName(): void
+    {
         $this->fileName = $this->generateFileName(
             $this->getFileNamePrefix(),
             $this->lesson,

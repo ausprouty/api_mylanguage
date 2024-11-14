@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controllers\BiblePassage\BibleBrain;
 
 use App\Services\Bible\BibleBrainLanguageService;
@@ -9,7 +10,9 @@ class BibleBrainLanguageController
     private $languageService;
     private $languageRepository;
 
-    public function __construct(LanguageRepository $languageRepository, BibleBrainLanguageService $languageService)
+    public function __construct(
+        LanguageRepository $languageRepository, 
+        BibleBrainLanguageService $languageService)
     {
         $this->languageRepository = $languageRepository;
         $this->languageService = $languageService;

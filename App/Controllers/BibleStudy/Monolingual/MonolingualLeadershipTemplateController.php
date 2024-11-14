@@ -19,12 +19,12 @@ class MonolingualLeadershipTemplateController extends MonolingualStudyTemplateCo
 
     protected function getMonolingualPdfTemplateName(): string
     {
-        return 'monolingualLeadershipPdf.template.html';
+        return 'monolingualLeadershipPdf.twig';
     }
 
     protected function getMonolingualViewTemplateName(): string
     {
-        return 'monolingualLeadershipView.template.html';
+        return 'monolingualLeadershipView.twig';
     }
 
     protected function getStudyReferenceInfo(string $lesson): LeadershipReferenceModel

@@ -31,12 +31,12 @@ class MonolingualDbsTemplateController extends MonolingualStudyTemplateControlle
 
     protected function getMonolingualPdfTemplateName(): string
     {
-        return 'monolingualDbsPdf.template.html';
+        return 'monolingualDbsPdf.twig';
     }
 
     protected function getMonolingualViewTemplateName(): string
     {
-        return 'monolingualDbsView.template.html';
+        return 'monolingualDbsView.twig';
     }
 
     protected function getStudyReferenceInfo(string $lesson): DbsReferenceModel
