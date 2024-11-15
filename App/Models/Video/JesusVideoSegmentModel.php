@@ -6,7 +6,7 @@ use App\Services\Database\DatabaseService;
 
 class JesusVideoSegmentModel
  {
-    private $dbService;
+    private $databaseService;
     private $id;
     private $title;
     private $verses;

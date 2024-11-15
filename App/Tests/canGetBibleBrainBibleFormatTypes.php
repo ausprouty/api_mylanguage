@@ -6,9 +6,11 @@ use App\Repositories\LanguageRepository;
 use App\Factories\BibleBrainConnectionFactory;
 use App\Models\Bible\BibleModel;
 use App\Repositories\BibleRepository;
+use App\Factories\LanguageModelFactory;
 
 $databaseService = new DatabaseService();
-$languageRepository = new LanguageRepository($databaseService);
+$languageModelFactory = new LanguageModelFactory($databaseService);
+$languageRepository = new LanguageRepository($databaseService, $languageModelFactory);
 $bibleRepository = new BibleRepository($databaseService);
 $bibleModel = new BibleModel($bibleRepository);
 $bibleUpdateService = new BibleUpdateService($databaseService, $bibleModel);

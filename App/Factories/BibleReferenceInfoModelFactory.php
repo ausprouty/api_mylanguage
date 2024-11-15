@@ -75,7 +75,7 @@ class BibleReferenceInfoModelFactory
 
         $bookDetails = $this->repository->getBookDetails($languageCodeHL, $entry);
         if ($bookDetails) {
-            $model->populate(array_merge($model->getProperties(), $bookDetails));
+            $model->populate($bookDetails); // Populate the model with the new data
         }
 
         return $model;

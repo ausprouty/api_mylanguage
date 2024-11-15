@@ -16,9 +16,13 @@ class BibleBrainLanguageService
     private ?string $name = null;
     private ?string $autonym = null;
 
-    public function __construct(LanguageRepository $languageRepository)
+    public function __construct( 
+        LanguageRepository $languageRepository, 
+        LanguageModelFactory $languageModelFactory
+    )
     {
         $this->languageRepository = $languageRepository;
+        $this->languageModelFactory = $languageModelFactory;
     }
 
     public function fetchLanguagesByCountry(string $countryCode): ?object

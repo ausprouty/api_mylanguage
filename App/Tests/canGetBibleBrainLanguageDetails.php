@@ -8,14 +8,15 @@ use App\Models\Language\LanguageModel as LanguageModel;
 use App\Factories\LanguageModelFactory as LanguageModelFactory;
 
 
+
 $databaseService = new DatabaseService();
-$languageModel = new LanguageModel();
+
 $languageModelFactory = new LanguageModelFactory($databaseService); 
 $languageRepository = new LanguageRepository($databaseService, $languageModelFactory); 
-$languageService = new BibleBrainLanguageService($languageRepository);
+$languageService = new BibleBrainLanguageService($languageRepository, $languageModelFactory);
 //$languageController = new BibleBrainLanguageController($languageRepository, $languageService);
 $languageCodeIso = 'spa';
-$languageService->fetchLanguageDetails($languageCodeIso);
+$languageModel = $languageService->fetchLanguageDetails($languageCodeIso);
 print_r ('You should see Spanish below <hr>');
 flush();
 print_r ($languageModel->getProperties());

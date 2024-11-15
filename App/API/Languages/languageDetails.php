@@ -4,9 +4,11 @@ use App\Controllers\ReturnDataController as ReturnDataController;
 use App\Models\Language\LanguageModel as LanguageModel;
 use App\Services\Database\DatabaseService;
 use App\Repositories\LanguageRepository;
+use App\Factories\LanguageModelFactory;
 
 $databaseService = new DatabaseService();
-$languageRepository = new LanguageRepository($databaseService);
+$languageModelFactory = new LanguageModelFactory($databaseService);
+$languageRepository = new LanguageRepository($databaseService, $languageModelFactory);
 
 $language = new LanguageModel($languageRepository);
 
