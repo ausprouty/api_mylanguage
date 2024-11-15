@@ -85,6 +85,15 @@ class LanguageRepository
         return $this->languageModelFactory->findOneByLanguageCodeHL($code);
     }
 
+    public function getCodeIsoFromCodeHL($languageCodeHL) {
+        $query = "SELECT languageCodeIso FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
+        return $this->databaseService->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
+    }
+
+    public function getEnglishNameFromCodeHL($languageCodeHL) {
+        $query = "SELECT name FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
+        return $this->databaseService->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
+    }
     /**
      * Retrieves ethnic names for a language by its ISO code.
      */
@@ -98,11 +107,20 @@ class LanguageRepository
             [':languageCodeIso' => $languageCodeIso]
         );
     }
+    public function getFontDataFromCodeHL( string $languageCodeHL) {
+        $query = "SELECT fontData FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
+        $data = $this->databaseService->fetchColumn ($query, [':languageCodeHL' => $languageCodeHL]);
+        return $data ? $data : null;
+    }
 
-    public function getLanguageCodes($languageCodeIso) {
+    public function getLanguageCodes(  string $languageCodeIso) {
         $query = 'SELECT languageCodeHL, languageCodeBibleBrain FROM hl_languages 
             WHERE languageCodeIso = :languageCodeIso LIMIT 1';
         return $this->databaseService->fetchRow($query, [':languageCodeIso' => $languageCodeIso]);
+    }
+    public function getNextLanguageForLanguageDetails() {
+        $query = "SELECT languageCodeIso FROM hl_languages WHERE languageCodeBibleBrain IS NULL AND checkedBBBibles IS NOT NULL LIMIT 1";
+        return $this->databaseService->fetchColumn($query);
     }
 
     /**
@@ -121,6 +139,14 @@ class LanguageRepository
             ':name' => $name
         ];
         $this->databaseService->executeQuery($query, $params);
+    }
+
+    public function languageIsoRecordExists( string $languageCodeIso) {
+        $query = 'SELECT id FROM hl_languages 
+            WHERE languageCodeIso = :languageCodeIso LIMIT 1';
+        return $this->databaseService->fetchColumn(
+            $query, [':languageCodeIso' => $languageCodeIso]
+        );
     }
 
     /**

@@ -4,8 +4,8 @@ namespace App\Models\Tract;
 class TractModel
 {
     private $id;
-    private $langaugeCodeHL1;
-    private $langaugeCodeHL2;
+    private $languageCodeHL1;
+    private $languageCodeHL2;
     private $name;
     private $webpage;
     private $valid;

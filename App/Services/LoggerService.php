@@ -6,7 +6,7 @@ use Exception;
 
 class LoggerService
 {
-    private static $logFile = __DIR__ . '/../../logs/application.log';
+    private static $logFile = ROOT_LOG . '/application.log';
 
     /**
      * Logs an error message.

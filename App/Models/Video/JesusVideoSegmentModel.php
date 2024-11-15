@@ -14,8 +14,8 @@ class JesusVideoSegmentModel
     private $stopTime;
    
 
-    public function __construct() {
-        $this->databaseService = new DatabaseService();
+    public function __construct(DatabaseService $databaseService) {
+        $this->databaseService = $databaseService;
         $this->id = '';
         $this->title = '';
         $this->verses = '';

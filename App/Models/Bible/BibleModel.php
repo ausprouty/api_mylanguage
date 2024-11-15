@@ -1,46 +1,54 @@
 <?php
+
 namespace App\Models\Bible;
 
-
 use App\Repositories\BibleRepository;
+use ReflectionClass;
+use Exception;
 
-
-class BibleModel {
-
+/**
+ * Represents a Bible entity.
+ */
+class BibleModel
+{
     private $repository;
     
-    private $bid;
-    private $source;
-    private $externalId;
     private $abbreviation;
-    private $volumeName;
-    private $volumeNameAlt;
+    private $audio;
+    private $bid;
+    private $collectionCode;
+    private $dateVerified;
+    private $direction;
+    private $externalId;
+    private $format;
+    private $idBibleGateway;
     private $languageCode;
-    private $languageName;
-    private $languageEnglish;
+    private $languageCodeDrupal;
     private $languageCodeHL;
     private $languageCodeIso;
-    private $languageCodeDrupal;
-    private $idBibleGateway;
-    private $collectionCode;
-    private $direction;
-    private $numerals;
-    private $spacePdf;
+    private $languageEnglish;
+    private $languageName;
     private $noBoldPdf;
-    private $format;
+    private $numerals;
+    private $source;
+    private $spacePdf;
     private $text;
-    private $audio;
     private $video;
+    private $volumeName;
+    private $volumeNameAlt;
     private $weight;
-    private $dateVerified;
 
- 
-
-    public function __construct(BibleRepository $repository){
+    public function __construct(BibleRepository $repository)
+    {
         $this->repository = $repository;
         $this->initializeDefaultValues();
     }
-    private function initializeDefaultValues(){
+
+    /**
+     * Initializes default values for all properties.
+     */
+    private function initializeDefaultValues()
+    {
         $this->bid = 0;
         $this->source = '';
         $this->externalId = '';
@@ -57,121 +65,83 @@ class BibleModel {
         $this->spacePdf = '';
         $this->noBoldPdf = '';
         $this->format = '';
-        $this->text = '';
-        $this->audio = '';
-        $this->video = '';
+        $this->text = 0;
+        $this->audio = 0;
+        $this->video = 0;
         $this->weight = 0;
         $this->dateVerified = '';
     }
 
-    public function getBid(){
-        return $this->bid;
-    }
-    public function getCollectionCode(){
-        return $this->collectionCode;
-    }
-    public function getDirection(){
-        return $this->direction;
-    }
-    public function getExternalId(){
-        return $this->externalId;
-    }
-    public function getLanguageCodeHL(){
-        return $this->languageCodeHL;
-    }
-    public function getSource(){
-        return $this->source;
-    }
-    public function getVolumeName(){
-        return $this->volumeName;
-    }
-    
-    public function loadBestBibleByLanguageCodeHL($languageCodeHL){
-        $data = $this->repository->findBestBibleByLanguageCodeHL($languageCodeHL);
-        if ($data) {
-            $this->setBibleValues($data);  // Set the model state with retrieved data
-        } else {
-            throw new \Exception("Best Bible for $languageCodeHL not found");
+    /**
+     * Populates the model with data from an associative array.
+     *
+     * @param array $data Associative array of property values.
+     */
+    public function populate(array $data): void
+    {
+        $reflection = new ReflectionClass($this);
+        foreach ($data as $key => $value) {
+            if ($reflection->hasProperty($key)) {
+                $property = $reflection->getProperty($key);
+                $property->setAccessible(true);
+                $property->setValue($this, $value);
+            }
         }
     }
 
-
-    public function loadBestDbsBibleByLanguageCodeHL($code, $testament = 'C'){
-        $data = $this->repository->findBestDbsBibleByLanguageCodeHL($code, $testament = 'C');
-        if ($data) {
-            $this->setBibleValues($data);  // Set the model state with retrieved data
-        } else {
-            throw new \Exception("Best DBS Bible for $code not found");
-        }
-    }
-    public function loadBibleByBid($bid){
-        $data = $this->repository->findBibleByBid($bid);
-        if ($data) {
-            $this->setBibleValues($data);  // Set the model state with retrieved data
-        } else {
-            throw new \Exception("Bible not found for Bid: $bid");
-        }
-    }
-    public function loadtBibleByExternalId($externalId) {
-        $data = $this->repository->findBibleByExternalId($externalId);
-        if ($data) {
-            $this->setBibleValues($data);  // Set the model state with retrieved data
-        } else {
-            throw new \Exception("Bible not found for ExternalId: $externalId");
-        }
-    }
-   
-    
-    protected function setBibleValues($data){
-        if (!$data){
-            return;
-        }
-        $this->bid = $data->bid;
-        $this->source = $data->source;
-        $this->externalId = $data->externalId;
-        $this->volumeName = $data->volumeName;
-        $this->volumeNameAlt = $data->volumeNameAlt;
-        $this->languageName = $data->languageName;
-        $this->languageEnglish = $data->languageEnglish;
-        $this->languageCodeHL = $data->languageCodeHL;
-        $this->idBibleGateway = $data->idBibleGateway;
-        $this->collectionCode = $data->collectionCode;
-        $this->direction = $data->direction;
-        $this->numerals = $data->numerals;
-        $this->spacePdf = $data->spacePdf;
-        $this->noBoldPdf = $data->noBoldPdf;
-        $this->format = $data->format;
-        $this->text = $data->text;
-        $this->audio = $data->audio;
-        $this->video = $data->video;
-        $this->weight = $data->weight;
-        $this->dateVerified = $data->dateVerified;
-    }
-
-    public function setLanguageData($autonym, $language, $iso) {
-        $this->languageName = $autonym;
-        $this->languageEnglish = $language;
-        $this->languageCodeIso = $iso;
-    }
-
-    public function resetMediaFlags() {
+    /**
+     * Resets the media type flags (text, audio, video) to zero.
+     */
+    public function resetMediaFlags(): void
+    {
         $this->text = 0;
         $this->audio = 0;
         $this->video = 0;
     }
 
-    public function determineMediaType($type, $audioTypes, $textTypes, $videoTypes) {
-        if (in_array($type, $textTypes)) $this->text = 1;
-        if (in_array($type, $audioTypes)) $this->audio = 1;
-        if (in_array($type, $videoTypes)) $this->video = 1;
+    /**
+     * Sets the text media flag.
+     *
+     * @param bool $value The value to set (true/false).
+     */
+    public function setText(bool $value): void
+    {
+        $this->text = $value ? 1 : 0;
     }
 
-    public function prepareForSave($source, $externalId, $volume, $collectionCode, $format) {
-        $this->source = $source;
-        $this->externalId = $externalId;
-        $this->volumeName = $volume ?? $this->volumeName;
-        $this->collectionCode = $collectionCode;
-        $this->dateVerified = date('Y-m-d');
-        $this->format = $format;
+    /**
+     * Sets the audio media flag.
+     *
+     * @param bool $value The value to set (true/false).
+     */
+    public function setAudio(bool $value): void
+    {
+        $this->audio = $value ? 1 : 0;
     }
+
+    /**
+     * Sets the video media flag.
+     *
+     * @param bool $value The value to set (true/false).
+     */
+    public function setVideo(bool $value): void
+    {
+        $this->video = $value ? 1 : 0;
+    }
+
+    /**
+     * Returns all properties as an associative array.
+     */
+    public function getProperties(): array
+    {
+        $reflection = new ReflectionClass($this);
+        $propsArray = [];
+        foreach ($reflection->getProperties() as $property) {
+            $property->setAccessible(true);
+            $propsArray[$property->getName()] = $property->getValue($this);
+        }
+        return $propsArray;
+    }
+
+    // Getter and Setter methods for other properties...
 }
