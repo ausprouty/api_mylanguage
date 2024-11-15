@@ -2,12 +2,12 @@
 
 namespace App\Factories;
 
-use App\Models\Data\BibleBrainConnectionModel;
+use App\Services\Web\BibleBrainConnectionService;
 
 class BibleBrainConnectionFactory
 {
-    public function createModelForEndpoint(string $url): BibleBrainConnectionModel
+    public function createModelForEndpoint(string $url): BibleBrainConnectionService
     {
-        return new BibleBrainConnectionModel($url);
+        return new BibleBrainConnectionService($url);
     }
 }

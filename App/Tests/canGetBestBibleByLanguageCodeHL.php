@@ -1,14 +1,15 @@
 <?php
 
-use App\Models\Bible\BibleModel as BibleModel;
+
 use App\Services\Database\DatabaseService;
+use App\Repositories\BibleRepository;
+
 
 $databaseService = new DatabaseService();
-$code = 'eng00';
+$bibleRepository = new BibleRepository($databaseService);
 
-$bible = new BibleModel($databaseService);
-writeLog('canGetBestBibleByLanguageCodeHL-10', 'Test getBestBibleByLanguageCodeHL');
-$bible->getBestBibleByLanguageCodeHL($code);
-writeLog('canGetBestBibleByLanguageCodeHL-12', $bible->getVolumeName());
-echo ("For eng00 you should see Young's Literal Translation<hr>");
-print_r($bible->getVolumeName());
+$code = 'eng00';
+$result = $bibleRepository->findBestBibleByLanguageCodeHL($code);
+print_r  ("For eng00 you should see New International Version<hr>");
+flush();
+print_r($result);

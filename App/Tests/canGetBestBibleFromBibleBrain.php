@@ -2,10 +2,23 @@
 
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainBibleController;
 use App\Services\Database\DatabaseService;
-$databaseService = new DatabaseService();
+use App\Services\Bible\BibleUpdateService;
+use App\Repositories\LanguageRepository;
+use App\Factories\BibleBrainConnectionFactory;
+use App\Models\Bible\BibleModel;
+use App\Repositories\BibleRepository;
 
+$databaseService = new DatabaseService();
+$languageRepository = new LanguageRepository($databaseService);
+$bibleRepository = new BibleRepository($databaseService);
+$bibleModel = new BibleModel($bibleRepository);
+$bibleUpdateService = new BibleUpdateService($databaseService, $bibleModel);
+$bibleBrainConnectionFactory = new BibleBrainConnectionFactory();
+
+$bible = new BibleBrainBibleController($bibleUpdateService,
+    $languageRepository, $bibleBrainConnectionFactory);
 $languageCodeIso = 'en';
-$bible = new BibleBrainBibleController($databaseService);
 $bible->getDefaultBible($languageCodeIso);
-echo("You should see stdClass Object ( [en] => stdClass Object ( [audio] => ENGESV [video] => ENGESV ) )<hr>");
-print_r($bible->showResponse());
+print_r("You should see stdClass Object ( [en] => stdClass Object ( [audio] => ENGESV [video] => ENGESV ) )<hr>");
+flush();
+print_r($bible->response);

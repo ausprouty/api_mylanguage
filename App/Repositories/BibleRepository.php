@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Services\Database\DatabaseService;
-use PDO;
 
 class BibleRepository
 {
@@ -19,7 +18,7 @@ class BibleRepository
         $query = "SELECT bid FROM bibles WHERE externalId = :externalId";
         $params = [':externalId' => $bibleData['externalId']];
         
-        $bid = $this->fetchColumn($query, $params);
+        $bid = $this->databaseService->fetchSingleValue($query, $params);
 
         if (!$bid) {
             $query = "INSERT INTO bibles 
@@ -35,7 +34,7 @@ class BibleRepository
     {
         $query = "SELECT * FROM bibles WHERE languageCodeHL = :code ORDER BY weight DESC LIMIT 1";
         $params = [':code' => $languageCodeHL];
-        return $this->fetchOne($query, $params);
+        return $this->databaseService->fetchRow($query, $params);
     }
 
     public function findBestDbsBibleByLanguageCodeHL($code, $testament = 'C')
@@ -48,28 +47,28 @@ class BibleRepository
             ':complete' => 'C',
             ':testament' => $testament
         ];
-        return $this->fetchOne($query, $params);
+        return $this->databaseService->fetchRow($query, $params);
     }
 
     public function findBibleByBid($bid)
     {
         $query = "SELECT * FROM bibles WHERE bid = :bid LIMIT 1";
         $params = [':bid' => $bid];
-        return $this->fetchOne($query, $params);
+        return $this->databaseService->fetchRow($query, $params);
     }
 
     public function findBibleByExternalId($externalId)
     {
         $query = "SELECT * FROM bibles WHERE externalId = :externalId LIMIT 1";
         $params = [':externalId' => $externalId];
-        return $this->fetchOne($query, $params);
+        return $this->databaseService->fetchRow($query, $params);
     }
 
     public function getAllBiblesByLanguageCodeHL($languageCodeHL)
     {
         $query = "SELECT * FROM bibles WHERE languageCodeHL = :code ORDER BY volumeName";
         $params = [':code' => $languageCodeHL];
-        return $this->fetchAll($query, $params);
+        return $this->databaseService->fetchAll($query, $params);
     }
 
     public function getTextBiblesByLanguageCodeHL($languageCodeHL)
@@ -88,7 +87,7 @@ class BibleRepository
             ':usx' => 'text_usx',
             ':dbt' => 'dbt'
         ];
-        return $this->fetchAll($query, $params);
+        return $this->databaseService->fetchAll($query, $params);
     }
 
     public function hasOldTestament(string $languageCodeHL): bool
@@ -101,7 +100,7 @@ class BibleRepository
             ':AL' => 'AL',
             ':C' => 'C'
         ];
-        return (bool) $this->fetchColumn($query, $params);
+        return (bool) $this->databaseService->fetchSingleValue($query, $params);
     }
 
     public function updateWeight($bid, $weight)
@@ -112,21 +111,5 @@ class BibleRepository
             ':bid' => $bid
         ];
         return $this->databaseService->executeQuery($query, $params) ? 'success' : null;
-    }
-
-    // Utility methods for consistency and reusability
-    private function fetchAll($query, $params)
-    {
-        return $this->databaseService->fetchAll($query, $params);
-    }
-
-    private function fetchOne($query, $params)
-    {
-        return $this->databaseService->fetchSingleValue($query, $params);
-    }
-
-    private function fetchColumn($query, $params)
-    {
-        return $this->databaseService->fetchSingleValue($query, $params);
     }
 }

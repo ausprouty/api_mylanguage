@@ -11,7 +11,7 @@ use App\Services\LoggerService;
 /**
  * DatabaseService
  *
- * Purpose: Provides a layer for handling database connections and query execution using PDO.
+ * Provides a layer for handling database connections and query execution using PDO.
  */
 class DatabaseService
 {

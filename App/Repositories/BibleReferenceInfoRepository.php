@@ -44,4 +44,16 @@ class BibleReferenceInfoRepository
         $query = 'SELECT uversionBookID FROM bible_books WHERE bookId = :bookId LIMIT 1';
         return $this->databaseService->fetchSingleValue($query, [':bookId' => $bookID]);
     }
+
+    public function getBookDetails($languageCodeHL, $bookName)
+    {
+        $query = 'SELECT bookId, bookName, bookNumber, testament, uversionBookID
+              FROM bible_books
+              WHERE languageCodeHL = :languageCodeHL AND name = :bookName LIMIT 1';
+        $params = [
+            ':languageCodeHL' => $languageCodeHL,
+            ':bookName' => $bookName,
+        ];
+        return $this->databaseService->fetchRow($query, $params);
+    }
 }

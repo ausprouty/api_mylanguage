@@ -19,6 +19,7 @@ class BibleModel {
     private $languageName;
     private $languageEnglish;
     private $languageCodeHL;
+    private $languageCodeIso;
     private $languageCodeDrupal;
     private $idBibleGateway;
     private $collectionCode;
@@ -48,6 +49,7 @@ class BibleModel {
         $this->languageName = '';
         $this->languageEnglish = '';
         $this->languageCodeHL = '';
+        $this->languageCodeIso = '';
         $this->idBibleGateway = '';
         $this->collectionCode = '';
         $this->direction = '';
@@ -164,7 +166,7 @@ class BibleModel {
         if (in_array($type, $videoTypes)) $this->video = 1;
     }
 
-    public function prepareForSave($source, $externalId, $volume = null, $collectionCode, $format) {
+    public function prepareForSave($source, $externalId, $volume, $collectionCode, $format) {
         $this->source = $source;
         $this->externalId = $externalId;
         $this->volumeName = $volume ?? $this->volumeName;
