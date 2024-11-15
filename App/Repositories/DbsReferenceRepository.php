@@ -22,11 +22,17 @@ class DbsReferenceRepository
      */
     public function getReferenceByLesson(string $lesson): ?DbsReferenceModel
     {
-        $query = "SELECT * FROM dbs_references WHERE lesson = :lesson";
+        $query = 'SELECT * FROM dbs_references WHERE lesson = :lesson';
         $params = [':lesson' => $lesson];
 
         $data = $this->databaseService->fetchRow($query, $params);
 
-        return $data ? new DbsReferenceModel($data['lesson'], $data['reference'], $data['description']) : null;
+        return $data 
+            ? new DbsReferenceModel(
+                  $data['lesson'], 
+                  $data['reference'], 
+                  $data['description']
+              ) 
+            : null;
     }
 }

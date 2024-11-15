@@ -8,65 +8,83 @@ use App\Repositories\LanguageRepository;
 
 class BibleBrainLanguageService
 {
-    private $languageRepository;
+    private LanguageRepository $languageRepository;
+    private ?string $languageCodeBibleBrain = null;
+    private ?string $iso = null;
+    private ?string $name = null;
+    private ?string $autonym = null;
 
     public function __construct(LanguageRepository $languageRepository)
     {
         $this->languageRepository = $languageRepository;
     }
 
-    public function fetchLanguagesByCountry($countryCode)
+    public function fetchLanguagesByCountry(string $countryCode): ?object
     {
-        $url = 'https://4.dbt.io/api/languages?country=' . $countryCode;
+        $url = 'https://4.dbt.io/api/languages?country=' . urlencode($countryCode);
         $languages = new BibleBrainConnectionService($url);
         return $languages->response;
     }
 
-    public function processLanguageUpdate($languageCodeIso, $name)
+    public function processLanguageUpdate(string $languageCodeIso, string $name): void
     {
         $data = $this->languageRepository->getLanguageCodes($languageCodeIso);
 
-        if (!$data->languageCodeHL) {
+        if (empty($data->languageCodeHL)) {
             $this->languageRepository->insertLanguage($languageCodeIso, $name);
         }
 
-        if (!$data->languageCodeBibleBrain && $this->fetchLanguageDetails($languageCodeIso)) {
+        if (empty($data->languageCodeBibleBrain) && $this->fetchLanguageDetails($languageCodeIso)) {
             $this->updateBibleBrainLanguageDetails();
         }
     }
 
-    private function fetchLanguageDetails($languageCodeIso)
+    public function fetchLanguageDetails(string $languageCodeIso): ?LanguageModel
     {
-        $url = 'https://4.dbt.io/api/languages?language_code=' . $languageCodeIso;
+        $url = 'https://4.dbt.io/api/languages?language_code=' . urlencode($languageCodeIso);
         $languageDetails = new BibleBrainConnectionService($url);
-
-        if (isset($languageDetails->response->data[0])) {
+    
+        if (!empty($languageDetails->response->data[0])) {
             $data = $languageDetails->response->data[0];
-            $this->LanguageCodeBibleBrain = $data->id;
-            $this->iso = $data->iso;
-            $this->name = $data->name;
-            $this->autonym = $data->autonym;
-            return true;
+            $language = new LanguageModel($this->languageRepository); // Instantiate the model
+    
+            // Populate the model with data
+            $language->createFromBibleBrainRecord(
+                $data->id ?? null,
+                $data->iso ?? null,
+                $data->name ?? null,
+                $data->autonym ?? null
+            );
+    
+            return $language; // Return the populated model
+        }
+    
+        return null; // Return null if no data found
+    }
+    
+
+    private function updateBibleBrainLanguageDetails(): void
+    {
+        if (!$this->languageCodeBibleBrain) {
+            return;
         }
 
-        return false;
-    }
-
-    public function updateBibleBrainLanguageDetails()
-    {
-        if (!$this->LanguageCodeBibleBrain) return;
-
-        if (!$this->languageRepository->bibleBrainLanguageRecordExists($this->LanguageCodeBibleBrain)) {
+        if (!$this->languageRepository->bibleBrainLanguageRecordExists($this->languageCodeBibleBrain)) {
             if ($this->languageRepository->languageIsoRecordExists($this->iso)) {
                 $ethnicNames = $this->languageRepository->getEthnicNamesForLanguageIso($this->iso);
 
-                if (!in_array($this->autonym, $ethnicNames)) {
+                if (!in_array($this->autonym, $ethnicNames, true)) {
                     $this->languageRepository->updateEthnicName($this->iso, $this->autonym);
                 }
-                $this->languageRepository->updateLanguageCodeBibleBrain($this->iso, $this->LanguageCodeBibleBrain);
+                $this->languageRepository->updateLanguageCodeBibleBrain($this->iso, $this->languageCodeBibleBrain);
             } else {
-                $language = new LanguageModel();
-                $language->populateFromBibleBrain($this->LanguageCodeBibleBrain, $this->iso, $this->name, $this->autonym);
+                $language = new LanguageModel($this->languageRepository);
+                $language->createFromBibleBrainRecord(
+                    $this->languageCodeBibleBrain,
+                    $this->iso,
+                    $this->name,
+                    $this->autonym
+                );
                 $this->languageRepository->createLanguageFromBibleBrainRecord($language);
             }
         }

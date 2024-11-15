@@ -1,10 +1,17 @@
 <?php
 
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainLanguageController as BibleBrainLanguageController;
+use App\Services\Bible\BibleBrainLanguageService as BibleBrainLanguageService;
+use App\Repositories\LanguageRepository as LanguageRepository;
+use App\Services\Database\DatabaseService as DatabaseService;
 
+
+$databaseService = new DatabaseService();
+$languageRepository = new LanguageRepository($databaseService);
+$languageService = new BibleBrainLanguageService($languageRepository);
+//$languageController = new BibleBrainLanguageController($languageRepository, $languageService);
 $languageCodeIso = 'spa';
-$language = new BibleBrainLanguageController();
-$language->getlanguageDetails($languageCodeIso);
+$languageService->fetchLanguageDetails($languageCodeIso);
 echo ('You should see Spanish below <hr>');
 echo ("$language->name  =  $language->autonym  with ISO $language->iso");
 //$language->updateBibleBrainLanguageDetails();
@@ -22,3 +29,6 @@ echo ("$language->name  =  $language->autonym  with ISO $language->iso");
  [filesets] => 88 
  [rolv_code] => )
  */
+
+
+ 

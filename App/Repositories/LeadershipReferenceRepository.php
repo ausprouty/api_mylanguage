@@ -15,11 +15,17 @@ class LeadershipReferenceRepository
 
     public function getReferenceByLesson($lesson): ?LeadershipReferenceModel
     {
-        $query = "SELECT * FROM leadership_references WHERE lesson = :lesson";
+        $query = 'SELECT * FROM leadership_references WHERE lesson = :lesson';
         $params = [':lesson' => $lesson];
         
         $data = $this->databaseService->fetchRow($query, $params);
         
-        return $data ? new LeadershipReferenceModel($data['lesson'], $data['reference'], $data['description']) : null;
+        return $data 
+            ? new LeadershipReferenceModel(
+                  $data['lesson'], 
+                  $data['reference'], 
+                  $data['description']
+              ) 
+            : null;
     }
 }

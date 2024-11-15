@@ -18,7 +18,7 @@ class BiblePassageRepository
     // Find a Bible passage by its ID and populate the model
     public function findStoredById($bpid): ?BiblePassageModel
     {
-        $query = "SELECT * FROM bible_passages WHERE bpid = :bpid LIMIT 1";
+        $query = 'SELECT * FROM bible_passages WHERE bpid = :bpid LIMIT 1';
         $params = [':bpid' => $bpid];
         
         try {
@@ -28,7 +28,8 @@ class BiblePassageRepository
             if ($data) {
                 $biblePassage = new BiblePassageModel();
                 $biblePassage->populateFromData($data);
-                $this->updatePassageUse($biblePassage); // Update usage stats upon retrieval
+                // Update usage stats upon retrieval
+                $this->updatePassageUse($biblePassage); 
                 return $biblePassage;
             }
         } catch (\Exception $e) {
@@ -42,8 +43,12 @@ class BiblePassageRepository
     // Insert a new Bible passage record
     public function insertPassageRecord(BiblePassageModel $biblePassage)
     {
-        $query = "INSERT INTO bible_passages (bpid, referenceLocalLanguage, passageText, passageUrl, dateLastUsed, dateChecked, timesUsed)
-                  VALUES (:bpid, :referenceLocalLanguage, :passageText, :passageUrl, :dateLastUsed, :dateChecked, :timesUsed)";
+        $query = 'INSERT INTO bible_passages 
+                  (bpid, referenceLocalLanguage, passageText, 
+                   passageUrl, dateLastUsed, dateChecked, timesUsed)
+                  VALUES (:bpid, :referenceLocalLanguage, :passageText, 
+                          :passageUrl, :dateLastUsed, :dateChecked, 
+                          :timesUsed)';
         $params = [
             ':bpid' => $biblePassage->bpid,
             ':referenceLocalLanguage' => $biblePassage->referenceLocalLanguage,
@@ -57,7 +62,7 @@ class BiblePassageRepository
         $this->databaseService->executeQuery($query, $params);
     }
 
-    // Save a passage record, updating if it exists, or inserting if it does not
+    // Save a passage record, updating if it exists, or inserting if not
     public function savePassageRecord(BiblePassageModel $biblePassage)
     {
         if ($this->existsById($biblePassage->bpid)) {
@@ -79,11 +84,11 @@ class BiblePassageRepository
     // Update an existing passage record
     private function updatePassageRecord(BiblePassageModel $biblePassage)
     {
-        $query = "UPDATE bible_passages
+        $query = 'UPDATE bible_passages
                   SET referenceLocalLanguage = :referenceLocalLanguage,
                       passageText = :passageText,
                       passageUrl = :passageUrl
-                  WHERE bpid = :bpid LIMIT 1";
+                  WHERE bpid = :bpid LIMIT 1';
         $params = [
             ':referenceLocalLanguage' => $biblePassage->referenceLocalLanguage,
             ':passageText' => $biblePassage->passageText,
@@ -98,9 +103,9 @@ class BiblePassageRepository
     private function updatePassageUse(BiblePassageModel $biblePassage)
     {
         $biblePassage->updateUsage();
-        $query = "UPDATE bible_passages
+        $query = 'UPDATE bible_passages
                   SET dateLastUsed = :dateLastUsed, timesUsed = :timesUsed
-                  WHERE bpid = :bpid LIMIT 1";
+                  WHERE bpid = :bpid LIMIT 1';
         $params = [
             ':dateLastUsed' => $biblePassage->dateLastUsed,
             ':timesUsed' => $biblePassage->timesUsed,
@@ -113,7 +118,9 @@ class BiblePassageRepository
     // Update the dateChecked field
     public function updateDateChecked($bpid)
     {
-        $query = "UPDATE bible_passages SET dateChecked = :today WHERE bpid = :bpid LIMIT 1";
+        $query = 'UPDATE bible_passages 
+                  SET dateChecked = :today 
+                  WHERE bpid = :bpid LIMIT 1';
         $params = [
             ':today' => date("Y-m-d"),
             ':bpid' => $bpid
@@ -124,7 +131,9 @@ class BiblePassageRepository
     // Update the passage URL field
     public function updatePassageUrl($bpid, $url)
     {
-        $query = "UPDATE bible_passages SET passageUrl = :passageUrl WHERE bpid = :bpid LIMIT 1";
+        $query = 'UPDATE bible_passages 
+                  SET passageUrl = :passageUrl 
+                  WHERE bpid = :bpid LIMIT 1';
         $params = [
             ':passageUrl' => $url,
             ':bpid' => $bpid

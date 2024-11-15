@@ -10,10 +10,10 @@ class BibleBrainConnectionService extends WebsiteConnectionService
   public function __construct(string $url)
   {
     // Fetch the API key from the Config class
-    $apiKey = Config::get('BIBLE_BRAIN_KEY', '');
+    $apiKey = Config::get('BIBLE_BRAIN_KEY');
 
     // Append API version and key to the URL
-    $url .= '&v=4&key=' . $apiKey;
+    $url .= '?v=4&key=' . $apiKey;
 
     // Call the parent constructor to initialize the URL and connection
     parent::__construct($url);

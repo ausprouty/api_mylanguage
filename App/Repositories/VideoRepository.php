@@ -39,7 +39,8 @@ class VideoRepository
 
     public function videoExists($videoCode): bool
     {
-        $query = "SELECT videoCode FROM jesus_video_languages WHERE videoCode = :videoCode LIMIT 1";
+        $query = "SELECT videoCode FROM jesus_video_languages 
+            WHERE videoCode = :videoCode LIMIT 1";
         $params = [':videoCode' => $videoCode];
         
         return (bool) $this->databaseService->fetchSingleValue($query, $params);
