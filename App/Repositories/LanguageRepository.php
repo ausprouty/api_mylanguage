@@ -3,35 +3,53 @@
 namespace App\Repositories;
 
 use App\Services\Database\DatabaseService;
+use App\Factories\LanguageModelFactory;
 use App\Models\Language\LanguageModel;
 
+/**
+ * Handles database operations for the LanguageModel.
+ */
 class LanguageRepository
 {
     private $databaseService;
+    private $languageModelFactory;
 
-    public function __construct(DatabaseService $databaseService)
-    {
+    /**
+     * Constructor to initialize dependencies.
+     */
+    public function __construct(
+        DatabaseService $databaseService,
+        LanguageModelFactory $languageModelFactory
+    ) {
         $this->databaseService = $databaseService;
+        $this->languageModelFactory = $languageModelFactory;
     }
 
+    /**
+     * Checks if a language record exists by BibleBrain language code.
+     */
     public function bibleBrainLanguageRecordExists(
-        $languageCodeBibleBrain
+        string $languageCodeBibleBrain
     ): bool {
         $query = 'SELECT id FROM hl_languages WHERE languageCodeBibleBrain = '
                . ':languageCodeBibleBrain LIMIT 1';
-        $params = [
-            ':languageCodeBibleBrain' => $languageCodeBibleBrain
-        ];
+        $params = [':languageCodeBibleBrain' => $languageCodeBibleBrain];
         return $this->databaseService->fetchSingleValue($query, $params) 
                !== null;
     }
 
+    /**
+     * Clears the CheckedBBBibles field for all languages.
+     */
     public function clearCheckedBBBibles(): void
     {
         $query = 'UPDATE hl_languages SET CheckedBBBibles = NULL';
         $this->databaseService->executeQuery($query);
     }
 
+    /**
+     * Creates a new language record from a LanguageModel.
+     */
     public function createLanguageFromBibleBrainRecord(
         LanguageModel $language
     ): void {
@@ -48,95 +66,55 @@ class LanguageRepository
         $this->databaseService->executeQuery($query, $params);
     }
 
+    /**
+     * Finds a language by a specific source code using the factory.
+     */
+    public function findOneByCode(
+        string $source,
+        string $code
+    ): ?LanguageModel {
+        return $this->languageModelFactory->findOneByCode($source, $code);
+    }
+
+    /**
+     * Finds a language by its HL code using the factory.
+     */
+    public function findOneByLanguageCodeHL(
+        string $code
+    ): ?LanguageModel {
+        return $this->languageModelFactory->findOneByLanguageCodeHL($code);
+    }
+
+    /**
+     * Retrieves ethnic names for a language by its ISO code.
+     */
     public function getEthnicNamesForLanguageIso(
-        $languageCodeIso
+        string $languageCodeIso
     ): ?array {
-        $query = 'SELECT ethnicName FROM hl_languages 
-                  WHERE languageCodeIso = :languageCodeIso';
+        $query = 'SELECT ethnicName FROM hl_languages WHERE languageCodeIso = '
+               . ':languageCodeIso';
         return $this->databaseService->fetchColumn(
             $query, 
             [':languageCodeIso' => $languageCodeIso]
         );
     }
 
-    public function findOneByCode(
-        string $source, 
-        string $code
-    ): ?LanguageModel {
-        $field = 'languageCode' . $source;
-        $query = 'SELECT * FROM hl_languages WHERE ' . $field . ' = :id';
-        $data = $this->databaseService->fetchRow($query, [':id' => $code]);
-        return $data ? new LanguageModel($data) : null;
-    }
-
-    public function findOneByLanguageCodeHL(
-        string $code
-    ): ?LanguageModel {
-        $query = 'SELECT * FROM hl_languages WHERE languageCodeHl = :id';
-        $data = $this->databaseService->fetchRow($query, [':id' => $code]);
-        return $data ? new LanguageModel($data) : null;
-    }
-
-    public function getCodeIsoFromCodeHL(
-        $languageCodeHL
-    ): ?string {
-        $query = 'SELECT languageCodeIso FROM hl_languages 
-                  WHERE languageCodeHL = :languageCodeHL LIMIT 1';
-        return $this->databaseService->fetchSingleValue(
-            $query, 
-            [':languageCodeHL' => $languageCodeHL]
-        );
-    }
-
-    public function getEnglishNameFromCodeHL(
-        $languageCodeHL
-    ): ?string {
-        $query = 'SELECT name FROM hl_languages 
-                  WHERE languageCodeHL = :languageCodeHL LIMIT 1';
-        return $this->databaseService->fetchSingleValue(
-            $query, 
-            [':languageCodeHL' => $languageCodeHL]
-        );
-    }
-
-    public function getFontDataFromCodeHL(
-        $languageCodeHL
-    ): ?array {
-        $query = 'SELECT fontData FROM hl_languages 
-                  WHERE languageCodeHL = :languageCodeHL LIMIT 1';
-        $data = $this->databaseService->fetchSingleValue(
-            $query, 
-            [':languageCodeHL' => $languageCodeHL]
-        );
-        return $data ? json_decode($data, true) : null;
-    }
-
-    public function getLanguageCodes(
-        $languageCodeIso
-    ): ?array {
+    public function getLanguageCodes($languageCodeIso) {
         $query = 'SELECT languageCodeHL, languageCodeBibleBrain FROM hl_languages 
-                  WHERE languageCodeIso = :languageCodeIso LIMIT 1';
-        return $this->databaseService->fetchRow(
-            $query, 
-            [':languageCodeIso' => $languageCodeIso]
-        );
+            WHERE languageCodeIso = :languageCodeIso LIMIT 1';
+        return $this->databaseService->fetchRow($query, [':languageCodeIso' => $languageCodeIso]);
     }
 
-    public function getNextLanguageForLanguageDetails(): ?string
-    {
-        $query = 'SELECT languageCodeIso FROM hl_languages 
-                  WHERE languageCodeBibleBrain IS NULL 
-                  AND checkedBBBibles IS NOT NULL LIMIT 1';
-        return $this->databaseService->fetchSingleValue($query);
-    }
-
+    /**
+     * Inserts a new language into the database.
+     */
     public function insertLanguage(
-        $languageCodeIso, 
-        $name
+        string $languageCodeIso,
+        string $name
     ): void {
         $languageCodeHL = $languageCodeIso . date('y');
-        $query = 'INSERT INTO hl_languages (languageCodeIso, languageCodeHL, name)
-                  VALUES (:languageCodeIso, :languageCodeHL, :name)';
+        $query = 'INSERT INTO hl_languages (languageCodeIso, languageCodeHL, 
+                    name) VALUES (:languageCodeIso, :languageCodeHL, :name)';
         $params = [
             ':languageCodeIso' => $languageCodeIso,
             ':languageCodeHL' => $languageCodeHL,
@@ -145,62 +123,33 @@ class LanguageRepository
         $this->databaseService->executeQuery($query, $params);
     }
 
-    public function languageIsoRecordExists(
-        $languageCodeIso
-    ): bool {
-        $query = 'SELECT id FROM hl_languages 
-                  WHERE languageCodeIso = :languageCodeIso LIMIT 1';
-        return $this->databaseService->fetchSingleValue(
-            $query, 
-            [':languageCodeIso' => $languageCodeIso]
-        ) !== null;
-    }
-
-    public function setLanguageDetailsComplete(
-        $languageCodeIso
-    ): void {
-        $query = 'UPDATE hl_languages SET checkedBBBibles = NULL 
-                  WHERE languageCodeIso = :languageCodeIso LIMIT 1';
-        $this->databaseService->executeQuery(
-            $query, 
-            [':languageCodeIso' => $languageCodeIso]
-        );
-    }
-
+    /**
+     * Updates the ethnic name of a language by ISO code.
+     */
     public function updateEthnicName(
-        $languageCodeIso, 
-        $ethnicName
+        string $languageCodeIso,
+        string $ethnicName
     ): void {
-        $query = 'UPDATE hl_languages SET ethnicName = :ethnicName 
-                  WHERE languageCodeIso = :languageCodeIso';
-        $this->databaseService->executeQuery($query, [
-            ':ethnicName' => $ethnicName,
-            ':languageCodeIso' => $languageCodeIso
-        ]);
-    }
-
-    public function updateLanguageCheckedDate(
-        $languageCodeIso
-    ) {
-        $query = 'UPDATE hl_languages SET checkedBBBibles = :today 
-                  WHERE languageCodeIso = :languageCodeIso';
-        $params = [
-            ':today' => date('Y-m-d'),
-            ':languageCodeIso' => $languageCodeIso
-        ];
+        $query = 'UPDATE hl_languages SET ethnicName = :ethnicName WHERE '
+               . 'languageCodeIso = :languageCodeIso';
+        $params = [':ethnicName' => $ethnicName, ':languageCodeIso' => $languageCodeIso];
         $this->databaseService->executeQuery($query, $params);
     }
 
+    /**
+     * Updates the BibleBrain code for a language by ISO code.
+     */
     public function updateLanguageCodeBibleBrain(
-        $languageCodeIso, 
-        $languageCodeBibleBrain
+        string $languageCodeIso,
+        string $languageCodeBibleBrain
     ): void {
-        $query = 'UPDATE hl_languages SET languageCodeBibleBrain = 
-                  :languageCodeBibleBrain 
-                  WHERE languageCodeIso = :languageCodeIso';
-        $this->databaseService->executeQuery($query, [
+        $query = 'UPDATE hl_languages SET languageCodeBibleBrain = '
+               . ':languageCodeBibleBrain WHERE languageCodeIso = '
+               . ':languageCodeIso';
+        $params = [
             ':languageCodeBibleBrain' => $languageCodeBibleBrain,
             ':languageCodeIso' => $languageCodeIso
-        ]);
+        ];
+        $this->databaseService->executeQuery($query, $params);
     }
 }

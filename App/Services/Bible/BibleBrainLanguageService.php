@@ -30,6 +30,8 @@ class BibleBrainLanguageService
     {
         $data = $this->languageRepository->getLanguageCodes($languageCodeIso);
 
+
+        
         if (empty($data->languageCodeHL)) {
             $this->languageRepository->insertLanguage($languageCodeIso, $name);
         }

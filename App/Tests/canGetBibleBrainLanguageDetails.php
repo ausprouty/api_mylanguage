@@ -4,16 +4,21 @@ use App\Controllers\BiblePassage\BibleBrain\BibleBrainLanguageController as Bibl
 use App\Services\Bible\BibleBrainLanguageService as BibleBrainLanguageService;
 use App\Repositories\LanguageRepository as LanguageRepository;
 use App\Services\Database\DatabaseService as DatabaseService;
+use App\Models\Language\LanguageModel as LanguageModel;
+use App\Factories\LanguageModelFactory as LanguageModelFactory;
 
 
 $databaseService = new DatabaseService();
-$languageRepository = new LanguageRepository($databaseService);
+$languageModel = new LanguageModel();
+$languageModelFactory = new LanguageModelFactory($databaseService); 
+$languageRepository = new LanguageRepository($databaseService, $languageModelFactory); 
 $languageService = new BibleBrainLanguageService($languageRepository);
 //$languageController = new BibleBrainLanguageController($languageRepository, $languageService);
 $languageCodeIso = 'spa';
 $languageService->fetchLanguageDetails($languageCodeIso);
-echo ('You should see Spanish below <hr>');
-echo ("$language->name  =  $language->autonym  with ISO $language->iso");
+print_r ('You should see Spanish below <hr>');
+flush();
+print_r ($languageModel->getProperties());
 //$language->updateBibleBrainLanguageDetails();
 
 

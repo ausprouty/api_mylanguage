@@ -12,8 +12,14 @@ class BibleBrainConnectionService extends WebsiteConnectionService
     // Fetch the API key from the Config class
     $apiKey = Config::get('BIBLE_BRAIN_KEY');
 
-    // Append API version and key to the URL
-    $url .= '?v=4&key=' . $apiKey;
+    // Check if the URL already contains a "?" character
+    if (strpos($url, '?') !== false) {
+      // If "?" is found, append with "&"
+      $url .= '&v=4&key=' . $apiKey;
+    } else {
+      // If no "?" is found, append with "?"
+      $url .= '?v=4&key=' . $apiKey;
+    }
 
     // Call the parent constructor to initialize the URL and connection
     parent::__construct($url);
