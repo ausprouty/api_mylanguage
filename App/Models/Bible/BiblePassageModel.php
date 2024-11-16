@@ -7,12 +7,12 @@ use App\Models\Bible\BibleReferenceInfoModel;
 class BiblePassageModel
 {
     public $bpid;
-    protected $referenceLocalLanguage;
-    protected $passageText;
-    protected $passageUrl;
-    protected $dateLastUsed;
-    protected $dateChecked;
-    protected $timesUsed;
+    private $referenceLocalLanguage;
+    private $passageText;
+    private $passageUrl;
+    private $dateLastUsed;
+    private $dateChecked;
+    private $timesUsed;
 
     public function __construct()
     {
@@ -20,36 +20,58 @@ class BiblePassageModel
         $this->referenceLocalLanguage = '';
         $this->passageText = '';
         $this->passageUrl = '';
-        $this->dateLastUsed = '';
-        $this->dateChecked = '';
+        $this->dateLastUsed = null;
+        $this->dateChecked = null;
         $this->timesUsed = 0;
     }
 
-    // Getters
-    public function getPassageText()
+    // Getters and Setters
+    public function getPassageText(): string
     {
         return $this->passageText;
     }
 
-    public function getPassageUrl()
+    public function setPassageText(string $passageText): void
+    {
+        $this->passageText = $passageText;
+    }
+
+    public function getPassageUrl(): string
     {
         return $this->passageUrl;
     }
 
-    public function getReferenceLocalLanguage()
+    public function setPassageUrl(string $passageUrl): void
+    {
+        $this->passageUrl = $passageUrl;
+    }
+
+    public function getReferenceLocalLanguage(): string
     {
         return $this->referenceLocalLanguage;
     }
 
-    // Method to create a Bible Passage ID based on given parameters
-   static public function createBiblePassageId(string $bid, BibleReferenceInfoModel $passage): string
+    public function setReferenceLocalLanguage(string $reference): void
+    {
+        $this->referenceLocalLanguage = $reference;
+    }
+
+    public function updateUsage(): void
+    {
+        $this->dateLastUsed = date("Y-m-d");
+        $this->timesUsed++;
+    }
+
+    public static function createBiblePassageId(
+        string $bid, 
+        BibleReferenceInfoModel $passage
+        ): string
     {
         return $bid . '-' . $passage->getBookID() . '-' . $passage->getChapterStart() . '-' .
             $passage->getVerseStart() . '-' . $passage->getVerseEnd();
     }
 
-    // Method to populate the model with data from the database
-    public function populateFromData($data)
+    public function populateFromData($data): void
     {
         $this->bpid = $data->bpid;
         $this->referenceLocalLanguage = $data->referenceLocalLanguage;
@@ -58,12 +80,5 @@ class BiblePassageModel
         $this->dateLastUsed = $data->dateLastUsed;
         $this->dateChecked = $data->dateChecked;
         $this->timesUsed = $data->timesUsed;
-    }
-
-    // Method to update usage date and increment times used
-    public function updateUsage()
-    {
-        $this->dateLastUsed = date("Y-m-d");
-        $this->timesUsed += 1;
     }
 }

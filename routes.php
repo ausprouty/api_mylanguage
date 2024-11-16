@@ -1,6 +1,6 @@
 <?php
-$dir = __DIR__ ;
-require_once __DIR__ .'/router.php';
+$dir = __DIR__;
+require_once __DIR__ . '/router.php';
 
 ##################################################
 $path = WEB_ROOT;
@@ -13,7 +13,7 @@ get($path  . 'api/test/passage', 'App/API/BiblePassages/passageTest.php');
 
 get($path  . 'api/ask/$languageCodeHL', 'App/API/askQuestions.php');
 get($path  . 'api/bibles/$languageCodeHL', 'App/API/Bibles/biblesForLanguage.php');
-get($path  . 'api/bibles/dbs/next/$languageCodeHL','App/API/Bibles/bibleForDbsNext.php');
+get($path  . 'api/bibles/dbs/next/$languageCodeHL', 'App/API/Bibles/bibleForDbsNext.php');
 
 get($path  . 'api/content/available/$languageCodeHL1/$languageCodeHL2', 'App/API/contentAvailable.php');
 
@@ -57,7 +57,7 @@ get($path  . 'api/life_principles/view/$lesson/$languageCodeHL1/$languageCodeHL2
 // cjecl from here
 
 
-get($path  . 'api/followingjesus/videocode/$languageCodeHL' , 'App/API/videoCodeForFollowingJesus.php');
+get($path  . 'api/followingjesus/videocode/$languageCodeHL', 'App/API/videoCodeForFollowingJesus.php');
 
 get($path  . 'api/gospel/languages', 'App/API/Gospel/gospelLanguageOptions.php');
 get($path  . 'api/gospel/view/$page', 'App/API/gospelPage.php');
@@ -66,11 +66,11 @@ get($path  . 'api/gospel/view/$page', 'App/API/gospelPage.php');
 get($path  . 'api/video/code/$title/$languageCodeHL', 'App/API/videoCodeFromTitle.php');
 
 
-post($path  .'api/passage/text', 'App/API/passageForBible.php');
+post($path  . 'api/passage/text', 'App/API/passageForBible.php');
 
 
 if (ENVIRONMENT == 'local') {
-    get($path  , 'App/Views/indexLocal.php');
+    get($path, 'App/Views/indexLocal.php');
     get($path  . 'local', '/App/Views/indexLocal.php');
     post($path  . 'api/secure/bibles/weight/change', 'App/API/secure/bibleWeightChange.php');
     // Imports
@@ -80,8 +80,8 @@ if (ENVIRONMENT == 'local') {
     get($path  . 'import/bibleBookNames/languages', 'imports/addHLCodeToBibleBookNames.php');
     get($path  . 'import/biblebrain/setup', 'imports/clearBibleBrainCheckDate.php');
     get($path  . 'import/biblebrain/bibles', 'imports/addBibleBrainBibles.php');
-    get($path  . 'import/biblebrain/languages','imports/addBibleBrainLanguages.php');
-    get($path  . 'import/biblebrain/language/details','imports/updateBibleBrainLanguageDetails.php');
+    get($path  . 'import/biblebrain/languages', 'imports/addBibleBrainLanguages.php');
+    get($path  . 'import/biblebrain/language/details', 'imports/updateBibleBrainLanguageDetails.php');
     get($path  . 'import/biblegateway/bibles', 'imports/addBibleGatewayBibles.php');
 
     get($path  . 'import/country/languages/africa', 'imports/importLanguagesAfrica.php');
@@ -90,7 +90,7 @@ if (ENVIRONMENT == 'local') {
     get($path  . 'import/country/names', 'imports/checkCountryNames.php');
     get($path  . 'import/country/names/language', 'imports/addCountryNamesToLanguage.php');
     get($path  . 'import/country/names/language2', 'imports/addCountryNamesToLanguage2.php');
- 
+
     get($path  . 'import/dbs/database', 'imports/UpdateDbsLanguages.php');
     get($path  . 'import/india', 'imports/importIndiaVideos.php');
     get($path  . 'import/leadership/database', 'imports/importLeadershipStudies.php');
@@ -113,69 +113,42 @@ if (ENVIRONMENT == 'local') {
 
 
     // TESTS
-    get($path  . 'tests/createQrCode',  'App/Tests/createQrCode.php');
     get($path  . 'test',  'App/Tests/test.php');
-
-    //  Web Access
-    get($path  . 'webpage',  'App/Tests/webpage.php');
-
-    // word
-    get($path  . 'test/word/passage/$externalId', 'App/Tests/canGetBibleWordPassageFromExternalId.php');
-
-    // Bible Brain
-    get($path  . 'test/biblebrain/language',  'App/Tests/canGetBibleBrainLanguageDetails.php');
-    get($path  . 'test/biblebrain/bible/default',  'App/Tests/canGetBestBibleFromBibleBrain.php');
+    get($path  . 'test/bible',  'App/Tests/biblePassageControllerTest.php');
+    get($path  . 'test/bible/reference/info',  'App/Tests/CanCreateBibleReferenceInfo.php');
+    get($path  . 'test/biblebrain/bible/best',  'App/Tests/canGetBestBibleFromBibleBrain.php');
+    get($path  . 'test/biblebrain/bible/default', 'App/Tests/canGetDefaultBibleForLanguage.php');
     get($path  . 'test/biblebrain/bible/formats',  'App/Tests/canGetBibleBrainBibleFormatTypes.php');
+    get($path  . 'test/biblebrain/bible/formats', 'App/Tests/canGetBibleFormatTypes.php');
+    get($path  . 'test/biblebrain/language',  'App/Tests/canGetBibleBrainLanguageDetails.php');
+    get($path  . 'test/biblebrain/languages/countrycode',  'App/Tests/canGetLanguagesForCountryCode.php');
+    get($path  . 'test/biblebrain/languages/country', 'App/Tests/canGetLanguagesForCountry.php');
+    get($path  . 'test/biblebrain/passage/formatted',  'App/Tests/canGetBibleBrainPassageTextFormatted.php');
+    get($path  . 'test/bible/passage/formatted', 'App/Tests/canGetBibleTextFormatted.php');
     get($path  . 'test/biblebrain/passage/json',  'App/Tests/canGetBibleBrainPassageTextJson.php');
-
-    get($path  . 'test/biblebrain/passage/formatted', 'App/Tests/canGetBibleBrainPassageTextFormatted.php');
-    get($path  . 'test/biblebrain/passage/usx', 'App/Tests/canGetBibleBrainPassageTextUsx.php');
-    get($path  . 'test/biblebrain/languages/country',  'App/Tests/canGetLanguagesForCountryCode.php');
-
-    // Bible Gateway
+    get($path  . 'test/bible/passage/json', 'App/Tests/canGetBibleTextJson.php');
+    get($path  . 'test/biblebrain/passage/plain', 'App/Tests/canGetBibleTextPlain.php');
+    get($path  . 'test/biblebrain/passage/usx',  'App/Tests/canGetBibleBrainPassageTextUsx.php');
+    get($path  . 'test/bible/passage/usx', 'App/Tests/canGetBibleTextUsx.php');
     get($path  . 'test/biblegateway',  'App/Tests/canGetBibleGatewayPassage.php');
-
-    //YouVersion
-    get($path  . 'test/youversion/link',  'App/Tests/canGetBibleYouVersionLink.php');
-
-    // DBS
-    get($path  . 'test/dbs/translation',  'App/Tests/canGetDBSTranslation.php');
+    get($path  . 'test/bibles/best', 'App/Tests/canGetBestBibleForLanguage.php');
+    get($path  . 'test/bibles/best/hl',  'App/Tests/canGetBestBibleByLanguageCodeHL.php');
     get($path  . 'test/dbs/bilingual',  'App/Tests/canMakeStandardBilingualDBS.php');
     get($path  . 'test/dbs/pdf',  'App/Tests/canPrintDbsPdf.php');
-    get($path . 'test/bibles/best', 'App/Tests/canGetBestBibleForLanguage.php');
-get($path . 'test/biblebrain/bible/default', 'App/Tests/canGetDefaultBibleForLanguage.php');
-get($path . 'test/biblebrain/bible/formats', 'App/Tests/canGetBibleFormatTypes.php');
-get($path . 'test/biblebrain/languages/country', 'App/Tests/canGetLanguagesForCountry.php');
-get($path . 'test/biblebrain/passage/formatted', 'App/Tests/canGetBibleTextFormatted.php');
-get($path . 'test/biblebrain/passage/json', 'App/Tests/canGetBibleTextJson.php');
-get($path . 'test/biblebrain/passage/plain', 'App/Tests/canGetBibleTextPlain.php');
-get($path . 'test/biblebrain/passage/usx', 'App/Tests/canGetBibleTextUsx.php');
-get($path . 'test/biblegateway', 'App/Tests/canGetBibleGatewayPassage.php');
-get($path . 'test/passage/select', 'App/Tests/canSelectPassage.php');
-get($path . 'test/word/passage/al', 'App/Tests/canGetWordPassageFromExternalId.php');
-get($path . 'test/youversion/link', 'App/Tests/canGetBibleYouVersionLink.php');
-
-
-
-    //Bibles
-    get($path. 'test/bibles/best',  'App/Tests/canGetBestBibleByLanguageCodeHL.php');
-    get($path. 'test/passage/select',  'App/Tests/passageSelectControllerTest.php');
-    get($path  . 'test/bible',  'App/Tests/biblePassageControllerTest.php');
-
-    //Database
+    get($path  . 'test/dbs/translation',  'App/Tests/canGetDBSTranslation.php');
     get($path  . 'test/language/hl',  'App/Tests/canGetLanguageFromHL.php');
-
-
-
-    get($path  . 'test/bible/reference/info',  'App/Tests/CanCreateBibleReferenceInfo.php');
-    get($path  . 'test/passage/select',  'App/Tests/canSelectBiblePassageFromDatabaseOrExternal.php');
-
+    get($path  . 'test/passage/select/source',  'App/Tests/canSelectBiblePassageFromDatabaseOrExternal.php');
+    get($path  . 'test/passage/select/controller',  'App/Tests/passageSelectControllerTest.php');
     get($path  . 'test/passage/stored',  'App/Tests/canSeePassageStored.php');
-
+    get($path  . 'test/word/passage/ex', 'App/Tests/canGetBibleWordPassageFromExternalId.php');
+    get($path  . 'test/word/passage/external', 'App/Tests/canGetWordPassageFromExternalId.php');
+    get($path  . 'test/youversion/link',  'App/Tests/canGetBibleYouVersionLink.php');
+    get($path  . 'tests/createQrCode',  'App/Tests/createQrCode.php');
+    get($path  . 'webpage',  'App/Tests/webpage.php');
 }
 // any can be used for GETs or POSTs
 
 // For GET or POST
 // The 404.php which is inside the tests folder will be called
 // The 404.php has access to $_GET and $_POST
-any('/404','/App/Views/404.php');
+any('/404', '/App/Views/404.php');

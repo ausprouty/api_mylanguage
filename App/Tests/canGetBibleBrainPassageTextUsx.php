@@ -4,9 +4,10 @@ use App\Controller\BiblePassage\BibleBrain\BibleBrainTextJsonController;
 use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use App\Repositories\BibleRepository;
+use App\Services\Database\DatabaseService;
 
-
-$bibleRepository = new BibleRepository();
+$databaseService = new DatabaseService();
+$bibleRepository = new BibleRepository($databaseService);
 echo ("You may be able to modify this so that you can download an entire book (in nice format) and then parse it.  
 Look for the URL ion the BibleBrainJson Controller <hr>");
 $bible = new BibleModel($bibleRepository);

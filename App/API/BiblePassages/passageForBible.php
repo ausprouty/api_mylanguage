@@ -5,13 +5,17 @@ use App\Controllers\BiblePassage\PassageSelectController;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel;
 use App\Repositories\BibleRepository;
+use App\Services\Database\DatabaseService;
+use App\Factories\BibleModelFactory;
 use stdClass;
 
-$bibleRepository = new BibleRepository();
+$databaseService = new DatabaseService();
+$bibleRepository = new BibleRepository($databaseService);
 $bid = intval($_POST['bid']);
 $entry = strip_tags($_POST['entry']);
-$bible = new BibleModel($bibleRepository );
-$bible->selectBibleByBid($bid);
+
+$factory = new BibleModelFactory($bibleRepository );
+$bibleModel = $factory->createFromBid($bid);
 $bibleReferenceInfo = new BibleReferenceInfoModel();
 $bibleReferenceInfo->setFromEntry($entry);
 

@@ -2,116 +2,141 @@
 
 namespace App\Controllers\BiblePassage\BibleGateway;
 
-use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceInfoModel;
 use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\BibleReferenceInfoModel;
+use App\Models\Bible\BibleModel;
+use App\Repositories\BiblePassageRepository;
 use App\Services\Web\WebsiteConnectionService;
-use App\Services\Database\DatabaseService;
-use App\Configuration\Config;
-use simple_html_dom;
 
-class BibleGatewayPassageController extends BiblePassageModel
+class BibleGatewayPassageController
 {
-    private $databaseService;
+    private $biblePassageRepository;
     private $bibleReferenceInfo;
     private $bible;
 
     public function __construct(
-        DatabaseService $databaseService,
+        BiblePassageRepository $biblePassageRepository,
         BibleReferenceInfoModel $bibleReferenceInfo,
         BibleModel $bible
     ) {
-        $this->databaseService = $databaseService;
+        $this->biblePassageRepository = $biblePassageRepository;
         $this->bibleReferenceInfo = $bibleReferenceInfo;
         $this->bible = $bible;
-        $this->referenceLocalLanguage = '';
-        $this->passageText = '';
-        $this->passageUrl = '';
-        $this->dateLastUsed = '';
-        $this->dateChecked = '';
-        $this->timesUsed = 0;
-        $this->getExternal();
     }
 
-    public function getExternal()
+    public function fetchAndSavePassage(): void
     {
-        $referenceShaped = $this->shapeReference();
-        $this->passageUrl = 'https://biblegateway.com/passage/?search=' . $referenceShaped . '&version=' . $this->bible->getExternalId();
+        $referenceShaped = str_replace(
+            ' ',
+            '%20',
+            $this->bibleReferenceInfo->getEntry()
+        );
 
-        $webpage = new WebsiteConnectionService($this->passageUrl);
-        $this->passageText = $webpage->response ? $this->formatExternal($webpage->response) : null;
+        $passageUrl = 'https://biblegateway.com/passage/?search=' .
+            $referenceShaped . '&version=' . $this->bible->getExternalId();
+
+        $webpage = new WebsiteConnectionService($passageUrl);
+        if ($webpage->response) {
+            $biblePassage = new BiblePassageModel();
+            $biblePassage->setPassageText(
+                $this->formatExternal($webpage->response)
+            );
+            $biblePassage->setReferenceLocalLanguage(
+                $this->getReferenceLocalLanguage($webpage->response)
+            );
+            $biblePassage->setPassageUrl($passageUrl);
+
+            $this->biblePassageRepository->savePassageRecord($biblePassage);
+        }
     }
 
-    private function shapeReference()
+    private function getReferenceLocalLanguage(string $webpage): string
     {
-        return str_replace(' ', '%20', $this->bibleReferenceInfo->getEntry());
-    }
+        require_once(ROOT_LIBRARIES . '/simplehtmldom_1_9_1/simple_html_dom.php');
 
-    private function formatExternal($webpage)
-    {
-        require_once Config::get('ROOT_LIBRARIES') . 'simplehtmldom_1_9_1/simple_html_dom.php';
         $html = str_get_html($webpage);
-
-        if (!$this->findAndSetLocalReference($html)) {
-            return null;
+        if (!$html) {
+            return '';
         }
 
-        $bibleText = $this->extractBibleText($html);
+        $title = $html->find('h1.passage-display-bcv', 0);
+        $localReference = $title ? $title->plaintext : '';
+
         $html->clear();
+        unset($html);
 
-        $bibleText = $this->cleanBibleText($bibleText);
-        $this->passageText = $this->finalizeBibleText($bibleText);
-
-        return $this->passageText;
+        return $localReference;
     }
 
-    private function findAndSetLocalReference($html)
+    private function formatExternal(string $webpage): string
     {
-        $referenceElement = $html->find('.dropdown-display-text', 0);
-        if (!$referenceElement) {
-            return false;
+        require_once(ROOT_LIBRARIES . '/simplehtmldom_1_9_1/simple_html_dom.php');
+
+        $html = str_get_html($webpage);
+        if (!$html) {
+            return '';
         }
-        $this->createLocalReference($referenceElement->innertext);
-        return true;
-    }
 
-    private function extractBibleText($html)
-    {
-        $bibleText = '';
-        foreach ($html->find('.passage-text') as $passage) {
-            $bibleText .= $passage;
-        }
-        return $bibleText;
-    }
+        $startDiv = $html->find('div.passage-text', 0);
+        $cleanedHtml = $startDiv ? $startDiv->outertext : '';
 
-    private function cleanBibleText($bible)
-    {
-        $html = str_get_html($bible);
-        $this->removeElements($html, [
-            'a', 'div.footnotes', 'a.full-chap-link', 'sup.footnote', 'div.crossrefs.hidden', 'sup.crossreference', 'span.citation', 'div.il-text'
-        ]);
-        $this->replaceChapterNumbersWithVerse($html);
-
-        return $html->outertext;
-    }
-
-    private function removeElements($html, $selectors)
-    {
-        foreach ($selectors as $selector) {
-            foreach ($html->find($selector) as $element) {
-                $element->outertext = '';
+        $endDiv = $html->find('div.footnotes', 0);
+        if ($endDiv) {
+            $endPosition = strpos($cleanedHtml, $endDiv->outertext);
+            if ($endPosition !== false) {
+                $cleanedHtml = substr($cleanedHtml, 0, $endPosition);
             }
         }
-    }
 
-    private function replaceChapterNumbersWithVerse($html)
-    {
-        foreach ($html->find('span.chapternum') as $chapter) {
-            $chapter->outertext = '<sup class="versenum">1&nbsp;</sup>';
+        $cleanedHtml = $this->removeSupTags($cleanedHtml);
+        $cleanedHtml = str_get_html($cleanedHtml);
+
+        foreach ($cleanedHtml->find('a') as $link) {
+            $link->outertext = '';
         }
+
+        foreach ($cleanedHtml->find('span') as $span) {
+            $class = $span->class ?? '';
+            if ($class !== 'chapternum' && $class !== 'versenum') {
+                $span->outertext = $span->innertext;
+            }
+        }
+
+        foreach ($cleanedHtml->find('sup') as $sup) {
+            $sup->outertext = '';
+        }
+
+        foreach ($cleanedHtml->find('h3') as $heading) {
+            $heading->outertext = '';
+        }
+
+        foreach ($cleanedHtml->find('small-caps') as $smallCaps) {
+            $smallCaps->outertext =
+                '<span style="font-variant: small-caps" class="small-caps">' .
+                $smallCaps->innertext . '</span>';
+        }
+
+        $finalOutput = $cleanedHtml->outertext;
+
+        $cleanedHtml->clear();
+        unset($cleanedHtml);
+
+        return $this->balanceDivTags($finalOutput);
     }
 
-    private function finalizeBibleText($bibleText)
+    private function removeSupTags(string $htmlContent): string
     {
-        $bibleText = $this->replaceSmallCaps($bibleText);
-        $bibleText = $this->stripDivTags($bibleText)
+        $pattern = '/<sup[^>]*data-fn[^>]*>.*?<\/sup>/is';
+        return preg_replace($pattern, '', $htmlContent);
+    }
+
+    private function balanceDivTags(string $html): string
+    {
+        libxml_use_internal_errors(true);
+        $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $dom->loadHTML($html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        return $dom->saveHTML();
+    }
+}

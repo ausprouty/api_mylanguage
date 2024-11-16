@@ -15,12 +15,11 @@ class BiblePassageRepository
         $this->databaseService = $databaseService;
     }
 
-    // Find a Bible passage by its ID and populate the model
-    public function findStoredById($bpid): ?BiblePassageModel
+    public function findStoredById(string $bpid): ?BiblePassageModel
     {
         $query = 'SELECT * FROM bible_passages WHERE bpid = :bpid LIMIT 1';
         $params = [':bpid' => $bpid];
-        
+
         try {
             $results = $this->databaseService->executeQuery($query, $params);
             $data = $results->fetch(PDO::FETCH_OBJ);
@@ -28,42 +27,17 @@ class BiblePassageRepository
             if ($data) {
                 $biblePassage = new BiblePassageModel();
                 $biblePassage->populateFromData($data);
-                // Update usage stats upon retrieval
-                $this->updatePassageUse($biblePassage); 
+                $this->updatePassageUse($biblePassage);
                 return $biblePassage;
             }
         } catch (\Exception $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
+            error_log("Error fetching Bible passage: " . $e->getMessage());
         }
 
         return null;
     }
 
-    // Insert a new Bible passage record
-    public function insertPassageRecord(BiblePassageModel $biblePassage)
-    {
-        $query = 'INSERT INTO bible_passages 
-                  (bpid, referenceLocalLanguage, passageText, 
-                   passageUrl, dateLastUsed, dateChecked, timesUsed)
-                  VALUES (:bpid, :referenceLocalLanguage, :passageText, 
-                          :passageUrl, :dateLastUsed, :dateChecked, 
-                          :timesUsed)';
-        $params = [
-            ':bpid' => $biblePassage->bpid,
-            ':referenceLocalLanguage' => $biblePassage->referenceLocalLanguage,
-            ':passageText' => $biblePassage->passageText,
-            ':passageUrl' => $biblePassage->passageUrl,
-            ':dateLastUsed' => date("Y-m-d"),
-            ':dateChecked' => null,
-            ':timesUsed' => 1
-        ];
-
-        $this->databaseService->executeQuery($query, $params);
-    }
-
-    // Save a passage record, updating if it exists, or inserting if not
-    public function savePassageRecord(BiblePassageModel $biblePassage)
+    public function savePassageRecord(BiblePassageModel $biblePassage): void
     {
         if ($this->existsById($biblePassage->bpid)) {
             $this->updatePassageRecord($biblePassage);
@@ -72,35 +46,48 @@ class BiblePassageRepository
         }
     }
 
-    // Check if a passage record exists
-    private function existsById($bpid): bool
+    private function existsById(string $bpid): bool
     {
         $query = 'SELECT bpid FROM bible_passages WHERE bpid = :bpid LIMIT 1';
         $params = [':bpid' => $bpid];
         $results = $this->databaseService->executeQuery($query, $params);
-        return $results->fetch(PDO::FETCH_OBJ) ? true : false;
+        return (bool) $results->fetch(PDO::FETCH_OBJ);
     }
 
-    // Update an existing passage record
-    private function updatePassageRecord(BiblePassageModel $biblePassage)
+    private function insertPassageRecord(BiblePassageModel $biblePassage): void
+    {
+        $query = 'INSERT INTO bible_passages (bpid, referenceLocalLanguage, passageText, passageUrl, dateLastUsed, timesUsed)
+                  VALUES (:bpid, :referenceLocalLanguage, :passageText, :passageUrl, :dateLastUsed, :timesUsed)';
+        $params = [
+            ':bpid' => $biblePassage->bpid,
+            ':referenceLocalLanguage' => $biblePassage->getReferenceLocalLanguage(),
+            ':passageText' => $biblePassage->getPassageText(),
+            ':passageUrl' => $biblePassage->getPassageUrl(),
+            ':dateLastUsed' => date("Y-m-d"),
+            ':timesUsed' => $biblePassage->timesUsed
+        ];
+
+        $this->databaseService->executeQuery($query, $params);
+    }
+
+    private function updatePassageRecord(BiblePassageModel $biblePassage): void
     {
         $query = 'UPDATE bible_passages
-                  SET referenceLocalLanguage = :referenceLocalLanguage,
-                      passageText = :passageText,
-                      passageUrl = :passageUrl
+                  SET referenceLocalLanguage = :referenceLocalLanguage, 
+                      passageText = :passageText, 
+                      passageUrl = :passageUrl 
                   WHERE bpid = :bpid LIMIT 1';
         $params = [
-            ':referenceLocalLanguage' => $biblePassage->referenceLocalLanguage,
-            ':passageText' => $biblePassage->passageText,
-            ':passageUrl' => $biblePassage->passageUrl,
+            ':referenceLocalLanguage' => $biblePassage->getReferenceLocalLanguage(),
+            ':passageText' => $biblePassage->getPassageText(),
+            ':passageUrl' => $biblePassage->getPassageUrl(),
             ':bpid' => $biblePassage->bpid
         ];
 
         $this->databaseService->executeQuery($query, $params);
     }
 
-    // Update usage stats for a passage
-    private function updatePassageUse(BiblePassageModel $biblePassage)
+    private function updatePassageUse(BiblePassageModel $biblePassage): void
     {
         $biblePassage->updateUsage();
         $query = 'UPDATE bible_passages
@@ -112,32 +99,6 @@ class BiblePassageRepository
             ':bpid' => $biblePassage->bpid
         ];
 
-        $this->databaseService->executeQuery($query, $params);
-    }
-
-    // Update the dateChecked field
-    public function updateDateChecked($bpid)
-    {
-        $query = 'UPDATE bible_passages 
-                  SET dateChecked = :today 
-                  WHERE bpid = :bpid LIMIT 1';
-        $params = [
-            ':today' => date("Y-m-d"),
-            ':bpid' => $bpid
-        ];
-        $this->databaseService->executeQuery($query, $params);
-    }
-
-    // Update the passage URL field
-    public function updatePassageUrl($bpid, $url)
-    {
-        $query = 'UPDATE bible_passages 
-                  SET passageUrl = :passageUrl 
-                  WHERE bpid = :bpid LIMIT 1';
-        $params = [
-            ':passageUrl' => $url,
-            ':bpid' => $bpid
-        ];
         $this->databaseService->executeQuery($query, $params);
     }
 }

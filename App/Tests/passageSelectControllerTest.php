@@ -3,8 +3,10 @@ use App\Models\Bible\BibleModel as BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
 use App\Controllers\BiblePassage\PassageSelectController as PassageSelectController;
 use App\Repositories\BibleRepository;
+use App\Services\Database\DatabaseService;
 
-$bibleRepository = new BibleRepository();
+$databaseService = new DatabaseService();
+$bibleRepository = new BibleRepository($databaseService);
 
 $code = 'eng00';
 $entry = 'John 3:16-18';

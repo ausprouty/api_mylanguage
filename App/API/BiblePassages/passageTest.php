@@ -6,10 +6,11 @@ use App\Models\Bible\BibleModel;
 use App\Models\Bible\BibleReferenceInfoModel;
 use App\Services\Database\DatabaseService;
 use App\Repositories\BibleRepository;
+
 use stdClass;
 
 $databaseService = new DatabaseService();
-$bibleRepository = new BibleRepository();
+$bibleRepository = new BibleRepository($databaseService);
 
 $bid = 1259;
 $entry = 'Genesis 2:4-25';
