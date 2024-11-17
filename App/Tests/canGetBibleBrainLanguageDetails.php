@@ -17,6 +17,8 @@ $languageService = new BibleBrainLanguageService($languageRepository, $languageM
 //$languageController = new BibleBrainLanguageController($languageRepository, $languageService);
 $languageCodeIso = 'spa';
 $languageModel = $languageService->fetchLanguageDetails($languageCodeIso);
+print_r  ("canGetBibleBrainLanguageDetails<br>");
+flush();
 print_r ('You should see Spanish below <hr>');
 flush();
 print_r ($languageModel->getProperties());

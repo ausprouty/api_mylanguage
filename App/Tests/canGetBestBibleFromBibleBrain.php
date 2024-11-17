@@ -21,6 +21,8 @@ $bible = new BibleBrainBibleController($bibleUpdateService,
     $languageRepository, $bibleBrainConnectionFactory);
 $languageCodeIso = 'en';
 $bible->getDefaultBible($languageCodeIso);
+print_r  ("canGetBestBibleFromBibleBrain<br>");
+flush();
 print_r("You should see stdClass Object ( [en] => stdClass Object ( [audio] => ENGESV [video] => ENGESV ) )<hr>");
 flush();
 print_r($bible->response);

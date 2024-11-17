@@ -10,6 +10,8 @@ $bibleRepository = new BibleRepository($databaseService);
 
 $code = 'eng00';
 $result = $bibleRepository->findBestBibleByLanguageCodeHL($code);
-print_r  ("For eng00 you should see New International Version<hr>");
+print_r  ("can get Best Bible by LanguageCode HL<br>");
+flush();
+print_r ("For eng00 you should see New International Version<hr>");
 flush();
 print_r($result);

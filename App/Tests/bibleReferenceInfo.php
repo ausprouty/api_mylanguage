@@ -14,4 +14,6 @@ $factory = new BibleReferenceInfoModelFactory($respository);
 $passage = 'John 3:16-40';   
 $model = $factory->createFromEntry($passage);
 $result = $model->getProperties();
+print_r  ("bibleReference Info <br> You should see results for John 3:16-40<br>");
+flush();
 print_r  ($result);

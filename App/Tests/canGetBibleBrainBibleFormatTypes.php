@@ -20,6 +20,8 @@ $bible = new BibleBrainBibleController($bibleUpdateService,
 $languageRepository, $bibleBrainConnectionFactory );
 $bible->getFormatTypes();
 $bible->response;
+print_r  ("canGetBibleBrainBibleFormatTypes<br>");
+flush();
 print_r("you should see an object below with all the format types<hr>");
 flush();
 print_r( $bible->response);
