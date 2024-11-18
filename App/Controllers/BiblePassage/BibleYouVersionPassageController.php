@@ -3,7 +3,7 @@
 namespace App\Controllers\BiblePassage;
 
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceInfoModel;
+use App\Models\Bible\BibleReferenceModel;
 use App\Services\Database\DatabaseService;
 use App\Services\Web\WebsiteConnectionService;
 use PDO;
@@ -11,7 +11,7 @@ use PDO;
 class BibleYouVersionPassageController
 {
     private $databaseService;
-    private $bibleReferenceInfo;
+    private $bibleReference;
     private $bible;
     private $bookName;
     public $response;
@@ -20,14 +20,14 @@ class BibleYouVersionPassageController
     private $referenceLocalLanguage = '';
 
     public function __construct(
-        DatabaseService $databaseService, 
-        BibleReferenceInfoModel $bibleReferenceInfo, 
+        DatabaseService $databaseService,
+        BibleReferenceModel $bibleReference,
         BibleModel $bible
     ) {
         $this->databaseService = $databaseService;
-        $this->bibleReferenceInfo = $bibleReferenceInfo;
+        $this->bibleReference = $bibleReference;
         $this->bible = $bible;
-        
+
         $this->setPassageUrl();
         $this->setChapterAndVerse();
         $this->setReferenceLocalLanguage();
@@ -50,16 +50,16 @@ class BibleYouVersionPassageController
 
     private function setPassageUrl()
     {
-        $uversionBibleBookID = $this->bibleReferenceInfo->getUversionBookID();
-        $bibleBookAndChapter = "{$uversionBibleBookID}.{$this->bibleReferenceInfo->getChapterStart()}.";
-        $bibleBookAndChapter .= "{$this->bibleReferenceInfo->getVerseStart()}-{$this->bibleReferenceInfo->getVerseEnd()}";
+        $uversionBibleBookID = $this->bibleReference->getUversionBookID();
+        $bibleBookAndChapter = "{$uversionBibleBookID}.{$this->bibleReference->getChapterStart()}.";
+        $bibleBookAndChapter .= "{$this->bibleReference->getVerseStart()}-{$this->bibleReference->getVerseEnd()}";
         $this->passageUrl = 'https://www.bible.com/bible/' . str_replace('%', $bibleBookAndChapter, $this->bible->getExternalId());
     }
 
     private function setChapterAndVerse()
     {
-        $this->chapterAndVerse = "{$this->bibleReferenceInfo->getChapterStart()}:";
-        $this->chapterAndVerse .= "{$this->bibleReferenceInfo->getVerseStart()}-{$this->bibleReferenceInfo->getVerseEnd()}";
+        $this->chapterAndVerse = "{$this->bibleReference->getChapterStart()}:";
+        $this->chapterAndVerse .= "{$this->bibleReference->getVerseStart()}-{$this->bibleReference->getVerseEnd()}";
     }
 
     private function setReferenceLocalLanguage()
@@ -72,8 +72,8 @@ class BibleYouVersionPassageController
     {
         $query = "SELECT name FROM bible_book_names WHERE languageCodeHL = :languageCodeHL AND bookID = :bookID LIMIT 1";
         $params = [
-            ':languageCodeHL' => $this->bibleReferenceInfo->getLanguageCodeHL(),
-            ':bookID' => $this->bibleReferenceInfo->getBookID(),
+            ':languageCodeHL' => $this->bibleReference->getLanguageCodeHL(),
+            ':bookID' => $this->bibleReference->getBookID(),
         ];
 
         $result = $this->databaseService->executeQuery($query, $params);
@@ -107,9 +107,9 @@ class BibleYouVersionPassageController
 
     private function getExternalUrl()
     {
-        $uversionBibleBookID = $this->bibleReferenceInfo->getUversionBookID();
-        $bibleBookAndChapter = "{$uversionBibleBookID}.{$this->bibleReferenceInfo->getChapterStart()}.";
-        $bibleBookAndChapter .= "{$this->bibleReferenceInfo->getVerseStart()}-{$this->bibleReferenceInfo->getVerseEnd()}";
+        $uversionBibleBookID = $this->bibleReference->getUversionBookID();
+        $bibleBookAndChapter = "{$uversionBibleBookID}.{$this->bibleReference->getChapterStart()}.";
+        $bibleBookAndChapter .= "{$this->bibleReference->getVerseStart()}-{$this->bibleReference->getVerseEnd()}";
         $chapter = str_replace('%', $bibleBookAndChapter, $this->bible->getExternalId());
         return 'https://www.bible.com/bible/' . str_replace(' ', '%20', $chapter);
     }
@@ -147,7 +147,7 @@ class BibleYouVersionPassageController
     {
         $query = "INSERT INTO bible_book_names (bookId, languageCodeHL, name) VALUES (:bookId, :languageCodeHL, :name)";
         $params = [
-            ':bookId' => $this->bibleReferenceInfo->getBookID(),
+            ':bookId' => $this->bibleReference->getBookID(),
             ':languageCodeHL' => $this->bible->getLanguageCodeHL(),
             ':name' => $this->bookName,
         ];

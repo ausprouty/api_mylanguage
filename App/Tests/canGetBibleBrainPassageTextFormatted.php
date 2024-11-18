@@ -1,10 +1,10 @@
 <?php
 
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController;
-use App\Factories\BibleReferenceInfoModelFactory;
+use App\Factories\BibleReferenceModelFactory;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceInfoModel;
-use App\Repositories\BibleReferenceInfoRepository;
+use App\Models\Bible\BibleReferenceModel;
+use App\Repositories\BibleReferenceRepository;
 use App\Repositories\BibleRepository;
 use App\Services\Bible\BibleBrainPassageService;
 use App\Services\Bible\PassageFormatterService;
@@ -18,25 +18,25 @@ $bibleRepository = new BibleRepository($databaseService);
 $bible = new BibleModel($bibleRepository);
 $bibleRepository->findBibleByBid(6349);
 
-// Create a BibleReferenceInfoModel and initialize its repository
-$bibleReferenceInfo = new BibleReferenceInfoModel();
-$bibleReferenceInfoModelRepository = 
-    new BibleReferenceInfoRepository($databaseService);
+// Create a BibleReferenceModel and initialize its repository
+$bibleReference = new BibleReferenceModel();
+$bibleReferenceModelRepository =
+    new BibleReferenceRepository($databaseService);
 
 // Use the factory to create a reference model from an entry
-$bibleReferenceInfoModelFactory = 
-    new BibleReferenceInfoModelFactory($bibleReferenceInfoModelRepository);
-$bibleReferenceInfoModelFactory->createFromEntry('Luke 1:1-6');
+$bibleReferenceModelFactory =
+    new BibleReferenceModelFactory($bibleReferenceModelRepository);
+$bibleReferenceModelFactory->createFromEntry('Luke 1:1-6');
 
 // Initialize the BibleBrainPassageService
-$bibleBrainPassageService = 
-    new BibleBrainPassageService($bible, $bibleReferenceInfo);
+$bibleBrainPassageService =
+    new BibleBrainPassageService($bible, $bibleReference);
 
 // Initialize the PassageFormatterService
 $passageFormatterService = new PassageFormatterService();
 
 // Fix: $bibleReferenceRepository was undefined. Assuming it should be initialized.
-$bibleReferenceRepository = new BibleReferenceInfoRepository($databaseService);
+$bibleReferenceRepository = new BibleReferenceRepository($databaseService);
 
 // Create the controller for fetching passage data
 $passageController = new BibleBrainTextPlainController(
@@ -52,4 +52,4 @@ print_r("You should see a nicely formatted text below with verse numbers.<hr>");
 flush();
 
 // Print the passage text
-print_r ($passageController->getPassageText()    );
+print_r($passageController->getPassageText());

@@ -4,24 +4,23 @@ namespace App\Services\Bible;
 
 use App\Models\Data\BibleBrainConnectionModel;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceInfoModel;
+use App\Models\Bible\BibleReferenceModel;
 
 class BibleBrainPassageService
 {
     private $bible;
-    private $bibleReferenceInfo;
+    private $bibleReference;
     public $response;
 
     public function __construct(
-        BibleModel $bible, 
-        BibleReferenceInfoModel $bibleReferenceInfo
-    )
-    {
+        BibleModel $bible,
+        BibleReferenceModel $bibleReference
+    ) {
         $this->bible = $bible;
-        $this->bibleReferenceInfo = $bibleReferenceInfo;
+        $this->bibleReference = $bibleReference;
     }
 
-    public function fetchAndFormatPassage($languageCodeIso, $bibleReferenceInfo)
+    public function fetchAndFormatPassage($bibleReference, $bibleReference)
     {
         $this->fetchPassageData();
         return $this->formatPassageText();
@@ -30,8 +29,8 @@ class BibleBrainPassageService
     private function fetchPassageData()
     {
         $url = '    ' . $this->bible->getExternalId();
-        $url .= '/' . $this->bibleReferenceInfo->getBookID() . '/' . $this->bibleReferenceInfo->getChapterStart();
-        $url .= '?verse_start=' . $this->bibleReferenceInfo->getVerseStart() . '&verse_end=' . $this->bibleReferenceInfo->getVerseEnd();
+        $url .= '/' . $this->bibleReference->getBookID() . '/' . $this->bibleReference->getChapterStart();
+        $url .= '?verse_start=' . $this->bibleReference->getVerseStart() . '&verse_end=' . $this->bibleReference->getVerseEnd();
 
         $passage = new BibleBrainConnectionModel($url);
         $this->response = $passage->response;
@@ -73,16 +72,16 @@ class BibleBrainPassageService
 
     public function setReferenceLocalLanguage()
     {
-        return $this->getBookNameLocalLanguage() . ' ' . $this->bibleReferenceInfo->getChapterStart() . ':' .
-               $this->bibleReferenceInfo->getVerseStart() . '-' . $this->bibleReferenceInfo->getVerseEnd();
+        return $this->getBookNameLocalLanguage() . ' ' . $this->bibleReference->getChapterStart() . ':' .
+            $this->bibleReference->getVerseStart() . '-' . $this->bibleReference->getVerseEnd();
     }
 
     private function getBookNameLocalLanguage()
     {
         if (!isset($this->response->data)) {
-            return $this->bibleReferenceInfo->getBookName();
+            return $this->bibleReference->getBookName();
         }
 
-        return $this->response->data[0]->book_name_alt ?? $this->bibleReferenceInfo->getBookName();
+        return $this->response->data[0]->book_name_alt ?? $this->bibleReference->getBookName();
     }
 }

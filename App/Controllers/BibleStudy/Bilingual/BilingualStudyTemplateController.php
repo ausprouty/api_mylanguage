@@ -37,7 +37,7 @@ abstract class BilingualStudyTemplateController
     protected $language2;
     protected $biblePassage1;
     protected $biblePassage2;
-    protected $bibleReferenceInfo;
+    protected $bibleReference;
 
     public function __construct(
         LanguageRepository $languageRepository,
@@ -57,7 +57,7 @@ abstract class BilingualStudyTemplateController
             $this->bibleBlockController->load(
                 $this->biblePassage1->getPassageText(),
                 $this->biblePassage2->getPassageText(),
-                $this->bibleReferenceInfo->getVerseRange()
+                $this->bibleReference->getVerseRange()
             );
             $this->bibleBlock = $this->bibleBlockController->getBlock();
         } else {

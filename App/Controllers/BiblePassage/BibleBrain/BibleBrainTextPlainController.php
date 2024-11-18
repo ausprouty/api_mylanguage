@@ -4,7 +4,7 @@ namespace App\Controllers\BiblePassage\BibleBrain;
 
 use App\Services\Bible\PassageFormatterService;
 use App\Services\Web\BibleBrainConnectionService;
-use App\Repositories\BibleReferenceInfoRepository;
+use App\Repositories\BibleReferenceRepository;
 
 class BibleBrainTextPlainController
 {
@@ -14,7 +14,7 @@ class BibleBrainTextPlainController
     private $referenceLocalLanguage;
     private $passageText;
 
-    public function __construct(PassageFormatterService $formatter, BibleReferenceInfoRepository $bibleReferenceRepository)
+    public function __construct(PassageFormatterService $formatter, BibleReferenceRepository $bibleReferenceRepository)
     {
         $this->formatter = $formatter;
         $this->bibleReferenceRepository = $bibleReferenceRepository;
@@ -23,7 +23,7 @@ class BibleBrainTextPlainController
     public function fetchPassageData($languageCodeHL, $bookId, $chapter, $verseStart = null, $verseEnd = null)
     {
         $url = "https://4.dbt.io/api/bibles/filesets/{$languageCodeHL}/{$bookId}/{$chapter}?verse_start={$verseStart}&verse_end={$verseEnd}";
-        
+
         $this->response = (new BibleBrainConnectionService($url))->response;
         $this->passageText = $this->formatter->formatPassageText($this->response->data ?? []);
     }

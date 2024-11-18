@@ -1,19 +1,19 @@
 <?php
 
-use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
-use App\Repositories\BibleReferenceInfoRepository;
+use App\Models\Bible\BibleReferenceModel as BibleReferenceModel;
+use App\Repositories\BibleReferenceRepository;
 use App\Services\Database\DatabaseService;
-use App\Factories\BibleReferenceInfoModelFactory;
+use App\Factories\BibleReferenceModelFactory;
 
 
 $database = new DatabaseService();
-$respository = new BibleReferenceInfoRepository($database);
-$factory = new BibleReferenceInfoModelFactory($respository);
+$respository = new BibleReferenceRepository($database);
+$factory = new BibleReferenceModelFactory($respository);
 
 
-$passage = 'John 3:16-40';   
+$passage = 'John 3:16-40';
 $model = $factory->createFromEntry($passage);
 $result = $model->getProperties();
-print_r  ("bibleReference Info <br> You should see results for John 3:16-40<br>");
+print_r("bibleReference Info <br> You should see results for John 3:16-40<br>");
 flush();
-print_r  ($result);
+print_r($result);

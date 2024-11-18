@@ -4,12 +4,12 @@ namespace App\Controllers\BiblePassage;
 
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\BiblePassageModel;
-use App\Models\Bible\BibleReferenceInfoModel;
+use App\Models\Bible\BibleReferenceModel;
 use App\Configuration\Config;
 
 class BibleWordPassageController
 {
-    private $bibleReferenceInfo;
+    private $bibleReference;
     private $bible;
     private $referenceLocalLanguage = '';
     private $passageText = '';
@@ -18,9 +18,9 @@ class BibleWordPassageController
     private $dateChecked = '';
     private $timesUsed = 0;
 
-    public function __construct(BibleReferenceInfoModel $bibleReferenceInfo, BibleModel $bible)
+    public function __construct(BibleReferenceModel $bibleReference, BibleModel $bible)
     {
-        $this->bibleReferenceInfo = $bibleReferenceInfo;
+        $this->bibleReference = $bibleReference;
         $this->bible = $bible;
         $this->passageUrl = $this->createPassageUrl();
         $this->getExternal();
@@ -48,8 +48,8 @@ class BibleWordPassageController
 
     private function formatChapterPage()
     {
-        $bookNumber = str_pad($this->bibleReferenceInfo->getBookNumber(), 2, '0', STR_PAD_LEFT);
-        $chapterNumber = $this->bibleReferenceInfo->getChapterStart();
+        $bookNumber = str_pad($this->bibleReference->getBookNumber(), 2, '0', STR_PAD_LEFT);
+        $chapterNumber = $this->bibleReference->getChapterStart();
         return $bookNumber . '/' . $chapterNumber;
     }
 
@@ -88,8 +88,8 @@ class BibleWordPassageController
         $posEnd = strpos($webpage, ':', $posStart);
         $bookName = trim(substr($webpage, $posStart, $posEnd - $posStart));
 
-        $verses = $this->bibleReferenceInfo->getChapterStart() . ':' .
-            $this->bibleReferenceInfo->getVerseStart() . '-' . $this->bibleReferenceInfo->getVerseEnd();
+        $verses = $this->bibleReference->getChapterStart() . ':' .
+            $this->bibleReference->getVerseStart() . '-' . $this->bibleReference->getVerseEnd();
 
         return $bookName . ' ' . $verses;
     }
@@ -119,8 +119,8 @@ class BibleWordPassageController
         $lines = explode('<br>', $page);
 
         $verseRange = range(
-            intval($this->bibleReferenceInfo->getVerseStart()),
-            intval($this->bibleReferenceInfo->getVerseEnd())
+            intval($this->bibleReference->getVerseStart()),
+            intval($this->bibleReference->getVerseEnd())
         );
 
         $verses = '';

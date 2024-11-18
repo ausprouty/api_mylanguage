@@ -3,7 +3,7 @@
 namespace App\Controllers\BiblePassage\BibleGateway;
 
 use App\Models\Bible\BiblePassageModel;
-use App\Models\Bible\BibleReferenceInfoModel;
+use App\Models\Bible\BibleReferenceModel;
 use App\Models\Bible\BibleModel;
 use App\Repositories\BiblePassageRepository;
 use App\Services\Web\WebsiteConnectionService;
@@ -11,16 +11,16 @@ use App\Services\Web\WebsiteConnectionService;
 class BibleGatewayPassageController
 {
     private $biblePassageRepository;
-    private $bibleReferenceInfo;
+    private $bibleReference;
     private $bible;
 
     public function __construct(
         BiblePassageRepository $biblePassageRepository,
-        BibleReferenceInfoModel $bibleReferenceInfo,
+        BibleReferenceModel $bibleReference,
         BibleModel $bible
     ) {
         $this->biblePassageRepository = $biblePassageRepository;
-        $this->bibleReferenceInfo = $bibleReferenceInfo;
+        $this->bibleReference = $bibleReference;
         $this->bible = $bible;
     }
 
@@ -29,7 +29,7 @@ class BibleGatewayPassageController
         $referenceShaped = str_replace(
             ' ',
             '%20',
-            $this->bibleReferenceInfo->getEntry()
+            $this->bibleReference->getEntry()
         );
 
         $passageUrl = 'https://biblegateway.com/passage/?search=' .

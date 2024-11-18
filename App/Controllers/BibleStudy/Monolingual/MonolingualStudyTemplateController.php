@@ -35,7 +35,7 @@ abstract class BilingualStudyTemplateController
     protected $language2;
     protected $biblePassage1;
     protected $biblePassage2;
-    protected $bibleReferenceInfo;
+    protected $bibleReference;
 
     /**
      * Initializes the BilingualStudyTemplateController.
@@ -58,12 +58,13 @@ abstract class BilingualStudyTemplateController
      * Creates a Bible block for the template by combining passages from both languages.
      * If passages are missing, it falls back to the `createBibleBlockWhenTextMissing` method.
      */
-    protected function createBibleBlock(): void {
+    protected function createBibleBlock(): void
+    {
         if ($this->biblePassage1->getPassageText() && $this->biblePassage2->getPassageText()) {
             $bibleBlockController = new BibleBlockController(
                 $this->biblePassage1->getPassageText(),
                 $this->biblePassage2->getPassageText(),
-                $this->bibleReferenceInfo->getVerseRange()
+                $this->bibleReference->getVerseRange()
             );
             $this->bibleBlock = $bibleBlockController->getBlock();
         } else {
@@ -74,7 +75,8 @@ abstract class BilingualStudyTemplateController
     /**
      * Creates a Bible block when text is missing for a passage.
      */
-    private function createBibleBlockWhenTextMissing(): void {
+    private function createBibleBlockWhenTextMissing(): void
+    {
         $this->bibleBlock = $this->showTextOrLink($this->biblePassage1);
     }
 
@@ -85,11 +87,12 @@ abstract class BilingualStudyTemplateController
      * @param string $languageCode The language code to append to the file name for the QR code.
      * @return string The URL to the generated QR code image.
      */
-    protected function createQrCodeForPassage(string $url, string $languageCode): string {
+    protected function createQrCodeForPassage(string $url, string $languageCode): string
+    {
         $fileName = $this->getFileNamePrefix() . $this->lesson . '-' . $languageCode . '.png';
         $this->qrCodeService->initialize($url, 240, $fileName);
         $this->qrCodeService->generateQrCode();
-        
+
         return $this->qrCodeService->getQrCodeUrl();
     }
 
@@ -104,7 +107,8 @@ abstract class BilingualStudyTemplateController
      * Generates QR codes for both Bible passages. Uses the QrCodeGeneratorService
      * to encapsulate QR code generation and maintain modularity.
      */
-    protected function generateQrCodes(): void {
+    protected function generateQrCodes(): void
+    {
         $this->qrcode1 = $this->createQrCodeForPassage($this->biblePassage1->getPassageUrl(), $this->language1->getLanguageCodeHL());
         $this->qrcode2 = $this->createQrCodeForPassage($this->biblePassage2->getPassageUrl(), $this->language2->getLanguageCodeHL());
     }
@@ -113,7 +117,8 @@ abstract class BilingualStudyTemplateController
      * Sets the filename for the template, using a prefix, lesson, and language codes.
      * It utilizes the `generateFileName` method from `FileNamingTrait`.
      */
-    protected function setFileName(): void {
+    protected function setFileName(): void
+    {
         $this->fileName = $this->generateFileName(
             $this->getFileNamePrefix(),
             $this->lesson,

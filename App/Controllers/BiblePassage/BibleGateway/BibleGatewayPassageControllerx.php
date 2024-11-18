@@ -3,7 +3,7 @@
 namespace App\Controllers\BiblePassage\BibleGateway;
 
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceInfoModel;
+use App\Models\Bible\BibleReferenceModel;
 use App\Models\Bible\BiblePassageModel;
 use App\Services\Web\WebsiteConnectionService;
 use App\Services\Database\DatabaseService;
@@ -13,16 +13,16 @@ use simple_html_dom;
 class BibleGatewayPassageController extends BiblePassageModel
 {
     private $databaseService;
-    private $bibleReferenceInfo;
+    private $bibleReference;
     private $bible;
 
     public function __construct(
         DatabaseService $databaseService,
-        BibleReferenceInfoModel $bibleReferenceInfo,
+        BibleReferenceModel $bibleReference,
         BibleModel $bible
     ) {
         $this->databaseService = $databaseService;
-        $this->bibleReferenceInfo = $bibleReferenceInfo;
+        $this->bibleReference = $bibleReference;
         $this->bible = $bible;
         $this->referenceLocalLanguage = '';
         $this->passageText = '';
@@ -44,7 +44,7 @@ class BibleGatewayPassageController extends BiblePassageModel
 
     private function shapeReference()
     {
-        return str_replace(' ', '%20', $this->bibleReferenceInfo->getEntry());
+        return str_replace(' ', '%20', $this->bibleReference->getEntry());
     }
 
     private function formatExternal($webpage)

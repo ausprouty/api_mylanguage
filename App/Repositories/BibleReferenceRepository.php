@@ -5,7 +5,7 @@ namespace App\Repositories;
 use App\Services\Database\DatabaseService;
 use PDO;
 
-class BibleReferenceInfoRepository
+class BibleReferenceRepository
 {
     private $databaseService;
 

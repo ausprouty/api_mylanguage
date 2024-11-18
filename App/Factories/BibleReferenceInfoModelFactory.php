@@ -2,20 +2,20 @@
 
 namespace App\Factories;
 
-use App\Models\Bible\BibleReferenceInfoModel;
-use App\Repositories\BibleReferenceInfoRepository;
+use App\Models\Bible\BibleReferenceModel;
+use App\Repositories\BibleReferenceRepository;
 
 /**
- * Factory for creating and populating BibleReferenceInfoModel instances.
+ * Factory for creating and populating BibleReferenceModel instances.
  */
-class BibleReferenceInfoModelFactory
+class BibleReferenceModelFactory
 {
     private $repository;
 
     /**
      * Constructor to initialize the repository dependency.
      */
-    public function __construct(BibleReferenceInfoRepository $repository)
+    public function __construct(BibleReferenceRepository $repository)
     {
         $this->repository = $repository;
     }
@@ -26,8 +26,8 @@ class BibleReferenceInfoModelFactory
     public function createFromEntry(
         string $entry,
         string $languageCodeHL = 'eng00'
-    ): BibleReferenceInfoModel {
-        $model = new BibleReferenceInfoModel();
+    ): BibleReferenceModel {
+        $model = new BibleReferenceModel();
         $model->populate([
             'entry' => $this->checkEntrySpacing($entry),
             'languageCodeHL' => $languageCodeHL,
@@ -44,9 +44,9 @@ class BibleReferenceInfoModelFactory
     /**
      * Creates a model from an import object.
      */
-    public function createFromImport($import): BibleReferenceInfoModel
+    public function createFromImport($import): BibleReferenceModel
     {
-        $model = new BibleReferenceInfoModel();
+        $model = new BibleReferenceModel();
         $model->populate((array) $import);
         return $model;
     }
@@ -76,9 +76,9 @@ class BibleReferenceInfoModelFactory
     /**
      * Creates a model from a DBT array.
      */
-    public function createFromDbtArray(array $dbtArray): BibleReferenceInfoModel
+    public function createFromDbtArray(array $dbtArray): BibleReferenceModel
     {
-        $model = new BibleReferenceInfoModel();
+        $model = new BibleReferenceModel();
         $model->populate([
             'entry' => $this->checkEntrySpacing($dbtArray['entry']),
             'bookName' => $this->setBookName($dbtArray['entry']),
@@ -92,7 +92,7 @@ class BibleReferenceInfoModelFactory
         return $model;
     }
 
-    
+
     /**
      * Determines the book name from an entry.
      */

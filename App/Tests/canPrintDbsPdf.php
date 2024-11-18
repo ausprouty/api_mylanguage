@@ -3,14 +3,14 @@
 // Create an instance of the class:
 
 use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BibleReferenceInfoModel as BibleReferenceInfoModel;
+use App\Models\Bible\BibleReferenceModel as BibleReferenceModel;
 use App\Models\BibleStudy\DbsReferenceModel as DbsReferenceModel;
 use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController as BilingualDbsTemplateController;
 use Vendor\Mpdf\Mpdf as Mpdf;
 
 
-$lang1 ='eng00';
-$lang2= 'frn00';
+$lang1 = 'eng00';
+$lang2 = 'frn00';
 $lesson = 3;
 
 
@@ -19,21 +19,17 @@ $html = $dbs->getTemplate();
 $filename = $dbs->getPdfName();
 
 
-try{
+try {
     $mpdf = new Mpdf([
         'mode' => 'utf-8',
         'orientation' => 'P'
     ]);
     $mpdf->SetDisplayMode('fullpage');
-// Write some HTML code:
+    // Write some HTML code:
     $mpdf->WriteHTML($html);
     // Output a PDF file directly to the browser
     $mpdf->Output($filename, 'D');
-
 } catch (MpdfException $e) { // Note: safer fully qualified exception name used for catch
     // Process the exception, log, print etc.
     echo $e->getMessage();
 }
-
-
-

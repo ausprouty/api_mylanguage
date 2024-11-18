@@ -25,7 +25,7 @@ class BiblePassageModel
 
     public static function createBiblePassageId(
         string $bid,
-        BibleReferenceInfoModel $passage
+        BibleReferenceModel $passage
     ): string {
         return $bid . '-' . $passage->getBookID() . '-' . $passage->getChapterStart() . '-' .
             $passage->getVerseStart() . '-' . $passage->getVerseEnd();

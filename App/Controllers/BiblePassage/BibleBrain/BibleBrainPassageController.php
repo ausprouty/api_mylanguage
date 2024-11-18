@@ -14,8 +14,8 @@ class BibleBrainPassageController
         $this->passageService = $passageService;
     }
 
-    public function getBiblePassage($languageCodeIso, $bibleReferenceInfo)
+    public function getBiblePassage($languageCodeIso, $bibleReference)
     {
-        return $this->passageService->fetchAndFormatPassage($languageCodeIso, $bibleReferenceInfo);
+        return $this->passageService->fetchAndFormatPassage($languageCodeIso, $bibleReference);
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Controllers\BiblePassage\BibleBrain;
 
 use App\Services\Bible\BibleBrainPassageService;
-use App\Models\Bible\BibleReferenceInfoModel;
+use App\Models\Bible\BibleReferenceModel;
 
 class BibleBrainTextFormatController
 {
@@ -14,14 +14,14 @@ class BibleBrainTextFormatController
         $this->passageService = $passageService;
     }
 
-    public function getPassageText(BibleReferenceInfoModel $bibleReferenceInfo)
+    public function getPassageText(BibleReferenceModel $bibleReference)
     {
         // Fetch and format passage text using the service
         $formattedPassageText = $this->passageService->fetchAndFormatPassage(
-            $bibleReferenceInfo->getLanguageCodeIso(), 
-            $bibleReferenceInfo
+            $bibleReference->getLanguageCodeIso(),
+            $bibleReference
         );
-        
+
         return $formattedPassageText;
     }
 }

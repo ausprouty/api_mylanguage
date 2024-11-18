@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Models\Bible;
+
 use ReflectionClass;
 
 /**
  * Represents Bible reference information.
  */
-class BibleReferenceInfoModel
+class BibleReferenceModel
 {
     private $entry;
     private $languageCodeHL;
@@ -97,7 +98,7 @@ class BibleReferenceInfoModel
         return $this->verseStart;
     }
 
-  
+
     /**
      * Returns the properties as an associative array.
      *
