@@ -2,8 +2,6 @@
 
 namespace App\Models\Bible;
 
-use App\Models\Bible\BibleReferenceInfoModel;
-
 class BiblePassageModel
 {
     public $bpid;
@@ -25,15 +23,25 @@ class BiblePassageModel
         $this->timesUsed = 0;
     }
 
-    // Getters and Setters
+    public static function createBiblePassageId(
+        string $bid,
+        BibleReferenceInfoModel $passage
+    ): string {
+        return $bid . '-' . $passage->getBookID() . '-' . $passage->getChapterStart() . '-' .
+            $passage->getVerseStart() . '-' . $passage->getVerseEnd();
+    }
+    public function getDateChecked(): ?string
+    {
+        return $this->dateChecked;
+    }
+    public function getDateLastUsed(): ?string
+    {
+        return $this->dateLastUsed;
+    }
+
     public function getPassageText(): string
     {
         return $this->passageText;
-    }
-
-    public function setPassageText(string $passageText): void
-    {
-        $this->passageText = $passageText;
     }
 
     public function getPassageUrl(): string
@@ -41,14 +49,33 @@ class BiblePassageModel
         return $this->passageUrl;
     }
 
-    public function setPassageUrl(string $passageUrl): void
-    {
-        $this->passageUrl = $passageUrl;
-    }
-
     public function getReferenceLocalLanguage(): string
     {
         return $this->referenceLocalLanguage;
+    }
+
+    public function setDateChecked(?string $date): void
+    {
+        $this->dateChecked = $date;
+    }
+
+    public function setDateLastUsed(?string $date): void
+    {
+        // Optional: Add validation for the date format
+        if ($date && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            throw new \InvalidArgumentException('Invalid date format');
+        }
+        $this->dateLastUsed = $date;
+    }
+
+    public function setPassageText(string $passageText): void
+    {
+        $this->passageText = $passageText;
+    }
+
+    public function setPassageUrl(string $passageUrl): void
+    {
+        $this->passageUrl = $passageUrl;
     }
 
     public function setReferenceLocalLanguage(string $reference): void
@@ -56,29 +83,14 @@ class BiblePassageModel
         $this->referenceLocalLanguage = $reference;
     }
 
+    public function setTimesUsed(int $times): void
+    {
+        $this->timesUsed = $times;
+    }
+
     public function updateUsage(): void
     {
         $this->dateLastUsed = date("Y-m-d");
         $this->timesUsed++;
-    }
-
-    public static function createBiblePassageId(
-        string $bid, 
-        BibleReferenceInfoModel $passage
-        ): string
-    {
-        return $bid . '-' . $passage->getBookID() . '-' . $passage->getChapterStart() . '-' .
-            $passage->getVerseStart() . '-' . $passage->getVerseEnd();
-    }
-
-    public function populateFromData($data): void
-    {
-        $this->bpid = $data->bpid;
-        $this->referenceLocalLanguage = $data->referenceLocalLanguage;
-        $this->passageText = $data->passageText;
-        $this->passageUrl = $data->passageUrl;
-        $this->dateLastUsed = $data->dateLastUsed;
-        $this->dateChecked = $data->dateChecked;
-        $this->timesUsed = $data->timesUsed;
     }
 }

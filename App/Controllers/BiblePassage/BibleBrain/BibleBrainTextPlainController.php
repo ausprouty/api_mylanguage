@@ -23,6 +23,7 @@ class BibleBrainTextPlainController
     public function fetchPassageData($languageCodeHL, $bookId, $chapter, $verseStart = null, $verseEnd = null)
     {
         $url = "https://4.dbt.io/api/bibles/filesets/{$languageCodeHL}/{$bookId}/{$chapter}?verse_start={$verseStart}&verse_end={$verseEnd}";
+        
         $this->response = (new BibleBrainConnectionService($url))->response;
         $this->passageText = $this->formatter->formatPassageText($this->response->data ?? []);
     }

@@ -21,6 +21,38 @@ class BibleReferenceInfoModelFactory
     }
 
     /**
+     * Creates a model from an entry string and language code.
+     */
+    public function createFromEntry(
+        string $entry,
+        string $languageCodeHL = 'eng00'
+    ): BibleReferenceInfoModel {
+        $model = new BibleReferenceInfoModel();
+        $model->populate([
+            'entry' => $this->checkEntrySpacing($entry),
+            'languageCodeHL' => $languageCodeHL,
+        ]);
+
+        $bookDetails = $this->repository->getBookDetails($languageCodeHL, $entry);
+        if ($bookDetails) {
+            $model->populate($bookDetails); // Populate the model with the new data
+        }
+
+        return $model;
+    }
+
+    /**
+     * Creates a model from an import object.
+     */
+    public function createFromImport($import): BibleReferenceInfoModel
+    {
+        $model = new BibleReferenceInfoModel();
+        $model->populate((array) $import);
+        return $model;
+    }
+
+
+    /**
      * Checks and adjusts entry spacing for consistency.
      */
     private function checkEntrySpacing(string $entry): string
@@ -60,37 +92,7 @@ class BibleReferenceInfoModelFactory
         return $model;
     }
 
-    /**
-     * Creates a model from an entry string and language code.
-     */
-    public function createFromEntry(
-        string $entry,
-        string $languageCodeHL = 'eng00'
-    ): BibleReferenceInfoModel {
-        $model = new BibleReferenceInfoModel();
-        $model->populate([
-            'entry' => $this->checkEntrySpacing($entry),
-            'languageCodeHL' => $languageCodeHL,
-        ]);
-
-        $bookDetails = $this->repository->getBookDetails($languageCodeHL, $entry);
-        if ($bookDetails) {
-            $model->populate($bookDetails); // Populate the model with the new data
-        }
-
-        return $model;
-    }
-
-    /**
-     * Creates a model from an import object.
-     */
-    public function createFromImport($import): BibleReferenceInfoModel
-    {
-        $model = new BibleReferenceInfoModel();
-        $model->populate((array) $import);
-        return $model;
-    }
-
+    
     /**
      * Determines the book name from an entry.
      */

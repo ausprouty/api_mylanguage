@@ -12,7 +12,10 @@ class BibleBrainPassageService
     private $bibleReferenceInfo;
     public $response;
 
-    public function __construct(BibleModel $bible, BibleReferenceInfoModel $bibleReferenceInfo)
+    public function __construct(
+        BibleModel $bible, 
+        BibleReferenceInfoModel $bibleReferenceInfo
+    )
     {
         $this->bible = $bible;
         $this->bibleReferenceInfo = $bibleReferenceInfo;
@@ -26,7 +29,7 @@ class BibleBrainPassageService
 
     private function fetchPassageData()
     {
-        $url = 'https://4.dbt.io/api/bibles/filesets/' . $this->bible->getExternalId();
+        $url = '    ' . $this->bible->getExternalId();
         $url .= '/' . $this->bibleReferenceInfo->getBookID() . '/' . $this->bibleReferenceInfo->getChapterStart();
         $url .= '?verse_start=' . $this->bibleReferenceInfo->getVerseStart() . '&verse_end=' . $this->bibleReferenceInfo->getVerseEnd();
 
