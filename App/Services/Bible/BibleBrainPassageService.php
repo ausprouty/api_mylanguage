@@ -2,7 +2,7 @@
 
 namespace App\Services\Bible;
 
-use App\Models\Data\BibleBrainConnectionModel;
+use App\Services\Web\BibleBrainConnectionService;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\BibleReferenceModel;
 
@@ -20,7 +20,7 @@ class BibleBrainPassageService
         $this->bibleReference = $bibleReference;
     }
 
-    public function fetchAndFormatPassage($bibleReference, $bibleReference)
+    public function fetchAndFormatPassage()
     {
         $this->fetchPassageData();
         return $this->formatPassageText();
@@ -28,12 +28,20 @@ class BibleBrainPassageService
 
     private function fetchPassageData()
     {
-        $url = '    ' . $this->bible->getExternalId();
+        $url = '    ' . $this->bible->getIdBibleGateway();
         $url .= '/' . $this->bibleReference->getBookID() . '/' . $this->bibleReference->getChapterStart();
         $url .= '?verse_start=' . $this->bibleReference->getVerseStart() . '&verse_end=' . $this->bibleReference->getVerseEnd();
-
-        $passage = new BibleBrainConnectionModel($url);
+        echo '<pre>';
+        var_export ($url);
+        echo '</pre>';
+        $passage = new BibleBrainConnectionService($url);
         $this->response = $passage->response;
+        echo '<pre>';
+        var_export ($url);
+        
+        var_export($this->response);
+        echo '</pre>';
+        flush();
     }
 
     public function formatPassageText()

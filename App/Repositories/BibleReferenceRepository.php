@@ -5,15 +5,33 @@ namespace App\Repositories;
 use App\Services\Database\DatabaseService;
 use PDO;
 
+/**
+ * Repository for Bible references and related data retrieval.
+ */
 class BibleReferenceRepository
 {
+    /**
+     * @var DatabaseService Database service instance for query execution.
+     */
     private $databaseService;
 
+    /**
+     * Constructor.
+     *
+     * @param DatabaseService $databaseService Service for database interactions.
+     */
     public function __construct(DatabaseService $databaseService)
     {
         $this->databaseService = $databaseService;
     }
 
+    /**
+     * Finds the book ID by language code and book name.
+     *
+     * @param string $languageCodeHL The language code.
+     * @param string $bookName The name of the book.
+     * @return mixed|null The book ID if found, otherwise null.
+     */
     public function findBookID($languageCodeHL, $bookName)
     {
         $query = 'SELECT bookId FROM bible_book_names 
@@ -27,24 +45,49 @@ class BibleReferenceRepository
         return $this->databaseService->fetchSingleValue($query, $params);
     }
 
+    /**
+     * Finds the book number by book ID.
+     *
+     * @param string $bookID The book ID.
+     * @return mixed|null The book number if found, otherwise null.
+     */
     public function findBookNumber($bookID)
     {
         $query = 'SELECT bookNumber FROM bible_books WHERE bookId = :bookId LIMIT 1';
         return $this->databaseService->fetchSingleValue($query, [':bookId' => $bookID]);
     }
 
+    /**
+     * Finds the testament by book ID.
+     *
+     * @param string $bookID The book ID.
+     * @return mixed|null The testament if found, otherwise null.
+     */
     public function findTestament($bookID)
     {
         $query = 'SELECT testament FROM bible_books WHERE bookId = :bookId LIMIT 1';
         return $this->databaseService->fetchSingleValue($query, [':bookId' => $bookID]);
     }
 
+    /**
+     * Finds the YouVersion book ID by book ID.
+     *
+     * @param string $bookID The book ID.
+     * @return mixed|null The YouVersion book ID if found, otherwise null.
+     */
     public function findUversionBookID($bookID)
     {
         $query = 'SELECT uversionBookID FROM bible_books WHERE bookId = :bookId LIMIT 1';
         return $this->databaseService->fetchSingleValue($query, [':bookId' => $bookID]);
     }
 
+    /**
+     * Gets detailed book information by language code and book name.
+     *
+     * @param string $languageCodeHL The language code.
+     * @param string $bookName The name of the book.
+     * @return array|null An associative array of book details if found, otherwise null.
+     */
     public function getBookDetails($languageCodeHL, $bookName)
     {
         $query = 'SELECT bookId, bookName, bookNumber, testament, uversionBookID

@@ -12,6 +12,19 @@ class BibleReferenceModelFactory
 {
     private $repository;
 
+    private $entry;
+    private $languageCodeHL;
+    private $languageCodeIso;
+    private $bookName;
+    private $bookID;
+    private $uversionBookID;
+    private $bookNumber;
+    private $testament;
+    private $chapterStart;
+    private $verseStart;
+    private $chapterEnd;
+    private $verseEnd;
+
     /**
      * Constructor to initialize the repository dependency.
      */
@@ -28,15 +41,29 @@ class BibleReferenceModelFactory
         string $languageCodeHL = 'eng00'
     ): BibleReferenceModel {
         $model = new BibleReferenceModel();
+        $this->entry = $this->checkEntrySpacing($entry);
+        
+        $this->bookName = $this->setBookName($entry);
+        $this->setChapterAndVerses();
+        $this->bookID = $this->repository->findBookID(
+            $languageCodeHL, $this->bookName);
+        $this->bookNumber = $this->repository->findBookNumber($this->bookID);
+        $this->testament = $this->repository->findTestament($this->bookID);
+        $this->uversionBookID = $this->repository->findUversionBookID($this->bookID);
         $model->populate([
-            'entry' => $this->checkEntrySpacing($entry),
+            'entry' => $this->entry,
             'languageCodeHL' => $languageCodeHL,
+            'languageCodeIso' => null,
+            'bookName' => $this->bookName,
+            'bookID' => $this->bookID,
+            'uversionBookID' => $this->uversionBookID,
+            'bookNumber' =>$this->bookNumber,
+            'testament' => $this->testament ,
+            'chapterStart' => $this->chapterStart,
+            'verseStart' => $this->verseStart,
+            'chapterEnd' => $this->chapterStart,
+            'verseEnd' => $this->verseEnd,
         ]);
-
-        $bookDetails = $this->repository->getBookDetails($languageCodeHL, $entry);
-        if ($bookDetails) {
-            $model->populate($bookDetails); // Populate the model with the new data
-        }
 
         return $model;
     }
@@ -107,5 +134,30 @@ class BibleReferenceModelFactory
             $book = 'Psalms';
         }
         return $book;
+    }
+    private function setChapterAndVerses(){
+        $pass = str_replace($this->bookName, '', $this->entry);
+        $pass = str_replace(' ' , '', $pass);
+        $pass = str_replace('፡' , ':', $pass); // from Amharic
+        $i = strpos($pass, ':');
+        if ($i == FALSE){
+            // this is the whole chapter
+            $this->chapterStart = trim($pass);
+            $this->verseStart = 1;
+            $this->verseEnd = 999;
+        }
+        else{
+            $this->chapterStart = substr($pass, 0, $i);
+            $verses = substr($pass, $i+1);
+            $i = strpos ($verses, '-');
+            if ($i !== FALSE){
+                $this->verseStart = substr($verses, 0, $i);
+                $this->verseEnd = substr($verses, $i+1);
+            }
+            else{
+                $this->verseStart = $verses;
+                $this->verseEnd = $verses;
+            }
+        }
     }
 }

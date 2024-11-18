@@ -20,8 +20,7 @@ class BibleBrainConnectionService extends WebsiteConnectionService
       // If no "?" is found, append with "?"
       $url .= '?v=4&key=' . $apiKey;
     }
-    print_r($url);
-    flush();
+  
     // Call the parent constructor to initialize the URL and connection
     parent::__construct($url);
 
