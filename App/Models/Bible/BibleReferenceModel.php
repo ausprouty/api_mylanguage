@@ -30,7 +30,7 @@ class BibleReferenceModel
         $this->bookName = ' ';
         $this->bookID = null;
         $this->uversionBookID = null;
-        $this->bookNumber = null;
+        $this->bookNumber = 1;
         $this->testament = null;
         $this->chapterStart = null;
         $this->verseStart = null;

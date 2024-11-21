@@ -1,5 +1,6 @@
 <?php
 
+use App\Controllers\BiblePassage\BibleWordPassageController as BibleWordPassageController;
 use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController;
 use App\Factories\BibleModelFactory;
 use App\Factories\BibleReferenceModelFactory;
@@ -17,19 +18,17 @@ $biblePassageRepository = new BiblePassageRepository($databaseService);
 
 // Pass the repository to the factory
 $bibleModelFactory = new BibleModelFactory($bibleRepository);
-
 // Create a BibleModel and fetch a Bible by ID
-$bible = $bibleModelFactory->createFromBid(1216); // Bulgarian Bible ID
+$bible = $bibleModelFactory->createFromExternalId('al'); //Albanian Bible ID
 
 if (!$bible) {
     // Log the error with a helpful message
-    LoggerService::logError("Bible not found for the requested ID: 1216");
+    LoggerService::logError("Bible not found for the requested ID: al ");
 
     // Send an HTTP 404 response code and terminate with an error message
     http_response_code(404);
     die("Sorry, the requested Bible could not be found.");
 }
-
 // Create a BibleReferenceModel from the factory
 $bibleReferenceRepository = new BibleReferenceRepository($databaseService);
 $bibleReferenceModelFactory = new BibleReferenceModelFactory($bibleReferenceRepository);
@@ -38,14 +37,14 @@ $bibleReferenceModelFactory = new BibleReferenceModelFactory($bibleReferenceRepo
 $bibleReference = $bibleReferenceModelFactory->createFromEntry('Luke 1:1-6');
 
 // Fetch and save the passage using the BibleGatewayPassageController
-$passageController = new BibleGatewayPassageController(
-    $databaseService,
+$passageController = new BibleWordPassageController(
     $bibleReference,
-    $bible
+    $bible,
+    $biblePassageRepository
 );
 
 // Fetch the passage text
-$biblePassage = $passageController->fetchAndSavePassage();
+$biblePassage = $passageController->fetchFromServerFile();
 
 // Ensure $biblePassage is a BiblePassageModel object
 // Consider adding documentation to describe the properties and methods of this model

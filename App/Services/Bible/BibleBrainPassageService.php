@@ -36,12 +36,6 @@ class BibleBrainPassageService
         echo '</pre>';
         $passage = new BibleBrainConnectionService($url);
         $this->response = $passage->response;
-        echo '<pre>';
-        var_export ($url);
-        
-        var_export($this->response);
-        echo '</pre>';
-        flush();
     }
 
     public function formatPassageText()

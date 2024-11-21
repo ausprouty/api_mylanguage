@@ -172,52 +172,22 @@ class BibleGatewayPassageController
      */
     private function balanceDivTags(string $html): string
     {
-        // Use libxml error handling
-        libxml_use_internal_errors(true);
 
-        // Detect the current encoding of the $html
-        $encoding = mb_detect_encoding($html, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
-        print_r("<br><hr>Line 183 BibleGatewayConnectionService<br>");
-        flush();
-        print_r($html);
-        flush();
-        print_r("<br><hr><br>");
-        flush();
-        flush();
+        // Create a DOM object
+        $dom = str_get_html($html);
 
-        // Convert to UTF-8 if it's not already
-        if ($encoding !== 'UTF-8') {
-            $html = mb_convert_encoding($html, 'UTF-8', $encoding);
+        // If parsing failed, return the original HTML
+        if (!$dom) {
+            return $html;
         }
 
-        // Create a DOMDocument instance and load the HTML
-        $dom = new \DOMDocument('1.0', 'UTF-8');
+        // Get the cleaned and balanced HTML
+        $balancedHtml = $dom->save();
 
-        // Suppress warnings during loadHTML
-        $dom->loadHTML(
-            '<!DOCTYPE html><html><body>' . $html . '</body></html>',
-            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
-        );
+        // Clear the memory used by the DOM object
+        $dom->clear();
+        unset($dom);
 
-        // Clear libxml errors
-        libxml_clear_errors();
-
-        // Extract the inner HTML of the body tag
-        $body = $dom->getElementsByTagName('body')->item(0);
-
-        // Debugging: Show the body content
-        print_r("<br><hr>Line 214 BibleGatewayConnectionService<br>");
-        if ($body) {
-            echo $dom->saveHTML($body); // Show only the HTML content of the body
-        } else {
-            echo 'No body tag found.';
-        }
-        print_r("<br><hr><br>");
-        flush();
-        print_r($dom->saveHTML($body));
-        flush();
-
-        // Return the inner HTML or the original HTML if body is not found
-        return $body ? $dom->saveHTML($body) : $html;
+        return $balancedHtml;
     }
 }
