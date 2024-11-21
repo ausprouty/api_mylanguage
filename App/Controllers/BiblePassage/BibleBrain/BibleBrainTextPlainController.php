@@ -23,12 +23,11 @@ class BibleBrainTextPlainController
     }
 
     public function fetchPassageData(
-        BibleModel $bible, 
+        BibleModel $bible,
         BibleReferenceModel $bibleReference
-    )
-    {
+    ) {
         $url = sprintf(
-            'https://4.dbt.io/api/bibles/filesets/%s/%s/%s/?verse_start=%s&verse_end=%s',
+            '/bibles/filesets/%s/%s/%s/?verse_start=%s&verse_end=%s',
             $bible->getExternalId(),
             $bibleReference->getBookId(),
             $bibleReference->getChapterStart(),
