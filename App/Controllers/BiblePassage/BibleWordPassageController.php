@@ -40,16 +40,16 @@ class BibleWordPassageController
      * @return string The cleaned content.
      */
     private function trimToChapter($webpage)
-    {  
+    {
         $startMarker = '<!--... the Word of God:-->';
         $endMarker = '<!--... sharper than any twoedged sword... -->';
         $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
         $endPos = strpos($webpage, $endMarker);
-        $chapter = substr($webpage, $startPos, $endPos - $startPos);       
+        $chapter = substr($webpage, $startPos, $endPos - $startPos);
         return $chapter;
     }
 
-    
+
 
     /**
      * Extracts and formats a single verse line.
@@ -60,8 +60,18 @@ class BibleWordPassageController
      */
     private function formatVerseLine($verseNum, $line)
     {
-        $startPos = stripos($line, '</span>') + strlen('</span>');
-        $verseText = substr($line, $startPos);
+        // Find the last occurrence of </span>
+        $lastSpanPos = strripos($line, '</span>');
+
+        if ($lastSpanPos !== false) {
+            // Extract the content after the last </span>
+            $verseText = substr($line, $lastSpanPos + strlen('</span>'));
+        } else {
+            // If no </span> is found, assume the entire line is the verse text
+            $verseText = $line;
+        }
+
+        // Return the formatted line
         return '<p><sup>' . $verseNum . '</sup>' . $verseText . '</p>' . "\n";
     }
 
@@ -93,10 +103,25 @@ class BibleWordPassageController
      */
     private function extractVerseNumber($line)
     {
-        $startPos = strpos($line, '>') + 1;
-        $endPos = stripos($line, '</span>');
-        return intval(substr($line, $startPos, $endPos - $startPos));
+        // Find the position of the last '</span>'
+        $endPos = strripos($line, '</span>'); // Use strripos for the last occurrence
+        if ($endPos === false) {
+            return 0; // Return 0 if no closing </span> found
+        }
+
+        // Find the position of the last '>'
+        $startPos = strrpos(substr($line, 0, $endPos), '>'); // Search up to $endPos
+        if ($startPos === false) {
+            return 0; // Return 0 if no opening '>' found
+        }
+
+        // Extract the content between '>' and '</span>'
+        $verseNumber = substr($line, $startPos + 1, $endPos - $startPos - 1);
+
+        // Return the integer value of the verse number
+        return intval(trim($verseNumber)); // Trim in case of spaces
     }
+
 
     /**
      * Fetches content from an external source using a web service.
@@ -110,7 +135,7 @@ class BibleWordPassageController
             . $this->formatChapterPage() . '.htm';
 
         $webpage = new BibleWordConnectionService($endpoint);
-        
+
         if (!$webpage->response) {
             LoggerService::logError('Failed to fetch Bible passage from WordProject.');
             return $biblePassageModel;
@@ -218,20 +243,31 @@ class BibleWordPassageController
      */
     private function selectVerses($page)
     {
-        
+
         $page = str_replace(
             ['<!--span class="verse"', '<p>', '</p>', '<br/>', '<br />'],
             ['<span class="verse"', '', '', '<br>', '<br>'],
             $page
         );
+        $page = str_replace(
+            ['<span class="dimver">', '</span-->', "\n", "\r"],
+            ['', '</span>', '', ''],
+            $page
+        );
+        $page = str_replace(
+            ['  </span>'],
+            [''],
+            $page
+        );
         $lines = explode('<br>', $page);
-        print_r($lines);
-        flush();
+        //print_r($lines);
+        //flush();
 
         $verseRange = range(
             intval($this->bibleReference->getVerseStart()),
             intval($this->bibleReference->getVerseEnd())
         );
+
 
         $verses = '';
         foreach ($lines as $line) {
@@ -241,8 +277,8 @@ class BibleWordPassageController
             }
         }
 
-        print_r($verses);
-        flush();
+        //print_r($verses);
+        //flush();
         return $verses;
     }
 }
