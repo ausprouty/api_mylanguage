@@ -1,6 +1,7 @@
 <?php
 // index.php
 $mode = 'tests';
+$mode = 'import';
 
 // Load the appropriate environment configuration
 require_once __DIR__ . '/App/Configuration/EnvironmentLoader.php'; // Load environment-specific config
@@ -53,6 +54,9 @@ $postData = PostAuthorizationMiddleware::getDataSet();
 // Main application logic or routing
 if ($mode == 'tests'){
     require_once  __DIR__ . '/App/Configuration/TestLoader.php'; 
+}
+elseif ($mode == 'import'){
+    require_once  __DIR__ . '/App/Configuration/ImportLoader.php'; 
 } else {
  require_once __DIR__ . '/routes.php';
 }
