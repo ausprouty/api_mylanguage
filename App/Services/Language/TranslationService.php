@@ -13,7 +13,9 @@ class TranslationService
         $this->translation = $this->loadTranslationFile($languageCodeHL, $scope);
     }
 
-    private function loadTranslationFile(string $languageCodeHL, string $scope): array
+    private function loadTranslationFile(
+            string $languageCodeHL, 
+            string $scope): array
     {
         switch ($scope) {
             case 'dbs':
