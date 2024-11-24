@@ -2,8 +2,8 @@
 
 namespace App\Controllers\BibleStudy\Bilingual;
 
-use App\Models\BibleStudy\DbsReferenceModel;
-use App\Controllers\BibleStudy\DbsStudyController;
+use \App\Models\BibleStudy\DbsReferenceModel;
+use \App\Controllers\BibleStudy\DbsStudyController;
 
 /**
  * Class BilingualDbsTemplateController
@@ -43,9 +43,9 @@ class BilingualDbsTemplateController extends BilingualStudyTemplateController
      * @return DbsReferenceModel The study reference information for the DBS study.
      */
     protected function getStudyReferenceInfo(string $lesson): DbsReferenceModel {
-        $factory = new DbsReferenceFactory($databaseService);
-        $studyReferenceInfo->setLesson($lesson);
-        return $studyReferenceInfo;
+        $factory = new BibleStudyReferenceFactory($this->databaseService);
+        $studyReferenceModel = $factory->createDbsReferenceModel($lesson);
+        return $studyReferenceModel;
     }
 
     /**

@@ -1,15 +1,15 @@
 <?php
 
-use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BibleReferenceModel as BibleReferenceModel;
-use App\Models\BibleStudy\DbsReferenceModel as DbsReferenceModel;
-use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController;
-use App\Repositories\LanguageRepository;
-use App\Repositories\BibleRepository;
-use App\Services\QrCodeGeneratorService;
-use App\Controllers\BibleStudy\BibleBlockController;
-Use App\Services\Database\DatabaseService;
-use App\Factories\LanguageModelFactory;
+use \App\Models\Bible\BibleModel as BibleModel;
+use \App\Models\Bible\BibleReferenceModel as BibleReferenceModel;
+use \App\Models\BibleStudy\DbsReferenceModel as DbsReferenceModel;
+use \App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController;
+use \App\Repositories\LanguageRepository;
+use \App\Repositories\BibleRepository;
+use \App\Services\QrCodeGeneratorService;
+use \App\Controllers\BibleStudy\BibleBlockController;
+Use \App\Services\Database\DatabaseService;
+use \App\Factories\LanguageModelFactory;
 
 $databaseService = new DatabaseService();
 $languageModelFactory = new LanguageModelFactory($databaseService);
@@ -19,6 +19,7 @@ $bibleBlockController = new BibleBlockController(); // Manages Bible content blo
 $qrCodeService = new QrCodeGeneratorService();
 
 $templateContoller =  new BilingualDbsTemplateController (
+    $databaseService,
     $languageRepository,
     $bibleRepository,
     $qrCodeService,

@@ -1,16 +1,19 @@
 <?php
+
 namespace App\Controllers\BibleStudy;
 
 use App\Services\Database\DatabaseService;
-use App\Models\Language\TranslationModel as TranslationModel;
+use App\Services\Language\TranslationService as TranslationService;
 use PDO as PDO;
 use stdClass as stdClass;
 
-class LifeStudyController{
+class LifeStudyController
+{
     protected $databaseService;
     private $data;
 
-    public function __construct(DatabaseService $databaseService){
+    public function __construct(DatabaseService $databaseService)
+    {
         $this->databaseService = $databaseService;
         $query = "SELECT * FROM life_principle_references
         ORDER BY lesson";
@@ -22,10 +25,11 @@ class LifeStudyController{
             return null;
         }
     }
-    public function formatWithEnglishTitle(){
+    public function formatWithEnglishTitle()
+    {
         $formated = [];
-        foreach ($this->data as $lesson){
-            $title = $lesson ['lesson'] . '. ' . $lesson['description']  . ' (' . $lesson['reference'] . ')';
+        foreach ($this->data as $lesson) {
+            $title = $lesson['lesson'] . '. ' . $lesson['description']  . ' (' . $lesson['reference'] . ')';
             $obj =  new stdClass();
             $obj->title = $title;
             $obj->lesson = $lesson['lesson'];
@@ -35,12 +39,13 @@ class LifeStudyController{
         return $formatted;
     }
 
-    public function formatWithEthnicTitle($languageCodeHL){
+    public function formatWithEthnicTitle($languageCodeHL)
+    {
         $formated = [];
-        $translation = new TranslationModel($languageCodeHL, 'life');
-        foreach ($this->data as $lesson){
-            $translated = $translation->translateText ($lesson['description']);
-            $title = $lesson ['lesson'] . '. ' . $translated ;
+        $translation = new TranslationService($languageCodeHL, 'life');
+        foreach ($this->data as $lesson) {
+            $translated = $translation->translateText($lesson['description']);
+            $title = $lesson['lesson'] . '. ' . $translated;
             $obj =  new stdClass();
             $obj->title = $title;
             $obj->lesson = $lesson['lesson'];
@@ -49,19 +54,20 @@ class LifeStudyController{
         }
         return $formatted;
     }
-    static function getTitle($lesson, $languageCodeHL){
+    static function getTitle($lesson, $languageCodeHL)
+    {
         $databaseService = new DatabaseService();
-        if ($languageCodeHL != 'eng00'){
-            $translation = new TranslationModel($languageCodeHL, 'life');
+        if ($languageCodeHL != 'eng00') {
+            $translation = new TranslationService($languageCodeHL, 'life');
         }
         $query = "SELECT description FROM life_principle_references
         WHERE lesson = :lesson";
-        $params = array(':lesson'=> $lesson);
+        $params = array(':lesson' => $lesson);
         try {
             $results = $databaseService->executeQuery($query, $params);
             $title = $results->fetch(PDO::FETCH_COLUMN);
-            if ($languageCodeHL != 'eng00'){
-                $title = $translation->translateText ($title);
+            if ($languageCodeHL != 'eng00') {
+                $title = $translation->translateText($title);
             }
             return  $title;
         } catch (Exception $e) {

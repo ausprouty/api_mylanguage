@@ -2,7 +2,7 @@
 
 namespace App\Controllers\BibleStudy\Monolingual;
 
-use App\Models\Language\TranslationModel;
+use App\Services\Language\TranslationService;
 use App\Models\Language\LanguageModel;
 use App\Repositories\LanguageRepository;
 
@@ -59,7 +59,7 @@ class MonolingualTemplateTranslationController
 
     private function loadTranslation(): void
     {
-        $translationModel = new TranslationModel($this->languageCodeHL1, $this->translationFile);
+        $translationModel = new TranslationService($this->languageCodeHL1, $this->translationFile);
         $this->translation1 = $translationModel->getTranslationFile();
     }
 

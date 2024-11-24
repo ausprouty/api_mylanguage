@@ -2,7 +2,7 @@
 
 namespace App\Controllers\BibleStudy\Bilingual;
 
-use App\Models\Language\TranslationModel as TranslationModel;
+use \App\Services\Language\TranslationService as TranslationService;
 
 class BilingualTemplateTranslationController
 {
@@ -44,12 +44,12 @@ class BilingualTemplateTranslationController
    }
    private function setTranslation1()
    {
-      $translationFile = new TranslationModel($this->languageCodeHL1, $this->translationFile);
+      $translationFile = new TranslationService($this->languageCodeHL1, $this->translationFile);
       $this->translation1 = $translationFile->getTranslationFile();
    }
    private function setTranslation2()
    {
-      $translationFile = new TranslationModel($this->languageCodeHL2, $this->translationFile);
+      $translationFile = new TranslationService($this->languageCodeHL2, $this->translationFile);
       $this->translation2 = $translationFile->getTranslationFile();
    }
    private function replacePlaceholders()

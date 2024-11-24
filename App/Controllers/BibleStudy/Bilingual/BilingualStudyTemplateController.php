@@ -22,9 +22,12 @@ use App\Configuration\Config;
  */
 abstract class BilingualStudyTemplateController
 {
-    use DbsFileNamingTrait, TemplatePlaceholderTrait;
+    use \App\Traits\DbsFileNamingTrait;
+    use \App\Traits\TemplatePlaceholderTrait;
     use \App\Models\Language\LanguageModel;
+    use \App\Services\Database\DatabaseService;
 
+    protected DatabaseService $databaseService;
     protected LanguageRepository $languageRepository;
     protected BibleRepository $bibleRepository;
     protected QrCodeGeneratorService $qrCodeService;
@@ -45,6 +48,7 @@ abstract class BilingualStudyTemplateController
     abstract protected function getStudyReferenceInfo($lesson);
 
     public function __construct(
+        DatabaseService $databaseService,
         LanguageRepository $languageRepository,
         BibleRepository $bibleRepository,
         QrCodeGeneratorService $qrCodeService,

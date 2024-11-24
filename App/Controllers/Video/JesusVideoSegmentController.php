@@ -1,29 +1,33 @@
 <?php
+
 namespace App\Controllers\Video;
 
 use App\Services\Database\DatabaseService;
-use App\Models\Language\TranslationModel as TranslationModel;
+use App\Services\Language\TranslationService as TranslationService;
 use PDO as PDO;
 use stdClass as stdClass;
 
 
 
 
-class JesusVideoSegmentController{
+class JesusVideoSegmentController
+{
     protected $databaseService;
     private $data;
     private $formatted;
     private $languageCodeJF;
 
-    public function __construct(DatabaseService $databaseService, $languageCodeJF){
+    public function __construct(DatabaseService $databaseService, $languageCodeJF)
+    {
         $this->databaseService = $databaseService;
         $this->data = null;
         $this->formatted = null;
         $this->languageCodeJF = $languageCodeJF;
     }
-       
-    public function selectAllSegments(){
- 
+
+    public function selectAllSegments()
+    {
+
         $query = "SELECT * FROM jesus_video_segments
         ORDER BY id";
         try {
@@ -34,9 +38,10 @@ class JesusVideoSegmentController{
             return null;
         }
     }
-  
-    private function selectOneSegmentById($id){
- 
+
+    private function selectOneSegmentById($id)
+    {
+
         $query = "SELECT * FROM jesus_video_segments
         WHERE id= :id";
         $params = array(':id' => $id);
@@ -50,28 +55,31 @@ class JesusVideoSegmentController{
     }
 
 
-    public function formatWithEnglishTitle(){
+    public function formatWithEnglishTitle()
+    {
         $formated = [];
-        foreach ($this->data as $segment){
-            $title = $segment ['id'] . '. ' . $segment['title']  . ' (' . $segment['verses'] . ')';
+        foreach ($this->data as $segment) {
+            $title = $segment['id'] . '. ' . $segment['title']  . ' (' . $segment['verses'] . ')';
             $formatted[] = $this->formatVideoSegment($title, $segment);
         }
         return $formatted;
     }
-    
-    public function formatWithEthnicTitle($languageCodeHL){
+
+    public function formatWithEthnicTitle($languageCodeHL)
+    {
         $formated = [];
-        $translation = new TranslationModel($languageCodeHL, 'video');
-        foreach ($this->data as $segment){
-            $translated = $translation->translateText ($segment['title']);
-            $title = $segment ['id'] . '. ' . $translated ;
+        $translation = new TranslationService($languageCodeHL, 'video');
+        foreach ($this->data as $segment) {
+            $translated = $translation->translateText($segment['title']);
+            $title = $segment['id'] . '. ' . $translated;
             $formatted[] = $this->formatVideoSegment($title, $segment);
         }
         return $formatted;
     }
-    private function formatVideoSegment($title, $segment){
+    private function formatVideoSegment($title, $segment)
+    {
         $obj =  new stdClass();
-        $obj->id = $segment ['id'];
+        $obj->id = $segment['id'];
         $obj->title = $title;
         $obj->src = $this->formatVideoSource($segment);
         $obj->videoSegment = $segment['videoSegment'];
@@ -79,14 +87,13 @@ class JesusVideoSegmentController{
         return $obj;
     }
 
-      // src="https://api.arclight.org/videoPlayerUrl?refId=1_529-jf6101-0-0&amp;playerStyle=default"
+    // src="https://api.arclight.org/videoPlayerUrl?refId=1_529-jf6101-0-0&amp;playerStyle=default"
     //returns src="https://api.arclight.org/videoPlayerUrl?refId=6_529-GOJohn2211&amp;start=170&amp;end=229
-    protected function formatVideoSource($segment){
-        $url = JVIDEO_SOURCE . '1_' . $this->languageCodeJF . '-jf'. $segment['videoSegment'];
+    protected function formatVideoSource($segment)
+    {
+        $url = JVIDEO_SOURCE . '1_' . $this->languageCodeJF . '-jf' . $segment['videoSegment'];
         $url .= '&start=0&end=' .  $segment['stopTime'];
         $url .= '&playerStyle=default"';
         return $url;
     }
-
-    
 }

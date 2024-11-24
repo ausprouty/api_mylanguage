@@ -2,8 +2,8 @@
 
 namespace App\Controllers\BibleStudy\Bilingual;
 
-use App\Models\BibleStudy\LeadershipReferenceModel;
-use App\Controllers\BibleStudy\LeadershipStudyController;
+use \App\Models\BibleStudy\LeadershipReferenceModel;
+use \App\Controllers\BibleStudy\LeadershipStudyController;
 
 /**
  * Class BilingualLeadershipTemplateController
