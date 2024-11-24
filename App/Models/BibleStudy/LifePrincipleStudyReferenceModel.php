@@ -1,16 +1,11 @@
 <?php
+
 namespace App\Models\BibleStudy;
 
 use ReflectionClass;
 
-class LifePrincipleReferenceModel
+class LifePrincipleReferenceModel extends BaseStudyReferenceModel
 {
-    protected int $lesson;
-    protected string $description;
-    protected string $description_twig_key;
-    protected string $reference;
-    protected string $testament;
-    protected string $passage_reference_info;
     protected string $question;
     protected string $question_twig_key;
     protected ?string $videoCode = null;
@@ -18,41 +13,37 @@ class LifePrincipleReferenceModel
     protected ?string $startTime = null;
     protected ?string $endTime = null;
 
-    public function __construct()
-    {
+    public function __construct(
+        int $lesson,
+        string $description,
+        string $description_twig_key,
+        string $reference,
+        string $testament,
+        string $passage_reference_info,
+        string $question,
+        string $question_twig_key,
+        ?string $videoCode = null,
+        int $videoSegment = 0,
+        ?string $startTime = null,
+        ?string $endTime = null
+    ) {
+        parent::__construct(
+            $lesson,
+            $description,
+            $description_twig_key,
+            $reference,
+            $testament,
+            $passage_reference_info
+        );
+        $this->question = $question;
+        $this->question_twig_key = $question_twig_key;
+        $this->videoCode = $videoCode;
+        $this->videoSegment = $videoSegment;
+        $this->startTime = $startTime;
+        $this->endTime = $endTime;
     }
 
     // Getters
-    public function getLesson(): int
-    {
-        return $this->lesson;
-    }
-
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    public function getDescripttionTwigKey(): string
-    {
-        return $this->descripttion_twig_key;
-    }
-
-    public function getReference(): string
-    {
-        return $this->reference;
-    }
-
-    public function getTestament(): string
-    {
-        return $this->testament;
-    }
-
-    public function getPassageReferenceInfo(): string
-    {
-        return $this->passage_reference_info;
-    }
-
     public function getQuestion(): string
     {
         return $this->question;
@@ -84,36 +75,6 @@ class LifePrincipleReferenceModel
     }
 
     // Setters
-    public function setLesson(int $lesson): void
-    {
-        $this->lesson = $lesson;
-    }
-
-    public function setDescription(string $description): void
-    {
-        $this->description = $description;
-    }
-
-    public function setDescriptionTwigKey(string $descripttion_twig_key): void
-    {
-        $this->descripttion_twig_key = $descripttion_twig_key;
-    }
-
-    public function setReference(string $reference): void
-    {
-        $this->reference = $reference;
-    }
-
-    public function setTestament(string $testament): void
-    {
-        $this->testament = $testament;
-    }
-
-    public function setPassageReferenceInfo(string $passage_reference_info): void
-    {
-        $this->passage_reference_info = $passage_reference_info;
-    }
-
     public function setQuestion(string $question): void
     {
         $this->question = $question;
@@ -145,7 +106,7 @@ class LifePrincipleReferenceModel
     }
 
     /**
-     * Returns all properties as an associative array.
+     * Returns all properties as an associative array, including inherited ones.
      */
     public function getProperties(): array
     {
@@ -158,4 +119,3 @@ class LifePrincipleReferenceModel
         return $propsArray;
     }
 }
-?>

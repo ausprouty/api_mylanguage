@@ -9,6 +9,9 @@ use App\Traits\DbsFileNamingTrait;
 use App\Traits\TemplatePlaceholderTrait;
 use App\Controllers\BibleStudy\BibleBlockController;
 use App\Configuration\Config;
+use App\Models\Language\LanguageModel;
+use App\Services\Database\DatabaseService;
+use App\Factories\BibleStudyReferenceFactory;
 
 /**
  * Class BilingualStudyTemplateController
@@ -24,12 +27,12 @@ abstract class BilingualStudyTemplateController
 {
     use \App\Traits\DbsFileNamingTrait;
     use \App\Traits\TemplatePlaceholderTrait;
-    use \App\Models\Language\LanguageModel;
-    use \App\Services\Database\DatabaseService;
+
 
     protected DatabaseService $databaseService;
     protected LanguageRepository $languageRepository;
     protected BibleRepository $bibleRepository;
+    protected BibleStudyReferenceFactory $bibleStudyReferenceFactory;
     protected QrCodeGeneratorService $qrCodeService;
     protected BibleBlockController $bibleBlockController;
     protected string $fileName;
@@ -39,40 +42,61 @@ abstract class BilingualStudyTemplateController
     protected string $lesson;
     protected $language1;
     protected $language2;
-    protected $studyInfo;
+    protected $studyReferenceInfo;
     protected $biblePassage1;
     protected $biblePassage2;
     protected $bibleReference;
 
-    //abstract protected function getBiblePassage($lesson, $languageModel);
-    abstract protected function getStudyReferenceInfo($lesson);
+    // get information about Study
+    abstract protected function getStudyReferenceInfo(); 
+     // get bible passage and all related passage info
+    abstract protected function getBiblePassageReferenceInfo();
+
 
     public function __construct(
-        DatabaseService $databaseService,
-        LanguageRepository $languageRepository,
+        BibleBlockController $bibleBlockController,
         BibleRepository $bibleRepository,
-        QrCodeGeneratorService $qrCodeService,
-        BibleBlockController $bibleBlockController
+        BibleStudyReferenceFactory $bibleStudyReferenceFactory,
+        LanguageRepository $languageRepository,
+        QrCodeGeneratorService $qrCodeService
     ) {
-        $this->languageRepository = $languageRepository;
-        $this->bibleRepository = $bibleRepository;
-        $this->qrCodeService = $qrCodeService;
         $this->bibleBlockController = $bibleBlockController;
+        $this->bibleRepository = $bibleRepository;
+        $this->bibleStudyReferenceFactory = $bibleStudyReferenceFactory;
+        $this->languageRepository = $languageRepository;
+        $this->qrCodeService = $qrCodeService;
     }
     // this will create a Language Object based on the languageCodeHl
     public function setLanguages(string $languageCodeHL1, string $languageCodeHL2)
     {
-        $this->language1 = $this->languageRepository->findOneLanguageByLanguageCodeHL($languageCodeHL1);
-        $this->language2 = $this->languageRepository->findOneLanguageByLanguageCodeHL($languageCodeHL2);
-    }
+        $this->language1 = 
+             $this->languageRepository->findOneLanguageByLanguageCodeHL($languageCodeHL1);
+        print_r($this->language1->getProperties());
+        print_r ("<br><br><br>");
+        flush();
+        $this->language2 = 
+            $this->languageRepository->findOneLanguageByLanguageCodeHL($languageCodeHL2);
+            print_r($this->language2->getProperties());
+            print_r ("<br><br><br>");
+            flush();
+        }
     public function setLesson(string $lesson)
     {
         $this->lesson = $lesson;
-        $studyInfo = $this->getStudyReferenceInfo();
-        //$this->biblePassage1 = $this->getBiblePassage($this->lesson, $this->language1);
-        //$this->biblePassage2 = $this->getBiblePassage($this->lesson, $this->language2);
+        $this->studyReferenceInfo = $this->getStudyReferenceInfo();
+        print_r($this->studyReferenceInfo->getProperties());
+        print_r ("<br><br><br>");
+        flush();
     }
-  
+    public function setBiblePassages(){
+        $this->biblePassage1 = $this->getBiblePassage($this->studyReferenceInfo, $this->language1);
+        $this->biblePassage2 = $this->getBiblePassage($this->studyReferenceInfo, $this->language2);
+    }
+    // study reference model can be any of 
+    public function getBiblePassage($studyReferenceInfo, LanguageModel $language){
+
+    }
+
 
     protected function createBibleBlock(): void
     {

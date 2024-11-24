@@ -1,35 +1,43 @@
 <?php
 
-use \App\Models\Bible\BibleModel as BibleModel;
-use \App\Models\Bible\BibleReferenceModel as BibleReferenceModel;
-use \App\Models\BibleStudy\DbsReferenceModel as DbsReferenceModel;
-use \App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController;
-use \App\Repositories\LanguageRepository;
-use \App\Repositories\BibleRepository;
-use \App\Services\QrCodeGeneratorService;
-use \App\Controllers\BibleStudy\BibleBlockController;
-Use \App\Services\Database\DatabaseService;
-use \App\Factories\LanguageModelFactory;
+use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController;
+use App\Controllers\BibleStudy\BibleBlockController;
+use App\Factories\BibleStudyReferenceFactory;
+use App\Factories\LanguageModelFactory;
+use App\Models\Bible\BibleModel;
+use App\Models\Bible\BibleReferenceModel;
+use App\Models\BibleStudy\DbsReferenceModel;
+use App\Repositories\BibleRepository;
+use App\Repositories\LanguageRepository;
+use App\Services\Database\DatabaseService;
+use App\Services\QrCodeGeneratorService;
 
+// Initialize necessary services and repositories
 $databaseService = new DatabaseService();
 $languageModelFactory = new LanguageModelFactory($databaseService);
-$languageRepository = new LanguageRepository($databaseService, $languageModelFactory); // Assume this interacts with a database or API.
-$bibleRepository = new BibleRepository($databaseService);       // Fetches Bible data.
-$bibleBlockController = new BibleBlockController(); // Manages Bible content blocks
+$languageRepository = new LanguageRepository($databaseService, $languageModelFactory);
+$bibleRepository = new BibleRepository($databaseService);
+$bibleBlockController = new BibleBlockController();
+$bibleStudyReferenceFactory = new BibleStudyReferenceFactory($databaseService);
 $qrCodeService = new QrCodeGeneratorService();
 
-$templateContoller =  new BilingualDbsTemplateController (
-    $databaseService,
-    $languageRepository,
+// Initialize the template controller
+$templateController = new BilingualDbsTemplateController(
+    $bibleBlockController,
     $bibleRepository,
-    $qrCodeService,
-    $bibleBlockController
+    $bibleStudyReferenceFactory,
+    $languageRepository,
+    $qrCodeService
 );
+
+// Set up languages and lesson
 $lang1 = 'eng00';
 $lang2 = 'frn00';
 $lesson = 3;
 
-$templateContoller->setLanguages($lang1, $lang2);
-$templateContoller->setLesson($lesson);
-echo ('YOu should see a Bilingual Bible study for English and French Lesson 3<hr>');
-echo ($dbs->getLesson());
+$templateController->setLanguages($lang1, $lang2);
+$templateController->setLesson($lesson);
+
+// Display the output
+echo 'You should see a Bilingual Bible study for English and French Lesson 3<hr>';
+echo $templateController->getLesson();

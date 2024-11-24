@@ -60,8 +60,8 @@ class TranslationService
         return $this->translation;
     }
 
-    public function translateText(string $text): ?string
+    public function translateTwigKey(string $key): ?string
     {
-        return $this->translation[$text] ?? null;
+        return $this->translation[$key] ?? null;
     }
 }

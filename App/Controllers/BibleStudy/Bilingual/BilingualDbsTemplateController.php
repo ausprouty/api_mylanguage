@@ -42,9 +42,9 @@ class BilingualDbsTemplateController extends BilingualStudyTemplateController
      * @param string $lesson The lesson identifier.
      * @return DbsReferenceModel The study reference information for the DBS study.
      */
-    protected function getStudyReferenceInfo(string $lesson): DbsReferenceModel {
-        $factory = new BibleStudyReferenceFactory($this->databaseService);
-        $studyReferenceModel = $factory->createDbsReferenceModel($lesson);
+    protected function getStudyReferenceInfo(): DbsReferenceModel {
+        $studyReferenceModel = 
+        $this->bibleStudyReferenceFactory->createDbsReferenceModel($this->lesson);
         return $studyReferenceModel;
     }
 
