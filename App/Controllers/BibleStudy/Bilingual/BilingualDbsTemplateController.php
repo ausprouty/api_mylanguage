@@ -64,4 +64,10 @@ class BilingualDbsTemplateController extends BilingualStudyTemplateController
     protected function setUniqueTemplateValues(): void {
         // No unique template values for this controller
     }
+
+
+
+    protected function getBiblePassage($lesson, $languageModel){
+        
+    }
 }

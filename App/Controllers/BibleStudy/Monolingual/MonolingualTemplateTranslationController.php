@@ -42,7 +42,7 @@ class MonolingualTemplateTranslationController
     private function setLanguage(): void
     {
         $this->language1 = new LanguageModel($this->languageRepository);
-        $this->language1->findOneByLanguageCodeHL($this->languageCodeHL1);
+        $this->language1->findOneLanguageByLanguageCodeHL($this->languageCodeHL1);
     }
 
     private function loadTemplate(): void

@@ -9,8 +9,6 @@ $databaseService = new DatabaseService();
 $languageModelFactory = new LanguageModelFactory($databaseService);
 $languageRepository = new LanguageRepository($databaseService, $languageModelFactory);
 
-$language = new LanguageModel($languageRepository);
-
-$language->findOneByLanguageCodeHL( 'frn00');
+$language = $languageRepository->findOneLanguageByLanguageCodeHL('frn00');
 echo ('This should show the ethnic name of French<hr>');
 print_r($language->getEthnicName());

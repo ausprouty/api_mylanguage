@@ -1,7 +1,7 @@
 <?php
 // index.php
 $mode = 'tests';
-$mode = 'import';
+//$mode = 'import';
 
 // Load the appropriate environment configuration
 require_once __DIR__ . '/App/Configuration/EnvironmentLoader.php'; // Load environment-specific config

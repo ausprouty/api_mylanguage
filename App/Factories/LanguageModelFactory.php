@@ -43,7 +43,7 @@ class LanguageModelFactory
     /**
      * Finds a LanguageModel by its HL code.
      */
-    public function findOneByLanguageCodeHL(
+    public function findOneLanguageByLanguageCodeHL(
         string $code
     ): ?LanguageModel {
         $query = 'SELECT * FROM hl_languages WHERE languageCodeHL = :id';

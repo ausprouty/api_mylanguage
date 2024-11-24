@@ -1,21 +1,32 @@
 <?php
 namespace App\Models\BibleStudy;
+use ReflectionClass;
 
 class DbsReferenceModel {
-    private $lesson;
-    public $reference;
-    public $description;
+    protected $lesson;
+    protected $reference;
+    protected $testament;
+    protected $passage_reference_info;
+    protected $description;
+    protected $twig_key;
 
-    public function __construct($lesson = null, $reference = null, $description = null) {
-        $this->lesson = $lesson;
-        $this->reference = $reference;
-        $this->description = $description;
+    public function __construct() {
     }
 
     // Getters
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
     public function getLesson()
     {
         return $this->lesson;
+    }
+
+    public function getPassageReferenceInfo()
+    {
+        return $this->passage_reference_info;
     }
 
     public function getReference()
@@ -23,15 +34,30 @@ class DbsReferenceModel {
         return $this->reference;
     }
 
-    public function getDescription()
+    public function getTestament()
     {
-        return $this->description;
+        return $this->testament;
+    }
+
+    public function getTwigKey()
+    {
+        return $this->twig_key;
     }
 
     // Setters
+    public function setDescription($description)
+    {
+        $this->description = $description;
+    }
+
     public function setLesson($lesson)
     {
         $this->lesson = $lesson;
+    }
+
+    public function setPassageReferenceInfo($passage_reference_info)
+    {
+        $this->passage_reference_info = $passage_reference_info;
     }
 
     public function setReference($reference)
@@ -39,9 +65,28 @@ class DbsReferenceModel {
         $this->reference = $reference;
     }
 
-    public function setDescription($description)
+    public function setTestament($testament)
     {
-        $this->description = $description;
+        $this->testament = $testament;
+    }
+
+    public function setTwigKey($twig_key)
+    {
+        $this->twig_key = $twig_key;
+    }
+
+    /**
+     * Returns all properties as an associative array.
+     */
+    public function getProperties(): array
+    {
+        $reflection = new ReflectionClass($this);
+        $propsArray = [];
+        foreach ($reflection->getProperties() as $property) {
+            $property->setAccessible(true);
+            $propsArray[$property->getName()] = $property->getValue($this);
+        }
+        return $propsArray;
     }
 }
 ?>

@@ -32,10 +32,10 @@ class LanguageRepository
         string $languageCodeBibleBrain
     ): bool {
         $query = 'SELECT id FROM hl_languages WHERE languageCodeBibleBrain = '
-               . ':languageCodeBibleBrain LIMIT 1';
+            . ':languageCodeBibleBrain LIMIT 1';
         $params = [':languageCodeBibleBrain' => $languageCodeBibleBrain];
-        return $this->databaseService->fetchSingleValue($query, $params) 
-               !== null;
+        return $this->databaseService->fetchSingleValue($query, $params)
+            !== null;
     }
 
     /**
@@ -79,18 +79,20 @@ class LanguageRepository
     /**
      * Finds a language by its HL code using the factory.
      */
-    public function findOneByLanguageCodeHL(
+    public function findOneLanguageByLanguageCodeHL(
         string $code
     ): ?LanguageModel {
-        return $this->languageModelFactory->findOneByLanguageCodeHL($code);
+        return $this->languageModelFactory->findOneLanguageByLanguageCodeHL($code);
     }
 
-    public function getCodeIsoFromCodeHL($languageCodeHL) {
+    public function getCodeIsoFromCodeHL($languageCodeHL)
+    {
         $query = "SELECT languageCodeIso FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
         return $this->databaseService->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
     }
 
-    public function getEnglishNameFromCodeHL($languageCodeHL) {
+    public function getEnglishNameFromCodeHL($languageCodeHL)
+    {
         $query = "SELECT name FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
         return $this->databaseService->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
     }
@@ -101,24 +103,27 @@ class LanguageRepository
         string $languageCodeIso
     ): ?array {
         $query = 'SELECT ethnicName FROM hl_languages WHERE languageCodeIso = '
-               . ':languageCodeIso';
+            . ':languageCodeIso';
         return $this->databaseService->fetchColumn(
-            $query, 
+            $query,
             [':languageCodeIso' => $languageCodeIso]
         );
     }
-    public function getFontDataFromCodeHL( string $languageCodeHL) {
+    public function getFontDataFromCodeHL(string $languageCodeHL)
+    {
         $query = "SELECT fontData FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
-        $data = $this->databaseService->fetchColumn ($query, [':languageCodeHL' => $languageCodeHL]);
+        $data = $this->databaseService->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
         return $data ? $data : null;
     }
 
-    public function getLanguageCodes(  string $languageCodeIso) {
+    public function getLanguageCodes(string $languageCodeIso)
+    {
         $query = 'SELECT languageCodeHL, languageCodeBibleBrain FROM hl_languages 
             WHERE languageCodeIso = :languageCodeIso LIMIT 1';
         return $this->databaseService->fetchRow($query, [':languageCodeIso' => $languageCodeIso]);
     }
-    public function getNextLanguageForLanguageDetails() {
+    public function getNextLanguageForLanguageDetails()
+    {
         $query = "SELECT languageCodeIso FROM hl_languages WHERE languageCodeBibleBrain IS NULL AND checkedBBBibles IS NOT NULL LIMIT 1";
         return $this->databaseService->fetchColumn($query);
     }
@@ -141,11 +146,13 @@ class LanguageRepository
         $this->databaseService->executeQuery($query, $params);
     }
 
-    public function languageIsoRecordExists( string $languageCodeIso) {
+    public function languageIsoRecordExists(string $languageCodeIso)
+    {
         $query = 'SELECT id FROM hl_languages 
             WHERE languageCodeIso = :languageCodeIso LIMIT 1';
         return $this->databaseService->fetchColumn(
-            $query, [':languageCodeIso' => $languageCodeIso]
+            $query,
+            [':languageCodeIso' => $languageCodeIso]
         );
     }
 
@@ -157,7 +164,7 @@ class LanguageRepository
         string $ethnicName
     ): void {
         $query = 'UPDATE hl_languages SET ethnicName = :ethnicName WHERE '
-               . 'languageCodeIso = :languageCodeIso';
+            . 'languageCodeIso = :languageCodeIso';
         $params = [':ethnicName' => $ethnicName, ':languageCodeIso' => $languageCodeIso];
         $this->databaseService->executeQuery($query, $params);
     }
@@ -170,8 +177,8 @@ class LanguageRepository
         string $languageCodeBibleBrain
     ): void {
         $query = 'UPDATE hl_languages SET languageCodeBibleBrain = '
-               . ':languageCodeBibleBrain WHERE languageCodeIso = '
-               . ':languageCodeIso';
+            . ':languageCodeBibleBrain WHERE languageCodeIso = '
+            . ':languageCodeIso';
         $params = [
             ':languageCodeBibleBrain' => $languageCodeBibleBrain,
             ':languageCodeIso' => $languageCodeIso

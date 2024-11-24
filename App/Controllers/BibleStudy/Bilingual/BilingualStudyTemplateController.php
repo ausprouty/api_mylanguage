@@ -23,6 +23,7 @@ use App\Configuration\Config;
 abstract class BilingualStudyTemplateController
 {
     use DbsFileNamingTrait, TemplatePlaceholderTrait;
+    use \App\Models\Language\LanguageModel;
 
     protected LanguageRepository $languageRepository;
     protected BibleRepository $bibleRepository;
@@ -39,6 +40,8 @@ abstract class BilingualStudyTemplateController
     protected $biblePassage2;
     protected $bibleReference;
 
+    abstract protected function getBiblePassage($lesson, $languageModel);
+
     public function __construct(
         LanguageRepository $languageRepository,
         BibleRepository $bibleRepository,
@@ -50,6 +53,19 @@ abstract class BilingualStudyTemplateController
         $this->qrCodeService = $qrCodeService;
         $this->bibleBlockController = $bibleBlockController;
     }
+    // this will create a Language Object based on the languageCodeHl
+    public function setLanguages(string $languageCodeHL1, string $languageCodeHL2)
+    {
+        $this->language1 = $this->languageRepository->findOneLanguageByLanguageCodeHL($languageCodeHL1);
+        $this->language2 = $this->languageRepository->findOneLanguageByLanguageCodeHL($languageCodeHL2);
+    }
+    public function setLesson(string $lesson)
+    {
+        $this->lesson = $lesson;
+        $this->biblePassage1 = $this->getBiblePassage($this->lesson, $this->language1);
+        $this->biblePassage2 = $this->getBiblePassage($this->lesson, $this->language2);
+    }
+  
 
     protected function createBibleBlock(): void
     {

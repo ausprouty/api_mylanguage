@@ -122,7 +122,7 @@ class PassageSelectController
     {
         $languageCodeHL = $this->bible->getLanguageCodeHL();
         $language = new LanguageModel($this->languageRepository);
-        $language->findOneByLanguageCodeHL($languageCodeHL);
+        $language->findOneLanguageByLanguageCodeHL($languageCodeHL);
 
         $direction = $language->getDirection() ?: 'ltr';
         $this->updateDirectionInDatabase($languageCodeHL, $direction);

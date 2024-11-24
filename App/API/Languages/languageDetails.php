@@ -14,7 +14,5 @@ $language = new LanguageModel($languageRepository);
 
 $languageCodeHL = strip_tags($languageCodeHL);
 
-$data = $language->findOneByLanguageCodeHL( $languageCodeHL);
+$data = $language->findOneLanguageByLanguageCodeHL($languageCodeHL);
 ReturnDataController::returnData($data);
-
-
