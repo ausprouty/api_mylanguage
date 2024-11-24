@@ -1,22 +1,22 @@
-<div class="dbs">  
-    <h1 class="title dbs">{{ title }}</h1>
-    <p class="languages dbs">({{ language }} -- {{ language_translation }})</p>
+<div class="dbs {{ dir_language1 }}">  
+    <h1 class="title">{{ title }}</h1>
+    <p class="languages">({{ language }} -- {{ language_translation }})</p>
 
-    <h2 class="{{ dir_language1 }} dbs">{{ look_back }} &nbsp;--&nbsp; {{ look_back_translation }}</h2>
-    <ol class="{{ dir_language1 }} dbs">
-        <li class="{{ dir_language1 }} dbs">{{ thankful_question }}<br>{{ thankful_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ struggle_question }}<br>{{ struggle_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ group_checkin_question }}<br>{{ group_checkin_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ praise_and_pray_instruction }}<br>{{ praise_and_pray_instruction_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ practice_question }}<br>{{ practice_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ god_conversation_question }}<br>{{ god_conversation_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ community_needs_question }}<br>{{ community_needs_question_translation }}</li>
+    <h2>{{ look_back }} &nbsp;--&nbsp; {{ look_back_translation }}</h2>
+    <ol>
+        <li>{{ thankful_question }}<br>{{ thankful_question_translation }}</li>
+        <li>{{ struggle_question }}<br>{{ struggle_question_translation }}</li>
+        <li>{{ group_checkin_question }}<br>{{ group_checkin_question_translation }}</li>
+        <li>{{ praise_and_pray_instruction }}<br>{{ praise_and_pray_instruction_translation }}</li>
+        <li>{{ practice_question }}<br>{{ practice_question_translation }}</li>
+        <li>{{ god_conversation_question }}<br>{{ god_conversation_question_translation }}</li>
+        <li>{{ community_needs_question }}<br>{{ community_needs_question_translation }}</li>
     </ol>
 
-    <h2 class="{{ dir_language1 }} dbs">{{ look_up }} &nbsp;--&nbsp; {{ look_up_translation }}</h2>
-    <ol class="{{ dir_language1 }} dbs">
-        <li class="{{ dir_language1 }} dbs">{{ read_title_instruction }}<br>{{ read_title_instruction_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ read_passage_instruction }}<br>{{ read_passage_instruction_translation }}</li>
+    <h2>{{ look_up }} &nbsp;--&nbsp; {{ look_up_translation }}</h2>
+    <ol>
+        <li>{{ read_title_instruction }}<br>{{ read_title_instruction_translation }}</li>
+        <li>{{ read_passage_instruction }}<br>{{ read_passage_instruction_translation }}</li>
     </ol>
 
     <hr/>
@@ -24,26 +24,28 @@
     {{ video_block | raw }}
     <hr/>
 
-    <ol class="{{ dir_language1 }} dbs" start="3">
-        <li class="{{ dir_language1 }} dbs">{{ retell_instruction }}<br>{{ retell_instruction_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ addition_check }}<br>{{ addition_check_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ whole_story_instruction }}<br>{{ whole_story_instruction_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ about_god_question }}<br>{{ about_god_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ about_people_question }}<br>{{ about_people_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ title_relation_question }}<br>{{ title_relation_question_translation }}</li>
+    <ol start="3">
+        <li>{{ retell_instruction }}<br>{{ retell_instruction_translation }}</li>
+        <li>{{ addition_check }}<br>{{ addition_check_translation }}</li>
+        <li>{{ whole_story_instruction }}<br>{{ whole_story_instruction_translation }}</li>
+        <li>{{ about_god_question }}<br>{{ about_god_question_translation }}</li>
+        <li>{{ about_people_question }}<br>{{ about_people_question_translation }}</li>
+        <li>{{ title_relation_question }}<br>{{ title_relation_question_translation }}</li>
     </ol>
 
-    <h2 class="{{ dir_language1 }} dbs">{{ look_forward }} &nbsp;--&nbsp; {{ look_forward_translation }}</h2>
-    <ol class="{{ dir_language1 }} dbs" start="12">
-        <li class="{{ dir_language1 }} dbs">{{ scripture_application_question }}<br>{{ scripture_application_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ group_leadership_question }}<br>{{ group_leadership_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ sharing_question }}<br>{{ sharing_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ community_help_question }}<br>{{ community_help_question_translation }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ next_meeting_question }}<br>{{ next_meeting_question_translation }}</li>
+    <h2>{{ look_forward }} &nbsp;--&nbsp; {{ look_forward_translation }}</h2>
+    <ol start="12">
+        <li>{{ scripture_application_question }}<br>{{ scripture_application_question_translation }}</li>
+        <li>{{ group_leadership_question }}<br>{{ group_leadership_question_translation }}</li>
+        <li>{{ sharing_question }}<br>{{ sharing_question_translation }}</li>
+        <li>{{ community_help_question }}<br>{{ community_help_question_translation }}</li>
+        <li>{{ next_meeting_question }}<br>{{ next_meeting_question_translation }}</li>
     </ol>
 
     <hr>
     <img style="width:100%" src="https://api.mylanguage.net.au/Resources/images/PowerToChangeLogo.png" alt="Power to Change Logo">
-    <p style="font-family:arial">More outlines like this are available at <a href="https://hereslife.com/leadership">hereslife.com/leadership</a></p>
+    <p style="font-family:arial">More outlines like this are available at 
+        <a href="https://hereslife.com/leadership">hereslife.com/leadership</a>
+    </p>
     <p style="font-family:arial">&copy; 2023 Power To Change</p>
 </div>

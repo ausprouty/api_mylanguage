@@ -1,43 +1,43 @@
-<div class="dbs">  
-    <h1 class="title dbs">Life Principle: {{ title }}</h1>
-    <p class="languages dbs">({{ language }})</p>
+<div class="dbs {{ dir_language1 }}">  
+    <h1 class="title">Life Principle: {{ title }}</h1>
+    <p class="languages">({{ language }})</p>
 
-    <h2 class="{{ dir_language1 }} dbs">{{ look_back }}</h2>
-    <ol class="{{ dir_language1 }} dbs">
-        <li class="{{ dir_language1 }} dbs">{{ thankful_and_challenges_question }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ god_at_work_question }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ care_for_others_question }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ application_followup_question }}</li>
+    <h2>{{ look_back }}</h2>
+    <ol>
+        <li>{{ thankful_and_challenges_question }}</li>
+        <li>{{ god_at_work_question }}</li>
+        <li>{{ care_for_others_question }}</li>
+        <li>{{ application_followup_question }}</li>
     </ol>
 
-    <h2 class="{{ dir_language1 }} dbs">{{ look_up }}</h2>
-    <ul class="{{ dir_language1 }} dbs">
+    <h2>{{ look_up }}</h2>
+    <ul>
         <li>{{ read_passage_aloud_instruction }}</li>
     </ul>
 
     <hr/>
     <p class="bible_reference">{{ bible_reference }}</p>
     <div class="bible_text">{{ bible_block | raw }}</div>
-    <p class="{{ dir_language1 }} dbs link">
+    <p class="link">
         <a href="{{ url }}">{{ read_more }}</a>&nbsp;&nbsp;&nbsp;
-        <img src="{{ qr_code1 }}" width="100px">
+        <img src="{{ qr_code1 }}" width="100" alt="QR Code">
     </p>
     {{ video_block | raw }}
     <hr/>
 
-    <ol class="{{ dir_language1 }} dbs">
-        <li class="{{ dir_language1 }} dbs">{{ retell_with_help_instruction }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ missed_or_added_check }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ standout_question }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ insights_about_jesus_god_people_you_question }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ topic_sentence }}</li>
+    <ol>
+        <li>{{ retell_with_help_instruction }}</li>
+        <li>{{ missed_or_added_check }}</li>
+        <li>{{ standout_question }}</li>
+        <li>{{ insights_about_jesus_god_people_you_question }}</li>
+        <li>{{ topic_sentence }}</li>
     </ol>
 
-    <h2 class="{{ dir_language1 }} dbs">{{ look_forward }}</h2>
-    <ol class="{{ dir_language1 }} dbs">
-        <li class="{{ dir_language1 }} dbs">{{ life_difference_question }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ weekly_application_question }}</li>
-        <li class="{{ dir_language1 }} dbs">{{ sharing_question }}</li>
+    <h2>{{ look_forward }}</h2>
+    <ol>
+        <li>{{ life_difference_question }}</li>
+        <li>{{ weekly_application_question }}</li>
+        <li>{{ sharing_question }}</li>
     </ol>
 
     <hr>

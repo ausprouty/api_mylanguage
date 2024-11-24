@@ -1,9 +1,9 @@
-<div class="dbs">
-    <h1 class="title dbs">{{ Title }}</h1>
-    <p class="languages dbs">({{ language1 }} -- {{ language2 }})</p>
+<div class="dbs {{ dir_language1 }}">
+    <h1 class="title">{{ Title }}</h1>
+    <p class="languages">({{ language1 }} -- {{ language2 }})</p>
 
-    <h2 class="{{ dir_language1 }} dbs">{{ Look_Back }}&nbsp;--&nbsp;{{ Look_Back_alt }}</h2>
-    <ol class="{{ dir_language1 }} dbs">
+    <h2>{{ Look_Back }}&nbsp;--&nbsp;{{ Look_Back_alt }}</h2>
+    <ol>
         <li>{{ ThankfulQuestion }}<br>{{ ThankfulQuestion_alt }}</li>
         <li>{{ StruggleQuestion }}<br>{{ StruggleQuestion_alt }}</li>
         <li>{{ GroupProgressQuestion }}<br>{{ GroupProgressQuestion_alt }}</li>
@@ -13,8 +13,8 @@
         <li>{{ CommunityNeedsQuestion }}<br>{{ CommunityNeedsQuestion_alt }}</li>
     </ol>
 
-    <h2 class="{{ dir_language1 }} dbs">{{ Look_Up }}&nbsp;--&nbsp;{{ Look_Up_alt }}</h2>
-    <ol class="{{ dir_language1 }} dbs">
+    <h2>{{ Look_Up }}&nbsp;--&nbsp;{{ Look_Up_alt }}</h2>
+    <ol>
         <li>{{ DiscussionTitleQuestion }}<br>{{ DiscussionTitleQuestion_alt }}</li>
         <li>{{ PassageReadQuestion }}<br>{{ PassageReadQuestion_alt }}</li>
     </ol>
@@ -24,8 +24,8 @@
     {{ Video_Block | raw }}
     <hr/>
 
-    <ol class="{{ dir_language1 }} dbs" start="3">
-        <li value="7">{{ TellItQuestion }}<br>{{ TellItQuestion_alt }}</li>
+    <ol start="3">
+        <li>{{ TellItQuestion }}<br>{{ TellItQuestion_alt }}</li>
         <li>{{ AddOrLeaveOutQuestion }}<br>{{ AddOrLeaveOutQuestion_alt }}</li>
         <li>{{ StoryRecallQuestion }}<br>{{ StoryRecallQuestion_alt }}</li>
         <li>{{ PassageGodQuestion }}<br>{{ PassageGodQuestion_alt }}</li>
@@ -33,9 +33,9 @@
         <li>{{ PassageRelationQuestion }}<br>{{ PassageRelationQuestion_alt }}</li>
     </ol>
 
-    <h2 class="{{ dir_language1 }} dbs">{{ Look_Forward }}&nbsp;--&nbsp;{{ Look_Forward_alt }}</h2>
-    <ol class="{{ dir_language1 }} dbs">
-        <li value="12">{{ ScriptureApplicationQuestion }}<br>{{ ScriptureApplicationQuestion_alt }}</li>
+    <h2>{{ Look_Forward }}&nbsp;--&nbsp;{{ Look_Forward_alt }}</h2>
+    <ol start="12">
+        <li>{{ ScriptureApplicationQuestion }}<br>{{ ScriptureApplicationQuestion_alt }}</li>
         <li>{{ GroupLeadershipQuestion }}<br>{{ GroupLeadershipQuestion_alt }}</li>
         <li>{{ WhoTellQuestion }}<br>{{ WhoTellQuestion_alt }}</li>
         <li>{{ CommunityMeetQuestion }}<br>{{ CommunityMeetQuestion_alt }}</li>
@@ -43,6 +43,6 @@
     </ol>
     <hr>
 
-    <p style="font-family:arial">More outlines like this are available at hereslife.com/leadership</p>
-    <p style="font-family:arial">Copyright by Power To Change 2023</p>
+    <p style="font-family:arial">More outlines like this are available at <a href="https://hereslife.com/leadership">hereslife.com/leadership</a></p>
+    <p style="font-family:arial">&copy; 2023 Power To Change</p>
 </div>
