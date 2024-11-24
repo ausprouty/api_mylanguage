@@ -36,11 +36,13 @@ abstract class BilingualStudyTemplateController
     protected string $lesson;
     protected $language1;
     protected $language2;
+    protected $studyInfo;
     protected $biblePassage1;
     protected $biblePassage2;
     protected $bibleReference;
 
-    abstract protected function getBiblePassage($lesson, $languageModel);
+    //abstract protected function getBiblePassage($lesson, $languageModel);
+    abstract protected function getStudyReferenceInfo($lesson);
 
     public function __construct(
         LanguageRepository $languageRepository,
@@ -62,8 +64,9 @@ abstract class BilingualStudyTemplateController
     public function setLesson(string $lesson)
     {
         $this->lesson = $lesson;
-        $this->biblePassage1 = $this->getBiblePassage($this->lesson, $this->language1);
-        $this->biblePassage2 = $this->getBiblePassage($this->lesson, $this->language2);
+        $studyInfo = $this->getStudyReferenceInfo();
+        //$this->biblePassage1 = $this->getBiblePassage($this->lesson, $this->language1);
+        //$this->biblePassage2 = $this->getBiblePassage($this->lesson, $this->language2);
     }
   
 

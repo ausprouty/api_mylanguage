@@ -1,113 +1,161 @@
 <?php
 namespace App\Models\BibleStudy;
 
-class LifePrincipleReferenceModel {
-    private $lesson;
-    private $description;
-    private $reference;
-    private $testament;
-    private $question;
-    private $videoCode;
-    private $videoSegment;
-    private $startTime;
-    private $endTime;
+use ReflectionClass;
 
-    public function __construct($lesson = null, $reference = null, $description = null) {
-        $this->lesson = $lesson;
-        $this->reference = $reference;
-        $this->description = $description;
+class LifePrincipleReferenceModel
+{
+    protected int $lesson;
+    protected string $description;
+    protected string $description_twig_key;
+    protected string $reference;
+    protected string $testament;
+    protected string $passage_reference_info;
+    protected string $question;
+    protected string $question_twig_key;
+    protected ?string $videoCode = null;
+    protected int $videoSegment;
+    protected ?string $startTime = null;
+    protected ?string $endTime = null;
+
+    public function __construct()
+    {
     }
 
     // Getters
-    public function getLesson()
+    public function getLesson(): int
     {
         return $this->lesson;
     }
 
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function getReference()
+    public function getDescripttionTwigKey(): string
+    {
+        return $this->descripttion_twig_key;
+    }
+
+    public function getReference(): string
     {
         return $this->reference;
     }
 
-    public function getTestament()
+    public function getTestament(): string
     {
         return $this->testament;
     }
 
-    public function getQuestion()
+    public function getPassageReferenceInfo(): string
+    {
+        return $this->passage_reference_info;
+    }
+
+    public function getQuestion(): string
     {
         return $this->question;
     }
 
-    public function getVideoCode()
+    public function getQuestionTwigKey(): string
+    {
+        return $this->question_twig_key;
+    }
+
+    public function getVideoCode(): ?string
     {
         return $this->videoCode;
     }
 
-    public function getVideoSegment()
+    public function getVideoSegment(): int
     {
         return $this->videoSegment;
     }
 
-    public function getStartTime()
+    public function getStartTime(): ?string
     {
         return $this->startTime;
     }
 
-    public function getEndTime()
+    public function getEndTime(): ?string
     {
         return $this->endTime;
     }
 
     // Setters
-    public function setLesson($lesson)
+    public function setLesson(int $lesson): void
     {
         $this->lesson = $lesson;
     }
 
-    public function setDescription($description)
+    public function setDescription(string $description): void
     {
         $this->description = $description;
     }
 
-    public function setReference($reference)
+    public function setDescriptionTwigKey(string $descripttion_twig_key): void
+    {
+        $this->descripttion_twig_key = $descripttion_twig_key;
+    }
+
+    public function setReference(string $reference): void
     {
         $this->reference = $reference;
     }
 
-    public function setTestament($testament)
+    public function setTestament(string $testament): void
     {
         $this->testament = $testament;
     }
 
-    public function setQuestion($question)
+    public function setPassageReferenceInfo(string $passage_reference_info): void
+    {
+        $this->passage_reference_info = $passage_reference_info;
+    }
+
+    public function setQuestion(string $question): void
     {
         $this->question = $question;
     }
 
-    public function setVideoCode($videoCode)
+    public function setQuestionTwigKey(string $question_twig_key): void
+    {
+        $this->question_twig_key = $question_twig_key;
+    }
+
+    public function setVideoCode(?string $videoCode): void
     {
         $this->videoCode = $videoCode;
     }
 
-    public function setVideoSegment($videoSegment)
+    public function setVideoSegment(int $videoSegment): void
     {
         $this->videoSegment = $videoSegment;
     }
 
-    public function setStartTime($startTime)
+    public function setStartTime(?string $startTime): void
     {
         $this->startTime = $startTime;
     }
 
-    public function setEndTime($endTime)
+    public function setEndTime(?string $endTime): void
     {
         $this->endTime = $endTime;
+    }
+
+    /**
+     * Returns all properties as an associative array.
+     */
+    public function getProperties(): array
+    {
+        $reflection = new ReflectionClass($this);
+        $propsArray = [];
+        foreach ($reflection->getProperties() as $property) {
+            $property->setAccessible(true);
+            $propsArray[$property->getName()] = $property->getValue($this);
+        }
+        return $propsArray;
     }
 }
 ?>

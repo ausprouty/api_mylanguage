@@ -43,7 +43,7 @@ class BilingualDbsTemplateController extends BilingualStudyTemplateController
      * @return DbsReferenceModel The study reference information for the DBS study.
      */
     protected function getStudyReferenceInfo(string $lesson): DbsReferenceModel {
-        $studyReferenceInfo = new DbsReferenceModel();
+        $factory = new DbsReferenceFactory($databaseService);
         $studyReferenceInfo->setLesson($lesson);
         return $studyReferenceInfo;
     }

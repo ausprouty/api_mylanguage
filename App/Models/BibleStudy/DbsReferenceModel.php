@@ -1,78 +1,81 @@
 <?php
 namespace App\Models\BibleStudy;
+
 use ReflectionClass;
 
-class DbsReferenceModel {
-    protected $lesson;
-    protected $reference;
-    protected $testament;
-    protected $passage_reference_info;
-    protected $description;
-    protected $twig_key;
+class DbsReferenceModel
+{
+    protected int $lesson;
+    protected string $description;
+    protected string $description_twig_key;
+    protected string $reference;
+    protected string $testament;
+    protected string $passage_reference_info;
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
     // Getters
-    public function getDescription()
-    {
-        return $this->description;
-    }
-
-    public function getLesson()
+    public function getLesson(): int
     {
         return $this->lesson;
     }
 
-    public function getPassageReferenceInfo()
+    public function getDescription(): string
     {
-        return $this->passage_reference_info;
+        return $this->description;
     }
 
-    public function getReference()
+    public function getDescriptionTwigKey(): string
+    {
+        return $this->description_twig_key;
+    }
+
+    public function getReference(): string
     {
         return $this->reference;
     }
 
-    public function getTestament()
+    public function getTestament(): string
     {
         return $this->testament;
     }
 
-    public function getTwigKey()
+    public function getPassageReferenceInfo(): string
     {
-        return $this->twig_key;
+        return $this->passage_reference_info;
     }
 
     // Setters
-    public function setDescription($description)
-    {
-        $this->description = $description;
-    }
-
-    public function setLesson($lesson)
+    public function setLesson(int $lesson): void
     {
         $this->lesson = $lesson;
     }
 
-    public function setPassageReferenceInfo($passage_reference_info)
+    public function setDescription(string $description): void
     {
-        $this->passage_reference_info = $passage_reference_info;
+        $this->description = $description;
     }
 
-    public function setReference($reference)
+    public function setDescriptionTwigKey(string $description_twig_key): void
+    {
+        $this->description_twig_key = $description_twig_key;
+    }
+
+    public function setReference(string $reference): void
     {
         $this->reference = $reference;
     }
 
-    public function setTestament($testament)
+    public function setTestament(string $testament): void
     {
         $this->testament = $testament;
     }
 
-    public function setTwigKey($twig_key)
+    public function setPassageReferenceInfo(string $passage_reference_info): void
     {
-        $this->twig_key = $twig_key;
+        $this->passage_reference_info = $passage_reference_info;
     }
 
     /**
