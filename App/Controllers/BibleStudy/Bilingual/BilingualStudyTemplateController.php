@@ -12,6 +12,7 @@ use App\Configuration\Config;
 use App\Models\Language\LanguageModel;
 use App\Services\Database\DatabaseService;
 use App\Factories\BibleStudyReferenceFactory;
+use App\Factories\BibleModelFactory;
 
 /**
  * Class BilingualStudyTemplateController
@@ -35,6 +36,7 @@ abstract class BilingualStudyTemplateController
     protected BibleStudyReferenceFactory $bibleStudyReferenceFactory;
     protected QrCodeGeneratorService $qrCodeService;
     protected BibleBlockController $bibleBlockController;
+    protected BibleModelFactory  $bibleModelFactory;
     protected string $fileName;
     protected string $bibleBlock;
     protected string $qrcode1;
@@ -43,6 +45,8 @@ abstract class BilingualStudyTemplateController
     protected $language1;
     protected $language2;
     protected $studyReferenceInfo;
+    protected $bible1;
+    protected $bible2;
     protected $biblePassage1;
     protected $biblePassage2;
     protected $bibleReference;
@@ -65,6 +69,7 @@ abstract class BilingualStudyTemplateController
         $this->bibleStudyReferenceFactory = $bibleStudyReferenceFactory;
         $this->languageRepository = $languageRepository;
         $this->qrCodeService = $qrCodeService;
+        $this->bibleModelFactory = new BibleModelFactory($this->bibleRepository);
     }
     // this will create a Language Object based on the languageCodeHl
     public function setLanguages(string $languageCodeHL1, string $languageCodeHL2)
@@ -79,7 +84,7 @@ abstract class BilingualStudyTemplateController
             print_r($this->language2->getProperties());
             print_r ("<br><br><br>");
             flush();
-        }
+    }
     public function setLesson(string $lesson)
     {
         $this->lesson = $lesson;
@@ -87,6 +92,19 @@ abstract class BilingualStudyTemplateController
         print_r($this->studyReferenceInfo->getProperties());
         print_r ("<br><br><br>");
         flush();
+    }
+    public function setBibles(){
+        $this->bible1 = $this->getBible($this->language1->getLanguageCodeHl());
+        print_r($this->bible1->getProperties());
+        print_r ("<br><br><br>");
+        flush();
+        $this->bible2 = $this->getBible($this->language2->getLanguageCodeHl());
+        print_r($this->bible2->getProperties());
+        print_r ("<br><br><br>");
+        flush();
+    }
+    public function getBible($languageCodeHL){ 
+        return $this->bibleModelFactory->createFromLanguageCodeHL($languageCodeHL);
     }
     public function setBiblePassages(){
         $this->biblePassage1 = $this->getBiblePassage($this->studyReferenceInfo, $this->language1);

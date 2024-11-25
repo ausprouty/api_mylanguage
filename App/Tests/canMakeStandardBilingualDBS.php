@@ -37,6 +37,7 @@ $lesson = 3;
 
 $templateController->setLanguages($lang1, $lang2);
 $templateController->setLesson($lesson);
+$templateController->setBibles();
 
 // Display the output
 echo 'You should see a Bilingual Bible study for English and French Lesson 3<hr>';

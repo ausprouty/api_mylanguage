@@ -23,26 +23,20 @@ class BibleStudyReferenceFactory
      * Creates a DbsReferenceModel and populates it with provided data.
      */
     public function createDbsReferenceModel($lesson): DbsReferenceModel
-   
     {
-        $model = new DbsReferenceModel();
         $query = 'SELECT * FROM dbs_references WHERE lesson = :lesson';
         $params = [':lesson' => $lesson];
-
         $result = $this->databaseService->fetchRow($query, $params);
-
         if (!$result) {
             throw new \Exception("No record found for lesson: $lesson");
         }
-
-        // Populate the model
-        $model->setLesson($result['lesson']);
-        $model->setDescription($result['description']);
-        $model->setDescriptionTwigKey($result['description_twig_key']);
-        $model->setReference($result['reference']);
-        $model->setTestament($result['testament']);
-        $model->setPassageReferenceInfo($result['passage_reference_info']);
-
+        $model = new DbsReferenceModel(
+            $result['lesson'],
+            $result['description'],
+            $result['description_twig_key'],
+            $result['reference'],
+            $result['testament'],
+            $result['passage_reference_info']);
         return $model;
     }
 

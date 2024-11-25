@@ -47,6 +47,10 @@ class BilingualDbsTemplateController extends BilingualStudyTemplateController
         $this->bibleStudyReferenceFactory->createDbsReferenceModel($this->lesson);
         return $studyReferenceModel;
     }
+    // I am not sure i need this.
+    protected function getBiblePassageReferenceInfo(){
+
+    }
 
     /**
      * Specifies the translation source for DBS templates.
@@ -67,7 +71,5 @@ class BilingualDbsTemplateController extends BilingualStudyTemplateController
 
 
 
-    protected function getBiblePassage($lesson, $languageModel){
-        
-    }
+    
 }

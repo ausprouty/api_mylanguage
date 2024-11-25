@@ -36,7 +36,7 @@ class BibleModelFactory
     /**
      * Creates a BibleModel populated from a language code.
      */
-    public function createFromLanguageCode(string $languageCodeHL): BibleModel
+    public function createFromLanguageCodeHL(string $languageCodeHL): BibleModel
     {
         $model = new BibleModel($this->repository);
         $data = $this->repository->findBestBibleByLanguageCodeHL($languageCodeHL);
