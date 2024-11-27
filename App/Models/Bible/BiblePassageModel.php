@@ -73,6 +73,7 @@ class BiblePassageModel
             $passage->getVerseEnd();
     }
 
+     
     /**
      * Gets the date when the passage was last checked.
      *
