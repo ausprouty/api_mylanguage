@@ -3,7 +3,7 @@
 use App\Controllers\ReturnDataController;
 use App\Controllers\BiblePassage\PassageSelectController;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 use App\Repositories\BibleRepository;
 use App\Services\Database\DatabaseService;
 use App\Factories\BibleModelFactory;
@@ -16,7 +16,7 @@ $entry = strip_tags($_POST['entry']);
 
 $factory = new BibleModelFactory($bibleRepository);
 $bibleModel = $factory->createFromBid($bid);
-$bibleReference = new BibleReferenceModel();
+$bibleReference = new PassageReferenceModel();
 $bibleReference->setFromEntry($entry);
 
 $passage = new PassageSelectController($bibleReference, $bible);

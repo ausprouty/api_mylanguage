@@ -3,7 +3,7 @@
 use App\Controllers\ReturnDataController;
 use App\Controllers\BiblePassage\PassageSelectController;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 use App\Services\Database\DatabaseService;
 use App\Repositories\BibleRepository;
 
@@ -18,7 +18,7 @@ $entry = 'Genesis 2:4-25';
 $bible = new BibleModel($bibleRepository);
 $bible->selectBibleByBid($bid);
 
-$bibleReference = new BibleReferenceModel($databaseService);
+$bibleReference = new PassageReferenceModel($databaseService);
 $bibleReference->setFromEntry($entry);
 
 $passage = new PassageSelectController($databaseService, $bibleReference, $bible);

@@ -2,9 +2,9 @@
 
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController;
 use App\Factories\BibleModelFactory;
-use App\Factories\BibleReferenceModelFactory;
+use App\Factories\PassageReferenceModelFactory;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 use App\Repositories\BibleReferenceRepository;
 use App\Repositories\BibleRepository;
 use App\Services\Bible\BibleBrainPassageService;
@@ -33,12 +33,12 @@ if (!$bible) {
     die("Sorry, the requested Bible could not be found.");
 }
 
-// Create a BibleReferenceModel from the factory
+// Create a PassageReferenceModel from the factory
 $bibleReferenceRepository = new BibleReferenceRepository($databaseService);
-$bibleReferenceModelFactory = new BibleReferenceModelFactory(
+$passageReferenceModelFactory = new PassageReferenceModelFactory(
     $bibleReferenceRepository
 );
-$bibleReference = $bibleReferenceModelFactory->createFromEntry('Luke 1:1-6');
+$bibleReference = $passageReferenceModelFactory->createFromEntry('Luke 1:1-6');
 
 // Initialize the BibleBrainPassageService
 $bibleBrainPassageService = new BibleBrainPassageService(

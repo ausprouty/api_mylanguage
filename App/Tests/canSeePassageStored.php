@@ -1,17 +1,22 @@
 <?php
 
 use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BibleReferenceModel as BibleReferenceModel;
-use App\Repositories\BibleRepository;
+use App\Models\Bible\PassageReferenceModel as PassageReferenceModel;
+use App\Repositories\BibleReferenceRepository;
+use App\Factories\PassageReferenceModelFactory;
 use App\Services\Database\DatabaseService;
 
 $databaseService = new DatabaseService();
-$bibleRepository = new BibleRepository($databaseService);
-$bible = new BibleModel($bibleRepository);
-$bible->selectBibleByBid(1026);
+$bibleRepository = new BibleReferenceRepository($databaseService);
 
-$passage = new BibleReferenceModel();
-$passage->setFromPassage('Luke 1:1-80');
-$text = new PassageSelectController($passage, $bible);
+
+$passageFactory = new PassageReferenceModelFactory($bibleRerferenceRepository);
+$passageFactory->setFromPassage('Luke 1:1-80');
+$passage = $passageFactory->getProperties();
+
+$bibleReferenceRepository = new BibleReferenceRepository($databaseService);
+$bibleFactory = new BibleModelFactory($bibleRepository);
+$bibleFactory->setFromBid(1259);
+$bibleFactory->getProperites();
 print_r($text->passageText);
 //1026-Luke-1-1-80

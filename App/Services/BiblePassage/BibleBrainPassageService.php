@@ -4,7 +4,7 @@ namespace App\Services\BiblePassage;
 
 use App\Services\Web\BibleBrainConnectionService;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 
 class BibleBrainPassageService
 {
@@ -14,7 +14,7 @@ class BibleBrainPassageService
 
     public function __construct(
         BibleModel $bible,
-        BibleReferenceModel $bibleReference
+        PassageReferenceModel $bibleReference
     ) {
         $this->bible = $bible;
         $this->bibleReference = $bibleReference;
@@ -32,7 +32,7 @@ class BibleBrainPassageService
         $url .= '/' . $this->bibleReference->getBookID() . '/' . $this->bibleReference->getChapterStart();
         $url .= '?verse_start=' . $this->bibleReference->getVerseStart() . '&verse_end=' . $this->bibleReference->getVerseEnd();
         echo '<pre>';
-        var_export ($url);
+        var_export($url);
         echo '</pre>';
         $passage = new BibleBrainConnectionService($url);
         $this->response = $passage->response;

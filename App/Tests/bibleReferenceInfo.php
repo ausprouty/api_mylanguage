@@ -1,14 +1,14 @@
 <?php
 
-use App\Models\Bible\BibleReferenceModel as BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel as PassageReferenceModel;
 use App\Repositories\BibleReferenceRepository;
 use App\Services\Database\DatabaseService;
-use App\Factories\BibleReferenceModelFactory;
+use App\Factories\PassageReferenceModelFactory;
 
 
 $database = new DatabaseService();
 $respository = new BibleReferenceRepository($database);
-$factory = new BibleReferenceModelFactory($respository);
+$factory = new PassageReferenceModelFactory($respository);
 
 
 $passage = 'John 3:16-40';

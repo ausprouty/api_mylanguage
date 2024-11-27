@@ -9,7 +9,7 @@ use App\Services\BiblePassage\BibleWordPassageService;
 use App\Services\Database\DatabaseService;
 
 use App\Models\BibleModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 
 class BiblePassageService
 {
@@ -24,7 +24,7 @@ class BiblePassageService
         $this->databaseService = $databaseService;
     }
 
-    public function getPassage( BiblePassageModel $bible, BibleReferenceModel $passage)
+    public function getPassage( BibleModel $bible, PassageReferenceModel $passage)
 
     private function checkDatabase()
     {

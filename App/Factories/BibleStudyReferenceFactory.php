@@ -8,7 +8,7 @@ use App\Models\BibleStudy\LifePrincipleReferenceModel;
 use App\Services\Database\DatabaseService;
 
 /**
- * Factory for creating and populating Three BibleReferenceModel instances.
+ * Factory for creating and populating Three PassageReferenceModel instances.
  */
 class BibleStudyReferenceFactory
 {
@@ -36,7 +36,8 @@ class BibleStudyReferenceFactory
             $result['description_twig_key'],
             $result['reference'],
             $result['testament'],
-            $result['passage_reference_info']);
+            $result['passage_reference_info']
+        );
         return $model;
     }
 
@@ -102,4 +103,3 @@ class BibleStudyReferenceFactory
         return $model;
     }
 }
-

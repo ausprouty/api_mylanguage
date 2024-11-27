@@ -6,7 +6,7 @@ use App\Services\Bible\PassageFormatterService;
 use App\Services\Web\BibleBrainConnectionService;
 use App\Repositories\BibleReferenceRepository;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 
 class BibleBrainTextPlainController
 {
@@ -24,7 +24,7 @@ class BibleBrainTextPlainController
 
     public function fetchPassageData(
         BibleModel $bible,
-        BibleReferenceModel $bibleReference
+        PassageReferenceModel $bibleReference
     ) {
         $url = sprintf(
             '/bibles/filesets/%s/%s/%s/?verse_start=%s&verse_end=%s',

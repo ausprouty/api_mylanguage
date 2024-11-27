@@ -5,7 +5,7 @@ use App\Controllers\BibleStudy\BibleBlockController;
 use App\Factories\BibleStudyReferenceFactory;
 use App\Factories\LanguageModelFactory;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 use App\Models\BibleStudy\DbsReferenceModel;
 use App\Repositories\BibleRepository;
 use App\Repositories\LanguageRepository;

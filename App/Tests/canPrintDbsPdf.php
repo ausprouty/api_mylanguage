@@ -3,7 +3,7 @@
 // Create an instance of the class:
 
 use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BibleReferenceModel as BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel as PassageReferenceModel;
 use App\Models\BibleStudy\DbsReferenceModel as DbsReferenceModel;
 use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController as BilingualDbsTemplateController;
 use Vendor\Mpdf\Mpdf as Mpdf;

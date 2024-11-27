@@ -5,7 +5,7 @@ namespace App\Models\Bible;
 /**
  * Represents a Bible Passage model with related data and methods.
  */
-class BiblePassageModel
+class StoredBiblePassageModel
 {
     /**
      * @var string The Bible passage ID.
@@ -60,12 +60,12 @@ class BiblePassageModel
      * Creates a Bible passage ID from a Bible ID and reference model.
      *
      * @param string $bid The Bible ID.
-     * @param BibleReferenceModel $passage The Bible reference model.
+     * @param PassageReferenceModel $passage The Bible reference model.
      * @return string The generated Bible passage ID.
      */
     public static function createBiblePassageId(
         string $bid,
-        BibleReferenceModel $passage
+        PassageReferenceModel $passage
     ): string {
         return $bid . '-' . $passage->getBookID() . '-' .
             $passage->getChapterStart() . '-' .
@@ -73,7 +73,7 @@ class BiblePassageModel
             $passage->getVerseEnd();
     }
 
-     
+
     /**
      * Gets the date when the passage was last checked.
      *

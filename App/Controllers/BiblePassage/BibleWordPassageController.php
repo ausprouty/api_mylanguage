@@ -5,7 +5,7 @@ namespace App\Controllers\BiblePassage;
 use App\Configuration\Config;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\BiblePassageModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 use App\Repositories\BiblePassageRepository;
 use App\Services\LoggerService;
 use App\Services\Web\BibleWordConnectionService;
@@ -19,12 +19,12 @@ class BibleWordPassageController
     /**
      * Constructor to initialize dependencies.
      *
-     * @param BibleReferenceModel $bibleReference
+     * @param PassageReferenceModel $bibleReference
      * @param BibleModel $bible
      * @param BiblePassageRepository $biblePassageRepository
      */
     public function __construct(
-        BibleReferenceModel $bibleReference,
+        PassageReferenceModel $bibleReference,
         BibleModel $bible,
         BiblePassageRepository $biblePassageRepository
     ) {

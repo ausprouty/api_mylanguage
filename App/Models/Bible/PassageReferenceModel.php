@@ -7,7 +7,7 @@ use ReflectionClass;
 /**
  * Represents Bible reference information.
  */
-class BibleReferenceModel
+class PassageReferenceModel
 {
     private $entry;
     private $languageCodeHL;

@@ -3,7 +3,7 @@
 namespace App\Controllers\BiblePassage\BibleGateway;
 
 use App\Models\Bible\BiblePassageModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 use App\Models\Bible\BibleModel;
 use App\Repositories\BiblePassageRepository;
 use App\Services\Web\BibleGatewayConnectionService;
@@ -21,7 +21,7 @@ class BibleGatewayPassageController
     private $bible;
 
     public function __construct(
-        BibleReferenceModel $bibleReference,
+        PassageReferenceModel $bibleReference,
         BibleModel $bible,
         BiblePassageRepository $biblePassageRepository,
     ) {

@@ -8,7 +8,7 @@ use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController;
 use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\BiblePassageModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 use App\Services\Database\DatabaseService;
 use App\Models\Language\LanguageModel;
 use App\Repositories\LanguageRepository;
@@ -26,7 +26,7 @@ class PassageSelectController
 
     public function __construct(
         DatabaseService $databaseService,
-        BibleReferenceModel $bibleReference,
+        PassageReferenceModel $bibleReference,
         BibleModel $bible,
         LanguageRepository $languageRepository
     ) {

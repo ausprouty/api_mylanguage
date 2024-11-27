@@ -3,7 +3,7 @@
 namespace App\Services\BiblePassage;
 
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel;
 use App\Services\Database\DatabaseService;
 
 /**
@@ -18,7 +18,7 @@ class YouVersionPassageService
     private $databaseService;
 
     /**
-     * @var BibleReferenceModel Provides details about the Bible passage reference.
+     * @var PassageReferenceModel Provides details about the Bible passage reference.
      */
     private $bibleReference;
 
@@ -31,12 +31,12 @@ class YouVersionPassageService
      * Constructor for YouVersionPassageService.
      *
      * @param DatabaseService $databaseService Service for database queries.
-     * @param BibleReferenceModel $bibleReference Provides Bible reference data.
+     * @param PassageReferenceModel $bibleReference Provides Bible reference data.
      * @param BibleModel $bible Represents Bible-specific metadata.
      */
     public function __construct(
         DatabaseService $databaseService,
-        BibleReferenceModel $bibleReference,
+        PassageReferenceModel $bibleReference,
         BibleModel $bible
     ) {
         $this->databaseService = $databaseService;
@@ -45,37 +45,37 @@ class YouVersionPassageService
     }
 
     /**
- * Generates the URL for the requested Bible passage on YouVersion.
- *
- * The external ID is a string that may contain a placeholder `%`. For example:
- * `71/%.hau`. This placeholder is replaced with `$bibleBookAndChapter`, which
- * is dynamically constructed using the book ID, chapter, and verse details.
- * 
- * The generated URL is structured as:
- * `https://www.bible.com/bible/{formattedExternalId}`
- *
- * @return string The fully constructed passage URL.
- */
-public function getPassageUrl(): string
-{
-    // Retrieve the book ID for YouVersion
-    $uversionBibleBookID = $this->bibleReference->getUversionBookID();
+     * Generates the URL for the requested Bible passage on YouVersion.
+     *
+     * The external ID is a string that may contain a placeholder `%`. For example:
+     * `71/%.hau`. This placeholder is replaced with `$bibleBookAndChapter`, which
+     * is dynamically constructed using the book ID, chapter, and verse details.
+     * 
+     * The generated URL is structured as:
+     * `https://www.bible.com/bible/{formattedExternalId}`
+     *
+     * @return string The fully constructed passage URL.
+     */
+    public function getPassageUrl(): string
+    {
+        // Retrieve the book ID for YouVersion
+        $uversionBibleBookID = $this->bibleReference->getUversionBookID();
 
-    // Construct the Bible book, chapter, and verse details
-    $bibleBookAndChapter = "{$uversionBibleBookID}." .
-        "{$this->bibleReference->getChapterStart()}." .
-        "{$this->bibleReference->getVerseStart()}-" .
-        "{$this->bibleReference->getVerseEnd()}";
+        // Construct the Bible book, chapter, and verse details
+        $bibleBookAndChapter = "{$uversionBibleBookID}." .
+            "{$this->bibleReference->getChapterStart()}." .
+            "{$this->bibleReference->getVerseStart()}-" .
+            "{$this->bibleReference->getVerseEnd()}";
 
-    // Replace the `%` placeholder in the external ID with the constructed value
-    $formatted = str_replace('%', $bibleBookAndChapter, $this->bible->getExternalId());
+        // Replace the `%` placeholder in the external ID with the constructed value
+        $formatted = str_replace('%', $bibleBookAndChapter, $this->bible->getExternalId());
 
-    // Construct the final YouVersion passage URL
-    $output = 'https://www.bible.com/bible/' . $formatted;
+        // Construct the final YouVersion passage URL
+        $output = 'https://www.bible.com/bible/' . $formatted;
 
-    // Return the final URL
-    return $output;
-}
+        // Return the final URL
+        return $output;
+    }
 
 
     /**

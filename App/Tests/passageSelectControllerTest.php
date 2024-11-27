@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\BibleReferenceModel as BibleReferenceModel;
+use App\Models\Bible\PassageReferenceModel as PassageReferenceModel;
 use App\Controllers\BiblePassage\PassageSelectController as PassageSelectController;
 use App\Repositories\BibleRepository;
 use App\Services\Database\DatabaseService;
@@ -13,7 +13,7 @@ $code = 'eng00';
 $entry = 'John 3:16-18';
 $bibleInfo = new BibleModel($bibleRepository);
 $bibleInfo->getBestBibleByLanguageCodeHL($code);
-$referenceInfo = new BibleReferenceModel();
+$referenceInfo = new PassageReferenceModel();
 $referenceInfo->setFromEntry($entry);
 $passage = new PassageSelectController($referenceInfo, $bibleInfo);
 echo ('YOu should see the URL and text of John 3:16-18 below<hr>');

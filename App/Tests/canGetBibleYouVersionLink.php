@@ -1,6 +1,7 @@
 <?php
+
 use App\Factories\BibleModelFactory;
-use App\Factories\BibleReferenceModelFactory;
+use App\Factories\PassageReferenceModelFactory;
 use App\Models\Bible\BiblePassageModel;
 use App\Repositories\BibleReferenceRepository;
 use App\Repositories\BibleRepository;
@@ -30,16 +31,16 @@ if (!$bible) {
     die("Sorry, the requested Bible could not be found.");
 }
 
-// Create a BibleReferenceModel from the factory
+// Create a PassageReferenceModel from the factory
 $bibleReferenceRepository = new BibleReferenceRepository($databaseService);
-$bibleReferenceModelFactory = new BibleReferenceModelFactory($bibleReferenceRepository);
+$passageReferenceModelFactory = new PassageReferenceModelFactory($bibleReferenceRepository);
 
-// Create a BibleReferenceModel for the passage Luke 1:1-6
-$bibleReference = $bibleReferenceModelFactory->createFromEntry('Luke 1:1-6');
+// Create a PassageReferenceModel for the passage Luke 1:1-6
+$bibleReference = $passageReferenceModelFactory->createFromEntry('Luke 1:1-6');
 
-$youVersionPassageService = new YouVersionPassageService($databaseService, $bibleReference, $bible);        
+$youVersionPassageService = new YouVersionPassageService($databaseService, $bibleReference, $bible);
 $url = $youVersionPassageService->getPassageUrl();
 echo ("You should see a link to the passage at Bible.com for the Littafi Mai Tsarki  version of Luke 1:1-6<hr>");
-$output = '<a href="' . $url . '">Link to Luke 1:1-6</a>'; 
+$output = '<a href="' . $url . '">Link to Luke 1:1-6</a>';
 echo ($url);
-echo ('<br>'. $output);
+echo ('<br>' . $output);
