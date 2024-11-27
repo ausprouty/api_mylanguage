@@ -83,6 +83,10 @@ class PassageReferenceModel
     {
         return $this->languageCodeIso;
     }
+    public function getPassageID()
+    {
+        return $this->passageID;
+    }
     public function getTestament()
     {
         return $this->testament;

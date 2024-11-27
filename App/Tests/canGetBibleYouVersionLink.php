@@ -2,7 +2,7 @@
 
 use App\Factories\BibleModelFactory;
 use App\Factories\PassageReferenceModelFactory;
-use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\PassageModel;
 use App\Repositories\BibleReferenceRepository;
 use App\Repositories\BibleRepository;
 use App\Repositories\BiblePassageRepository;

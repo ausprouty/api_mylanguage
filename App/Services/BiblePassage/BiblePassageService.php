@@ -7,40 +7,63 @@ use App\Services\BiblePassage\BibleGatewayPassageService;
 use App\Services\BiblePassage\YouVersionPassageService;
 use App\Services\BiblePassage\BibleWordPassageService;
 use App\Services\Database\DatabaseService;
+use App\Models\PassageModel;
+use App\Factories\PassageModelFactory;
 
-use App\Models\BibleModel;
+use App\Models\Bible\BibleModel;
 use App\Models\Bible\PassageReferenceModel;
 
 class BiblePassageService
 {
 
     private $databaseService;
-  
+    private $bible;
+    private $passageReference;
+
 
     public function __construct(
         DatabaseService $databaseService,
-        
+
     ) {
         $this->databaseService = $databaseService;
     }
 
-    public function getPassage( BibleModel $bible, PassageReferenceModel $passage)
+    public function getPassage(BibleModel $bible, PassageReferenceModel $passageReference)
+    {
+        $this->bible = $bible;
+        $this->passageReference = $passageReference;
+        $this->checkDatabase();
+    }
 
     private function checkDatabase()
     {
-        $this->passageId = BiblePassageModel::createBiblePassageId($this->bible->getBid(), $this->bibleReference);
-        $passage = new BiblePassageModel();
-        $passage->findStoredById($this->passageId);
-
-        if ($passage->getReferenceLocalLanguage()) {
-            $this->passageText = $passage->getPassageText();
-            $this->passageUrl = $passage->getPassageUrl();
-            $this->referenceLocalLanguage = $passage->getReferenceLocalLanguage();
+        $bpid = $this->bible->getBid() . '-' . $this->passageReference->getPassageID();
+        $query = 'SELECT * FROM bible_passages WHERE bpid = :bpid';
+        $params = array(':bpid' => $bpid);
+        $data = $this->databaseService->fetchRow($query, $params);
+        if ($data) {
+            $this->retrieveStoredData($data);
         } else {
             $this->retrieveExternalPassage();
         }
+    }
 
-        $this->applyTextDirection();
+    private function retrieveStoredData($data)
+    {
+        $passageFactory = new PassageModelFactory();
+        $passage =  $passageFactory::createFromData($data);
+        $this->updateUseage($passage);
+        $output = $passage->getProperties();
+    }
+    private function updateUseage(PassageModel $passage): bool
+    {
+        // Update dateLastUsed to the current timestamp
+        $passage->setDateLastUsed(date('Y-m-d H:i:s'));
+        // Increment timesUsed by 1
+        $passage->setTimesUsed($passage->getTimesUsed() + 1);
+
+        // Save changes (example: calling a repository or database method)
+        return $this->passageRepository->save($passage);
     }
 
     private function retrieveExternalPassage()
@@ -67,11 +90,6 @@ class BiblePassageService
         $this->passageUrl = $passage->getPassageUrl();
         $this->referenceLocalLanguage = $passage->getReferenceLocalLanguage();
 
-        BiblePassageModel::savePassageRecord($this->passageId, $this->referenceLocalLanguage, $this->passageText, $this->passageUrl);
+        PassageModel::savePassageRecord($this->passageId, $this->referenceLocalLanguage, $this->passageText, $this->passageUrl);
     }
-
-    
-
 }
-
-    

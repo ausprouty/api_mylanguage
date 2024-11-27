@@ -4,7 +4,7 @@ namespace App\Controllers\BiblePassage;
 
 use App\Configuration\Config;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\PassageModel;
 use App\Models\Bible\PassageReferenceModel;
 use App\Repositories\BiblePassageRepository;
 use App\Services\LoggerService;
@@ -126,11 +126,11 @@ class BibleWordPassageController
     /**
      * Fetches content from an external source using a web service.
      *
-     * @return BiblePassageModel The Bible passage model with data.
+     * @return PassageModel The Bible passage model with data.
      */
     public function fetchFromWeb()
     {
-        $biblePassageModel = new BiblePassageModel();
+        $passageModel = new PassageModel();
         $endpoint = $this->bible->getExternalId() . '/'
             . $this->formatChapterPage() . '.htm';
 
@@ -138,42 +138,42 @@ class BibleWordPassageController
 
         if (!$webpage->response) {
             LoggerService::logError('Failed to fetch Bible passage from WordProject.');
-            return $biblePassageModel;
+            return $passageModel;
         }
         $text = $this->trimToVerses($webpage->response);
         if (!$text) {
             LoggerService::logError('Unable to extract Bible Word Text.');
-            return $biblePassageModel;
+            return $passageModel;
         }
-        $biblePassageModel->setPassageText($text);
-        $biblePassageModel->setReferenceLocalLanguage(
+        $passageModel->setPassageText($text);
+        $passageModel->setReferenceLocalLanguage(
             $this->extractReferenceLanguage($webpage->response)
         );
 
 
-        return $biblePassageModel;
+        return $passageModel;
     }
 
     /**
      * Fetches content from a local server file.
      *
-     * @return BiblePassageModel The Bible passage model with data.
+     * @return PassageModel The Bible passage model with data.
      */
     public function fetchFromServerFile()
     {
         $filePath = $this->generateFilePath();
         $webpage = $this->loadWebpageContent($filePath);
-        $biblePassageModel = new BiblePassageModel();
+        $passageModel = new PassageModel();
 
         $text = $this->trimToVerses($webpage);
         if ($text) {
-            $biblePassageModel->setPassageText($text);
-            $biblePassageModel->setReferenceLocalLanguage(
+            $passageModel->setPassageText($text);
+            $passageModel->setReferenceLocalLanguage(
                 $this->extractReferenceLanguage($webpage)
             );
         }
 
-        return $biblePassageModel;
+        return $passageModel;
     }
 
     /**

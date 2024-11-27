@@ -8,7 +8,7 @@ use PDO;
 /**
  * Repository for Bible references and related data retrieval.
  */
-class BibleReferenceRepository
+class PassageReferenceRepository
 {
     /**
      * @var DatabaseService Database service instance for query execution.

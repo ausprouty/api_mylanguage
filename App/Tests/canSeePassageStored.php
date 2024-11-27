@@ -1,22 +1,29 @@
 <?php
 
 use App\Models\Bible\BibleModel as BibleModel;
-use App\Models\Bible\PassageReferenceModel as PassageReferenceModel;
-use App\Repositories\BibleReferenceRepository;
+use App\Repositories\BibleRepository;
 use App\Factories\PassageReferenceModelFactory;
+use App\Repositories\PassageReferenceRepository;
+use App\Factories\BibleModelFactory;
 use App\Services\Database\DatabaseService;
 
+use App\Services\BiblePassage\BiblePassageService;
+
 $databaseService = new DatabaseService();
-$bibleRepository = new BibleReferenceRepository($databaseService);
 
+$passageReferenceRepository = new PassageReferenceRepository($databaseService);
+$passageFactory = new PassageReferenceModelFactory($passageReferenceRepository);
+$passageReferenceModel = $passageFactory->createFromEntry('Acts 1:3-11');
 
-$passageFactory = new PassageReferenceModelFactory($bibleRerferenceRepository);
-$passageFactory->setFromPassage('Luke 1:1-80');
-$passage = $passageFactory->getProperties();
-
-$bibleReferenceRepository = new BibleReferenceRepository($databaseService);
+$bibleRepository = new BibleRepository($databaseService);
 $bibleFactory = new BibleModelFactory($bibleRepository);
-$bibleFactory->setFromBid(1259);
-$bibleFactory->getProperites();
+$bibleModel= $bibleFactory->createFromBid(1259);
+
+$biblePassageService = new BiblePassageService($databaseService);
+
+$passage = $biblePassageService->getPassage($bibleModel, $passageReferenceModel);
+
+
+
 print_r($text->passageText);
 //1026-Luke-1-1-80

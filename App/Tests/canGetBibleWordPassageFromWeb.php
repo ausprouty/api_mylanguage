@@ -4,7 +4,7 @@ use App\Controllers\BiblePassage\BibleWordPassageController as BibleWordPassageC
 use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController;
 use App\Factories\BibleModelFactory;
 use App\Factories\PassageReferenceModelFactory;
-use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\PassageModel;
 use App\Repositories\BibleReferenceRepository;
 use App\Repositories\BibleRepository;
 use App\Repositories\BiblePassageRepository;
@@ -46,10 +46,10 @@ $passageController = new BibleWordPassageController(
 // Fetch the passage text
 $biblePassage = $passageController->fetchFromWeb();
 
-// Ensure $biblePassage is a BiblePassageModel object
+// Ensure $biblePassage is a PassageModel object
 // Consider adding documentation to describe the properties and methods of this model
-if (!$biblePassage instanceof BiblePassageModel) {
-    LoggerService::logError("Invalid BiblePassageModel object returned.");
+if (!$biblePassage instanceof PassageModel) {
+    LoggerService::logError("Invalid PassageModel object returned.");
     die("An error occurred while fetching the Bible passage.");
 }
 

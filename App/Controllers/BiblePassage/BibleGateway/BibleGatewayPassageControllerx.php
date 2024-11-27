@@ -4,13 +4,13 @@ namespace App\Controllers\BiblePassage\BibleGateway;
 
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\PassageReferenceModel;
-use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\PassageModel;
 use App\Services\Web\WebsiteConnectionService;
 use App\Services\Database\DatabaseService;
 use App\Configuration\Config;
 use simple_html_dom;
 
-class BibleGatewayPassageController extends BiblePassageModel
+class BibleGatewayPassageController extends PassageModel
 {
     private $databaseService;
     private $bibleReference;

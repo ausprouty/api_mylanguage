@@ -2,7 +2,7 @@
 
 namespace App\Controllers\BiblePassage\BibleGateway;
 
-use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\PassageModel;
 use App\Models\Bible\PassageReferenceModel;
 use App\Models\Bible\BibleModel;
 use App\Repositories\BiblePassageRepository;
@@ -33,7 +33,7 @@ class BibleGatewayPassageController
     /**
      * Fetches a Bible passage from BibleGateway and saves it to the database.
      */
-    public function fetchAndSavePassage(): BiblePassageModel
+    public function fetchAndSavePassage(): PassageModel
     {
         $referenceShaped = str_replace(
             ' ',
@@ -48,20 +48,20 @@ class BibleGatewayPassageController
         flush();
         $webpage = new BibleGatewayConnectionService($passageUrl);
 
-        $biblePassageModel = new BiblePassageModel();
+        $passageModel = new PassageModel();
         if ($webpage->response) {
 
-            $biblePassageModel->setPassageText(
+            $passageModel->setPassageText(
                 $this->formatExternal($webpage->response)
             );
-            $biblePassageModel->setReferenceLocalLanguage(
+            $passageModel->setReferenceLocalLanguage(
                 $this->getReferenceLocalLanguage($webpage->response)
             );
-            $biblePassageModel->setPassageUrl($passageUrl);
+            $passageModel->setPassageUrl($passageUrl);
 
-            $this->biblePassageRepository->savePassageRecord($biblePassageModel);
+            $this->biblePassageRepository->savePassageRecord($passageModel);
         }
-        return $biblePassageModel;
+        return $passageModel;
     }
 
     /**

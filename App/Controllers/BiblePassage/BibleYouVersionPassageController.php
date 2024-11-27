@@ -3,7 +3,7 @@
 namespace App\Controllers\BiblePassage;
 
 use App\Services\Bible\YouVersionPassageService;
-use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\PassageModel;
 
 class BibleYouVersionPassageController
 {
@@ -11,8 +11,7 @@ class BibleYouVersionPassageController
 
     public function __construct(
         YouVersionPassageService $biblePassageService,
-        )
-    {
+    ) {
         $this->biblePassageService = $biblePassageService;
     }
 

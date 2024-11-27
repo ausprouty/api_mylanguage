@@ -3,7 +3,7 @@
 namespace App\Factories;
 
 use App\Models\Bible\PassageReferenceModel;
-use App\Repositories\BibleReferenceRepository;
+use App\Repositories\PassageReferenceRepository;
 
 /**
  * Factory for creating and populating PassageReferenceModel instances.
@@ -24,11 +24,12 @@ class PassageReferenceModelFactory
     private $verseStart;
     private $chapterEnd;
     private $verseEnd;
+    private $passageID;
 
     /**
      * Constructor to initialize the repository dependency.
      */
-    public function __construct(BibleReferenceRepository $repository)
+    public function __construct(PassageReferenceRepository $repository)
     {
         $this->repository = $repository;
     }
@@ -52,6 +53,8 @@ class PassageReferenceModelFactory
         $this->bookNumber = $this->repository->findBookNumber($this->bookID);
         $this->testament = $this->repository->findTestament($this->bookID);
         $this->uversionBookID = $this->repository->findUversionBookID($this->bookID);
+        $this->passageID = $this->passageID = $this->bookID . '-' . $this->chapterStart .
+        '-' . $this->verseStart . '-' . $this->verseEnd;
         $model->populate([
             'entry' => $this->entry,
             'languageCodeHL' => $languageCodeHL,
@@ -65,6 +68,7 @@ class PassageReferenceModelFactory
             'verseStart' => $this->verseStart,
             'chapterEnd' => $this->chapterStart,
             'verseEnd' => $this->verseEnd,
+            'passageID'=> $this->passageID,
         ]);
 
         return $model;

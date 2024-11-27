@@ -2,10 +2,13 @@
 
 namespace App\Models\Bible;
 
+use App\Factories\PassageModelFactory;
+use ReflectionClass;
+
 /**
  * Represents a Bible Passage model with related data and methods.
  */
-class StoredBiblePassageModel
+class PassageModel
 {
     /**
      * @var string The Bible passage ID.
@@ -43,7 +46,7 @@ class StoredBiblePassageModel
     private $timesUsed;
 
     /**
-     * Initializes a new instance of the BiblePassageModel class.
+     * Initializes a new instance of the PassageModel class.
      */
     public function __construct()
     {
@@ -56,22 +59,7 @@ class StoredBiblePassageModel
         $this->timesUsed = 0;
     }
 
-    /**
-     * Creates a Bible passage ID from a Bible ID and reference model.
-     *
-     * @param string $bid The Bible ID.
-     * @param PassageReferenceModel $passage The Bible reference model.
-     * @return string The generated Bible passage ID.
-     */
-    public static function createBiblePassageId(
-        string $bid,
-        PassageReferenceModel $passage
-    ): string {
-        return $bid . '-' . $passage->getBookID() . '-' .
-            $passage->getChapterStart() . '-' .
-            $passage->getVerseStart() . '-' .
-            $passage->getVerseEnd();
-    }
+
 
 
     /**
@@ -112,6 +100,24 @@ class StoredBiblePassageModel
     public function getPassageUrl(): string
     {
         return $this->passageUrl;
+    }
+    /**
+     * Returns the properties as an associative array.
+     *
+     * @return array
+     */
+    public function getProperties(): array
+    {
+        $reflection = new ReflectionClass($this);
+        $properties = $reflection->getProperties();
+        $propsArray = [];
+
+        foreach ($properties as $property) {
+            $property->setAccessible(true); // Allows access to private property
+            $propsArray[$property->getName()] = $property->getValue($this);
+        }
+
+        return $propsArray;
     }
 
     /**

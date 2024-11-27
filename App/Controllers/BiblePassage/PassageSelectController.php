@@ -7,7 +7,7 @@ use App\Controllers\BiblePassage\BibleWordPassageController;
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController;
 use App\Controllers\BiblePassage\BibleGateway\BibleGatewayPassageController;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\PassageModel;
 use App\Models\Bible\PassageReferenceModel;
 use App\Services\Database\DatabaseService;
 use App\Models\Language\LanguageModel;
@@ -59,8 +59,8 @@ class PassageSelectController
 
     private function checkDatabase()
     {
-        $this->passageId = BiblePassageModel::createBiblePassageId($this->bible->getBid(), $this->bibleReference);
-        $passage = new BiblePassageModel();
+        $this->passageId = PassageModel::createBiblePassageId($this->bible->getBid(), $this->bibleReference);
+        $passage = new PassageModel();
         $passage->findStoredById($this->passageId);
 
         if ($passage->getReferenceLocalLanguage()) {
@@ -98,7 +98,7 @@ class PassageSelectController
         $this->passageUrl = $passage->getPassageUrl();
         $this->referenceLocalLanguage = $passage->getReferenceLocalLanguage();
 
-        BiblePassageModel::savePassageRecord($this->passageId, $this->referenceLocalLanguage, $this->passageText, $this->passageUrl);
+        PassageModel::savePassageRecord($this->passageId, $this->referenceLocalLanguage, $this->passageText, $this->passageUrl);
     }
 
     private function setDefaultPassage()

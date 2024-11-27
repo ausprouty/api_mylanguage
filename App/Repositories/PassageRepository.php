@@ -2,14 +2,14 @@
 
 namespace App\Repositories;
 
-use App\Models\Bible\BiblePassageModel;
+use App\Models\Bible\PassageStorageModel;
 use App\Services\Database\DatabaseService;
 use PDO;
 
 /**
  * Repository for handling Bible passage records in the database.
  */
-class BiblePassageRepository
+class PassageStorageRepository
 {
     /**
      * @var DatabaseService The service for interacting with the database.
@@ -44,9 +44,9 @@ class BiblePassageRepository
      * Finds a stored Bible passage by its ID.
      *
      * @param string $bpid The ID of the Bible passage.
-     * @return BiblePassageModel|null The Bible passage, or null if not found.
+     * @return PassageModel|null The Bible passage, or null if not found.
      */
-    public function findStoredById(string $bpid): ?BiblePassageModel
+    public function findStoredById(string $bpid): ?PassageModel
     {
         $query = 'SELECT * FROM bible_passages WHERE bpid = :bpid LIMIT 1';
         $params = [':bpid' => $bpid];
@@ -56,7 +56,7 @@ class BiblePassageRepository
             $data = $results->fetch(PDO::FETCH_OBJ);
 
             if ($data) {
-                $biblePassage = new BiblePassageModel();
+                $biblePassage = new PassageModel();
                 $biblePassage->populateFromData($data);
                 $this->updatePassageUse($biblePassage);
                 return $biblePassage;
@@ -71,9 +71,9 @@ class BiblePassageRepository
     /**
      * Inserts a new Bible passage record into the database.
      *
-     * @param BiblePassageModel $biblePassage The Bible passage to insert.
+     * @param PassageModel $biblePassage The Bible passage to insert.
      */
-    private function insertPassageRecord(BiblePassageModel $biblePassage): void
+    private function insertPassageRecord(PassageModel $biblePassage): void
     {
         $query = 'INSERT INTO bible_passages 
                   (bpid, referenceLocalLanguage, passageText, passageUrl, 
@@ -96,9 +96,9 @@ class BiblePassageRepository
     /**
      * Saves a Bible passage record, updating it if it already exists.
      *
-     * @param BiblePassageModel $biblePassage The Bible passage to save.
+     * @param PassageModel $biblePassage The Bible passage to save.
      */
-    public function savePassageRecord(BiblePassageModel $biblePassage): void
+    public function savePassageRecord(PassageModel $biblePassage): void
     {
         if ($this->existsById($biblePassage->bpid)) {
             $this->updatePassageRecord($biblePassage);
@@ -110,9 +110,9 @@ class BiblePassageRepository
     /**
      * Updates an existing Bible passage record in the database.
      *
-     * @param BiblePassageModel $biblePassage The Bible passage to update.
+     * @param PassageModel $biblePassage The Bible passage to update.
      */
-    private function updatePassageRecord(BiblePassageModel $biblePassage): void
+    private function updatePassageRecord(PassageModel $biblePassage): void
     {
         $query = 'UPDATE bible_passages
                   SET referenceLocalLanguage = :referenceLocalLanguage, 
@@ -132,9 +132,9 @@ class BiblePassageRepository
     /**
      * Updates the usage statistics for a Bible passage.
      *
-     * @param BiblePassageModel $biblePassage The Bible passage to update.
+     * @param PassageModel $biblePassage The Bible passage to update.
      */
-    private function updatePassageUse(BiblePassageModel $biblePassage): void
+    private function updatePassageUse(PassageModel $biblePassage): void
     {
         $biblePassage->updateUsage();
         $query = 'UPDATE bible_passages
