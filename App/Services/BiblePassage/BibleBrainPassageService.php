@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Bible;
+namespace App\Services\BiblePassage;
 
 use App\Services\Web\BibleBrainConnectionService;
 use App\Models\Bible\BibleModel;

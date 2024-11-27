@@ -35,6 +35,9 @@ foreach ($rows as $row) {
         $info->verseStart = $model->getVerseStart();
         $info->verseEnd = $model->getVerseEnd();
     }
+    
+    $info->uversionBookID = uversionBookID($info->bookID,$databaseService);
+      
     $info->passageID = $info->bookID . '-' . $info->chapterStart .
                 '-' . $info->verseStart . '-' . $info->verseEnd;
     $passage_reference_info = json_encode($info);
@@ -45,4 +48,14 @@ foreach ($rows as $row) {
         ':lesson' => $row['lesson']
     );
     $databaseService->executeQuery($query, $params);
+}
+echo "finished";
+
+function uversionBookID($bookID, $databaseService){
+    
+    $query = 'SELECT uversionBookID FROM bible_books WHERE bookID = :bookID';
+    $params = array(':bookID'=> $bookID);
+    $uversion = $databaseService->FetchSingleValue($query, $params);
+    return $uversion;
+
 }

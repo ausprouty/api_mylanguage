@@ -21,6 +21,7 @@ class BibleReferenceModel
     private $verseStart;
     private $chapterEnd;
     private $verseEnd;
+    private $passageID;
 
     public function __construct()
     {
@@ -36,6 +37,7 @@ class BibleReferenceModel
         $this->verseStart = null;
         $this->chapterEnd = null;
         $this->verseEnd = null;
+        $this->passageID = null;
     }
 
     /**

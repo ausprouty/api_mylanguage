@@ -8,24 +8,23 @@ use App\Services\BiblePassage\YouVersionPassageService;
 use App\Services\BiblePassage\BibleWordPassageService;
 use App\Services\Database\DatabaseService;
 
+use App\Models\BibleModel;
+use App\Models\Bible\BibleReferenceModel;
+
 class BiblePassageService
 {
-    private $languageRepository;
+
     private $databaseService;
-    private $bibleReference;
-    private $bible;
-    private $passageId;
-    public $passageText;
-    public $passageUrl;
-    public $referenceLocalLanguage;
+  
 
     public function __construct(
         DatabaseService $databaseService,
         
     ) {
         $this->databaseService = $databaseService;
-        $this->checkDatabase();
     }
+
+    public function getPassage( BiblePassageModel $bible, BibleReferenceModel $passage)
 
     private function checkDatabase()
     {

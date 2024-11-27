@@ -18,6 +18,7 @@ foreach ($rows as $row) {
             $info->passageID = $info->bookID . '-' . $info->chapterStart .
                 '-' . $info->verseStart . '-' . $info->verseEnd;
         }
+        $info->uversionBookID = uversionBookID($info->bookID,$databaseService);
         $passage_reference_info = json_encode($info);
         $query = 'UPDATE dbs_references SET passage_reference_info = :info
                   WHERE lesson = :lesson';
@@ -28,3 +29,15 @@ foreach ($rows as $row) {
         $databaseService->executeQuery($query, $params);
     }
 }
+exit;
+
+function uversionBookID($bookID, $databaseService){
+    
+    $query = 'SELECT uversionBookID FROM bible_books WHERE bookID = :bookID';
+    $params = array(':bookID'=> $bookID);
+    $uversion = $databaseService->FetchSingleValue($query, $params);
+    return $uversion;
+
+}
+
+
