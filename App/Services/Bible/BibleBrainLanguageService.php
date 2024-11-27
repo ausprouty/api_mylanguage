@@ -5,12 +5,12 @@ namespace App\Services\Bible;
 use App\Services\Web\BibleBrainConnectionService;
 use App\Models\Language\LanguageModel;
 use App\Repositories\LanguageRepository;
-use App\Factories\LanguageModelFactory;
+use App\Factories\LanguageFactory;
 
 class BibleBrainLanguageService
 {
     private LanguageRepository $languageRepository;
-    private LanguageModelFactory $languageModelFactory;
+    private LanguageFactory $languageFactory;
     private ?string $languageCodeBibleBrain = null;
     private ?string $iso = null;
     private ?string $name = null;
@@ -18,10 +18,10 @@ class BibleBrainLanguageService
 
     public function __construct(
         LanguageRepository $languageRepository,
-        LanguageModelFactory $languageModelFactory
+        LanguageFactory $languageFactory
     ) {
         $this->languageRepository = $languageRepository;
-        $this->languageModelFactory = $languageModelFactory;
+        $this->languageFactory = $languageFactory;
     }
 
     public function fetchLanguagesByCountry(string $countryCode): ?object
@@ -55,7 +55,7 @@ class BibleBrainLanguageService
             $data = $languageDetails->response->data[0];
 
             // Create and populate the LanguageModel using the factory
-            $language = $this->languageModelFactory->create([
+            $language = $this->languageFactory->create([
                 'languageCodeBibleBrain' => $data->id ?? null,
                 'languageCodeIso' => $data->iso ?? null,
                 'name' => $data->name ?? null,
@@ -97,7 +97,7 @@ class BibleBrainLanguageService
                 );
             } else {
                 // Create a new LanguageModel and save it
-                $language = $this->languageModelFactory->create([
+                $language = $this->languageFactory->create([
                     'languageCodeBibleBrain' => $this->languageCodeBibleBrain,
                     'languageCodeIso' => $this->iso,
                     'name' => $this->name,

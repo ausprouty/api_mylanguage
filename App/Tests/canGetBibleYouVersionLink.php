@@ -1,7 +1,7 @@
 <?php
 
-use App\Factories\BibleModelFactory;
-use App\Factories\PassageReferenceModelFactory;
+use App\Factories\BibleFactory;
+use App\Factories\PassageReferenceFactory;
 use App\Models\Bible\PassageModel;
 use App\Repositories\BibleReferenceRepository;
 use App\Repositories\BibleRepository;
@@ -17,10 +17,10 @@ $bibleRepository = new BibleRepository($databaseService);
 $biblePassageRepository = new BiblePassageRepository($databaseService);
 
 // Pass the repository to the factory
-$bibleModelFactory = new BibleModelFactory($bibleRepository);
+$bibleFactory = new BibleFactory($bibleRepository);
 
 // Create a BibleModel and fetch a Bible by ID
-$bible = $bibleModelFactory->createFromBid(1735); // Littafi Mai Tsarki 
+$bible = $bibleFactory->createFromBid(1735); // Littafi Mai Tsarki 
 
 if (!$bible) {
     // Log the error with a helpful message
@@ -33,10 +33,10 @@ if (!$bible) {
 
 // Create a PassageReferenceModel from the factory
 $bibleReferenceRepository = new BibleReferenceRepository($databaseService);
-$passageReferenceModelFactory = new PassageReferenceModelFactory($bibleReferenceRepository);
+$passageReferenceFactory = new PassageReferenceFactory($bibleReferenceRepository);
 
 // Create a PassageReferenceModel for the passage Luke 1:1-6
-$bibleReference = $passageReferenceModelFactory->createFromEntry('Luke 1:1-6');
+$bibleReference = $passageReferenceFactory->createFromEntry('Luke 1:1-6');
 
 $youVersionPassageService = new YouVersionPassageService($databaseService, $bibleReference, $bible);
 $url = $youVersionPassageService->getPassageUrl();

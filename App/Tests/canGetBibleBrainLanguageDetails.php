@@ -5,23 +5,23 @@ use App\Services\Bible\BibleBrainLanguageService as BibleBrainLanguageService;
 use App\Repositories\LanguageRepository as LanguageRepository;
 use App\Services\Database\DatabaseService as DatabaseService;
 use App\Models\Language\LanguageModel as LanguageModel;
-use App\Factories\LanguageModelFactory as LanguageModelFactory;
+use App\Factories\LanguageFactory as LanguageFactory;
 
 
 
 $databaseService = new DatabaseService();
 
-$languageModelFactory = new LanguageModelFactory($databaseService); 
-$languageRepository = new LanguageRepository($databaseService, $languageModelFactory); 
-$languageService = new BibleBrainLanguageService($languageRepository, $languageModelFactory);
+$languageFactory = new LanguageFactory($databaseService);
+$languageRepository = new LanguageRepository($databaseService, $languageFactory);
+$languageService = new BibleBrainLanguageService($languageRepository, $languageFactory);
 //$languageController = new BibleBrainLanguageController($languageRepository, $languageService);
 $languageCodeIso = 'spa';
 $languageModel = $languageService->fetchLanguageDetails($languageCodeIso);
-print_r  ("canGetBibleBrainLanguageDetails<br>");
+print_r("canGetBibleBrainLanguageDetails<br>");
 flush();
-print_r ('You should see Spanish below <hr>');
+print_r('You should see Spanish below <hr>');
 flush();
-print_r ($languageModel->getProperties());
+print_r($languageModel->getProperties());
 //$language->updateBibleBrainLanguageDetails();
 
 
@@ -37,6 +37,3 @@ print_r ($languageModel->getProperties());
  [filesets] => 88 
  [rolv_code] => )
  */
-
-
- 

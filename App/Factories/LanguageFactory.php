@@ -8,7 +8,7 @@ use App\Services\Database\DatabaseService;
 /**
  * Factory for creating and populating LanguageModel instances.
  */
-class LanguageModelFactory
+class LanguageFactory
 {
     private $databaseService;
 

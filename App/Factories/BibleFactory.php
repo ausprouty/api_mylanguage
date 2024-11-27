@@ -8,7 +8,7 @@ use App\Repositories\BibleRepository;
 /**
  * Factory for creating and populating BibleModel instances.
  */
-class BibleModelFactory
+class BibleFactory
 {
     private $repository;
 

@@ -4,9 +4,10 @@ namespace App\Factories;
 
 use App\Models\Bible\PassageModel;
 
-class PassageModelFactory
+class PassageFactory
 {
-    public static function createFromData($data): PassageModel {
+    public static function createFromData($data): PassageModel
+    {
         $biblePassage = new PassageModel();
 
         $biblePassage->bpid = is_array($data) ? $data['bpid'] : $data->bpid;

@@ -1,8 +1,8 @@
 <?php
 
 use App\Controllers\BiblePassage\BibleBrain\BibleBrainTextPlainController;
-use App\Factories\BibleModelFactory;
-use App\Factories\PassageReferenceModelFactory;
+use App\Factories\BibleFactory;
+use App\Factories\PassageReferenceFactory;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\PassageReferenceModel;
 use App\Repositories\BibleReferenceRepository;
@@ -17,10 +17,10 @@ $databaseService = new DatabaseService();
 $bibleRepository = new BibleRepository($databaseService);
 
 // Pass the repository to the factory
-$bibleModelFactory = new BibleModelFactory($bibleRepository);
+$bibleFactory = new BibleFactory($bibleRepository);
 
 // Create a BibleModel and fetch a Bible by ID
-$bible = $bibleModelFactory->createFromBid(1778); // Albanian Bible ID
+$bible = $bibleFactory->createFromBid(1778); // Albanian Bible ID
 
 if (!$bible) {
     // Log the error with a helpful message
@@ -35,10 +35,10 @@ if (!$bible) {
 
 // Create a PassageReferenceModel from the factory
 $bibleReferenceRepository = new BibleReferenceRepository($databaseService);
-$passageReferenceModelFactory = new PassageReferenceModelFactory(
+$passageReferenceFactory = new PassageReferenceFactory(
     $bibleReferenceRepository
 );
-$bibleReference = $passageReferenceModelFactory->createFromEntry('Luke 1:1-6');
+$bibleReference = $passageReferenceFactory->createFromEntry('Luke 1:1-6');
 
 // Initialize the BibleBrainPassageService
 $bibleBrainPassageService = new BibleBrainPassageService(

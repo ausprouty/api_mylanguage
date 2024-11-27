@@ -2,14 +2,15 @@
 
 namespace App\Repositories;
 
-use App\Models\Bible\PassageStorageModel;
+use App\Models\Bible\PassageModel;
 use App\Services\Database\DatabaseService;
+use App\Factories\PassageFactory;
 use PDO;
 
 /**
  * Repository for handling Bible passage records in the database.
  */
-class PassageStorageRepository
+class PassageRepository
 {
     /**
      * @var DatabaseService The service for interacting with the database.
@@ -32,7 +33,7 @@ class PassageStorageRepository
      * @param string $bpid The ID of the Bible passage.
      * @return bool True if the passage exists, false otherwise.
      */
-    private function existsById(string $bpid): bool
+    public function existsById(string $bpid): bool
     {
         $query = 'SELECT bpid FROM bible_passages WHERE bpid = :bpid LIMIT 1';
         $params = [':bpid' => $bpid];
@@ -56,9 +57,7 @@ class PassageStorageRepository
             $data = $results->fetch(PDO::FETCH_OBJ);
 
             if ($data) {
-                $biblePassage = new PassageModel();
-                $biblePassage->populateFromData($data);
-                $this->updatePassageUse($biblePassage);
+                $biblePassage = PassageFactory::createFromData($data);
                 return $biblePassage;
             }
         } catch (\Exception $e) {
@@ -100,7 +99,8 @@ class PassageStorageRepository
      */
     public function savePassageRecord(PassageModel $biblePassage): void
     {
-        if ($this->existsById($biblePassage->bpid)) {
+        if ($this->existsById($biblePassage->getBpid())) {
+
             $this->updatePassageRecord($biblePassage);
         } else {
             $this->insertPassageRecord($biblePassage);
@@ -134,16 +134,16 @@ class PassageStorageRepository
      *
      * @param PassageModel $biblePassage The Bible passage to update.
      */
-    private function updatePassageUse(PassageModel $biblePassage): void
+    public function updatePassageUse(PassageModel $biblePassage): void
     {
         $biblePassage->updateUsage();
         $query = 'UPDATE bible_passages
                   SET dateLastUsed = :dateLastUsed, timesUsed = :timesUsed
                   WHERE bpid = :bpid LIMIT 1';
         $params = [
-            ':dateLastUsed' => $biblePassage->dateLastUsed,
-            ':timesUsed' => $biblePassage->timesUsed,
-            ':bpid' => $biblePassage->bpid
+            ':dateLastUsed' => $biblePassage->getDateLastUsed(),
+            ':timesUsed' => $biblePassage->getTimesUsed(),
+            ':bpid' => $biblePassage->getBpid()
         ];
 
         $this->databaseService->executeQuery($query, $params);

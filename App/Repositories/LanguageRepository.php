@@ -3,7 +3,7 @@
 namespace App\Repositories;
 
 use App\Services\Database\DatabaseService;
-use App\Factories\LanguageModelFactory;
+use App\Factories\LanguageFactory;
 use App\Models\Language\LanguageModel;
 
 /**
@@ -12,17 +12,17 @@ use App\Models\Language\LanguageModel;
 class LanguageRepository
 {
     private $databaseService;
-    private $languageModelFactory;
+    private $languageFactory;
 
     /**
      * Constructor to initialize dependencies.
      */
     public function __construct(
         DatabaseService $databaseService,
-        LanguageModelFactory $languageModelFactory
+        LanguageFactory $languageFactory
     ) {
         $this->databaseService = $databaseService;
-        $this->languageModelFactory = $languageModelFactory;
+        $this->languageFactory = $languageFactory;
     }
 
     /**
@@ -73,7 +73,7 @@ class LanguageRepository
         string $source,
         string $code
     ): ?LanguageModel {
-        return $this->languageModelFactory->findOneByCode($source, $code);
+        return $this->languageFactory->findOneByCode($source, $code);
     }
 
     /**
@@ -82,7 +82,7 @@ class LanguageRepository
     public function findOneLanguageByLanguageCodeHL(
         string $code
     ): ?LanguageModel {
-        return $this->languageModelFactory->findOneLanguageByLanguageCodeHL($code);
+        return $this->languageFactory->findOneLanguageByLanguageCodeHL($code);
     }
 
     public function getCodeIsoFromCodeHL($languageCodeHL)

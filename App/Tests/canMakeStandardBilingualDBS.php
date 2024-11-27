@@ -3,7 +3,7 @@
 use App\Controllers\BibleStudy\Bilingual\BilingualDbsTemplateController;
 use App\Controllers\BibleStudy\BibleBlockController;
 use App\Factories\BibleStudyReferenceFactory;
-use App\Factories\LanguageModelFactory;
+use App\Factories\LanguageFactory;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\PassageReferenceModel;
 use App\Models\BibleStudy\DbsReferenceModel;
@@ -14,8 +14,8 @@ use App\Services\QrCodeGeneratorService;
 
 // Initialize necessary services and repositories
 $databaseService = new DatabaseService();
-$languageModelFactory = new LanguageModelFactory($databaseService);
-$languageRepository = new LanguageRepository($databaseService, $languageModelFactory);
+$languageFactory = new LanguageFactory($databaseService);
+$languageRepository = new LanguageRepository($databaseService, $languageFactory);
 $bibleRepository = new BibleRepository($databaseService);
 $bibleBlockController = new BibleBlockController();
 $bibleStudyReferenceFactory = new BibleStudyReferenceFactory($databaseService);

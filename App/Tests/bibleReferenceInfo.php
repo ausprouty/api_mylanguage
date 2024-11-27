@@ -3,12 +3,12 @@
 use App\Models\Bible\PassageReferenceModel as PassageReferenceModel;
 use App\Repositories\BibleReferenceRepository;
 use App\Services\Database\DatabaseService;
-use App\Factories\PassageReferenceModelFactory;
+use App\Factories\PassageReferenceFactory;
 
 
 $database = new DatabaseService();
 $respository = new BibleReferenceRepository($database);
-$factory = new PassageReferenceModelFactory($respository);
+$factory = new PassageReferenceFactory($respository);
 
 
 $passage = 'John 3:16-40';

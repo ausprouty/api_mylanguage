@@ -8,7 +8,7 @@ use App\Repositories\PassageReferenceRepository;
 /**
  * Factory for creating and populating PassageReferenceModel instances.
  */
-class PassageReferenceModelFactory
+class PassageReferenceFactory
 {
     private $repository;
 
@@ -54,7 +54,7 @@ class PassageReferenceModelFactory
         $this->testament = $this->repository->findTestament($this->bookID);
         $this->uversionBookID = $this->repository->findUversionBookID($this->bookID);
         $this->passageID = $this->passageID = $this->bookID . '-' . $this->chapterStart .
-        '-' . $this->verseStart . '-' . $this->verseEnd;
+            '-' . $this->verseStart . '-' . $this->verseEnd;
         $model->populate([
             'entry' => $this->entry,
             'languageCodeHL' => $languageCodeHL,
@@ -68,7 +68,7 @@ class PassageReferenceModelFactory
             'verseStart' => $this->verseStart,
             'chapterEnd' => $this->chapterStart,
             'verseEnd' => $this->verseEnd,
-            'passageID'=> $this->passageID,
+            'passageID' => $this->passageID,
         ]);
 
         return $model;

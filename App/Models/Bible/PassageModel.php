@@ -2,7 +2,6 @@
 
 namespace App\Models\Bible;
 
-use App\Factories\PassageModelFactory;
 use ReflectionClass;
 
 /**
@@ -59,8 +58,15 @@ class PassageModel
         $this->timesUsed = 0;
     }
 
-
-
+    /**
+     * Gets the Bible passage ID.
+     *
+     * @return string The Bible passage ID.
+     */
+    public function getBpid(): string
+    {
+        return $this->bpid;
+    }
 
     /**
      * Gets the date when the passage was last checked.
@@ -101,6 +107,7 @@ class PassageModel
     {
         return $this->passageUrl;
     }
+
     /**
      * Returns the properties as an associative array.
      *
@@ -138,6 +145,16 @@ class PassageModel
     public function getTimesUsed(): int
     {
         return $this->timesUsed;
+    }
+
+    /**
+     * Sets the Bible passage ID.
+     *
+     * @param string $bpid The Bible passage ID to set.
+     */
+    public function setBpid(string $bpid): void
+    {
+        $this->bpid = $bpid;
     }
 
     /**

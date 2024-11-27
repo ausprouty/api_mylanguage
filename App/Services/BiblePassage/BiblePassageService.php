@@ -7,8 +7,9 @@ use App\Services\BiblePassage\BibleGatewayPassageService;
 use App\Services\BiblePassage\YouVersionPassageService;
 use App\Services\BiblePassage\BibleWordPassageService;
 use App\Services\Database\DatabaseService;
-use App\Models\PassageModel;
-use App\Factories\PassageModelFactory;
+use App\Models\Bible\PassageModel;
+use App\Factories\PassageFactory;
+use App\Repositories\PassageRepository;
 
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\PassageReferenceModel;
@@ -19,51 +20,52 @@ class BiblePassageService
     private $databaseService;
     private $bible;
     private $passageReference;
+    private $passageRepository;
+    public  $passage;
 
 
     public function __construct(
         DatabaseService $databaseService,
+        PassageRepository $passageRepository
 
     ) {
         $this->databaseService = $databaseService;
+        $this->passageRepository = $passageRepository;
     }
 
     public function getPassage(BibleModel $bible, PassageReferenceModel $passageReference)
     {
         $this->bible = $bible;
         $this->passageReference = $passageReference;
-        $this->checkDatabase();
+        $passage = $this->checkDatabase();
+        return $passage->getProperties();
     }
-
     private function checkDatabase()
     {
         $bpid = $this->bible->getBid() . '-' . $this->passageReference->getPassageID();
-        $query = 'SELECT * FROM bible_passages WHERE bpid = :bpid';
-        $params = array(':bpid' => $bpid);
-        $data = $this->databaseService->fetchRow($query, $params);
-        if ($data) {
-            $this->retrieveStoredData($data);
+        if ($this->passageRepository->existsById($bpid)) {
+            return  $this->passageRepository->findStoredById($bpid);
         } else {
-            $this->retrieveExternalPassage();
+            return $this->retrieveExternalPassage();
         }
     }
 
     private function retrieveStoredData($data)
     {
-        $passageFactory = new PassageModelFactory();
+        $passageFactory = new PassageFactory();
         $passage =  $passageFactory::createFromData($data);
         $this->updateUseage($passage);
-        $output = $passage->getProperties();
+        return $passage;
     }
-    private function updateUseage(PassageModel $passage): bool
+    private function updateUseage(PassageModel $passage): void
     {
         // Update dateLastUsed to the current timestamp
-        $passage->setDateLastUsed(date('Y-m-d H:i:s'));
+        $passage->setDateLastUsed(date('Y-m-d'));
         // Increment timesUsed by 1
-        $passage->setTimesUsed($passage->getTimesUsed() + 1);
 
+        $passage->setTimesUsed($passage->getTimesUsed() + 1);
         // Save changes (example: calling a repository or database method)
-        return $this->passageRepository->save($passage);
+        $this->passageRepository->updatePassageUse($passage);
     }
 
     private function retrieveExternalPassage()
