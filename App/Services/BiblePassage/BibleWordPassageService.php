@@ -2,36 +2,28 @@
 
 namespace App\Services\BiblePassage;
 
-use App\Configuration\Config;
-use App\Models\Bible\BibleModel;
-use App\Models\Bible\PassageModel;
-use App\Models\Bible\PassageReferenceModel;
-use App\Repositories\BiblePassageRepository;
-use App\Services\LoggerService;
-use App\Services\Web\BibleWordConnectionService;
 
-class BibleWordPassageService
+
+class BibleWordPassageService extends AbstractBiblePassageService
 {
-    private $bible;
-    private $biblePassageRepository;
-    private $bibleReference;
+   
+/public function getPassageText(): string
+{
+    // Implement logic to fetch passage text from BibleBrain
+    return "BibleBrain passage text";
+}
 
-    /**
-     * Constructor to initialize dependencies.
-     *
-     * @param PassageReferenceModel $bibleReference
-     * @param BibleModel $bible
-     * @param BiblePassageRepository $biblePassageRepository
-     */
-    public function __construct(
-        PassageReferenceModel $bibleReference,
-        BibleModel $bible,
-        BiblePassageRepository $biblePassageRepository
-    ) {
-        $this->biblePassageRepository = $biblePassageRepository;
-        $this->bibleReference = $bibleReference;
-        $this->bible = $bible;
-    }
+public function getPassageUrl(): string
+{
+    // Implement logic to fetch passage URL
+    return "https://biblebrain.example.com/passage";
+}
+
+public function getReferenceLocalLanguage(): string
+{
+    // Implement logic to fetch reference in local language
+    return "BibleBrain reference in local language";
+}
 
     /**
      * Cleans a segment of HTML content between specific markers.
@@ -88,9 +80,9 @@ class BibleWordPassageService
         $posEnd = strpos($webpage, ':', $posStart);
         $bookName = trim(substr($webpage, $posStart, $posEnd - $posStart));
 
-        $verses = $this->bibleReference->getChapterStart() . ':' .
-            $this->bibleReference->getVerseStart() . '-' .
-            $this->bibleReference->getVerseEnd();
+        $verses = $this->passageReference->getChapterStart() . ':' .
+            $this->passageReference->getVerseStart() . '-' .
+            $this->passageReference->getVerseEnd();
 
         return $bookName . ' ' . $verses;
     }
@@ -183,11 +175,11 @@ class BibleWordPassageService
      */
     private function formatChapterPage()
     {
-        $bookNumber = $this->bibleReference->getBookNumber();
+        $bookNumber = $this->passageReference->getBookNumber();
         if (strlen($bookNumber) === 1) {
             $bookNumber = str_pad($bookNumber, 2, '0', STR_PAD_LEFT);
         }
-        $chapterNumber = $this->bibleReference->getChapterStart();
+        $chapterNumber = $this->passageReference->getChapterStart();
         return $bookNumber . '/' . $chapterNumber;
     }
 
@@ -264,8 +256,8 @@ class BibleWordPassageService
         //flush();
 
         $verseRange = range(
-            intval($this->bibleReference->getVerseStart()),
-            intval($this->bibleReference->getVerseEnd())
+            intval($this->passageReference->getVerseStart()),
+            intval($this->passageReference->getVerseEnd())
         );
 
 

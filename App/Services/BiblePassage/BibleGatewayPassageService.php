@@ -14,21 +14,26 @@ use App\Configuration\Config;
  * Controller to fetch Bible passages from BibleGateway
  * and save them to the database.
  */
-class BibleGatewayPassageService
+class BibleGatewayPassageService extends AbstractBiblePassageService
 {
-    private $biblePassageRepository;
-    private $bibleReference;
-    private $bible;
-
-    public function __construct(
-        PassageReferenceModel $bibleReference,
-        BibleModel $bible,
-        BiblePassageRepository $biblePassageRepository,
-    ) {
-        $this->biblePassageRepository = $biblePassageRepository;
-        $this->bibleReference = $bibleReference;
-        $this->bible = $bible;
+    public function getPassageText(): string
+    {
+        // Implement logic to fetch passage text from BibleBrain
+        return "BibleBrain passage text";
     }
+
+    public function getPassageUrl(): string
+    {
+        // Implement logic to fetch passage URL
+        return "https://biblebrain.example.com/passage";
+    }
+
+    public function getReferenceLocalLanguage(): string
+    {
+        // Implement logic to fetch reference in local language
+        return "BibleBrain reference in local language";
+    }
+
 
     /**
      * Fetches a Bible passage from BibleGateway and saves it to the database.
@@ -38,7 +43,7 @@ class BibleGatewayPassageService
         $referenceShaped = str_replace(
             ' ',
             '%20',
-            $this->bibleReference->getEntry()
+            $this->passageReference->getEntry()
         );
 
         $passageUrl = '/passage/?search=' .

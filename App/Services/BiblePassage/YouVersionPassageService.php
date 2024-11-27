@@ -2,48 +2,13 @@
 
 namespace App\Services\BiblePassage;
 
-use App\Models\Bible\BibleModel;
-use App\Models\Bible\PassageReferenceModel;
-use App\Services\Database\DatabaseService;
 
 /**
  * Service for interacting with YouVersion Bible passages.
  * Handles URL construction, text retrieval, and reference localization.
  */
-class YouVersionPassageService
+class YouVersionPassageService extends AbstractBiblePassageService
 {
-    /**
-     * @var DatabaseService Handles database interactions.
-     */
-    private $databaseService;
-
-    /**
-     * @var PassageReferenceModel Provides details about the Bible passage reference.
-     */
-    private $bibleReference;
-
-    /**
-     * @var BibleModel Represents Bible-specific metadata and configurations.
-     */
-    private $bible;
-
-    /**
-     * Constructor for YouVersionPassageService.
-     *
-     * @param DatabaseService $databaseService Service for database queries.
-     * @param PassageReferenceModel $bibleReference Provides Bible reference data.
-     * @param BibleModel $bible Represents Bible-specific metadata.
-     */
-    public function __construct(
-        DatabaseService $databaseService,
-        PassageReferenceModel $bibleReference,
-        BibleModel $bible
-    ) {
-        $this->databaseService = $databaseService;
-        $this->bibleReference = $bibleReference;
-        $this->bible = $bible;
-    }
-
     /**
      * Generates the URL for the requested Bible passage on YouVersion.
      *
@@ -59,13 +24,13 @@ class YouVersionPassageService
     public function getPassageUrl(): string
     {
         // Retrieve the book ID for YouVersion
-        $uversionBibleBookID = $this->bibleReference->getUversionBookID();
+        $uversionBibleBookID = $this->passageReference->getUversionBookID();
 
         // Construct the Bible book, chapter, and verse details
         $bibleBookAndChapter = "{$uversionBibleBookID}." .
-            "{$this->bibleReference->getChapterStart()}." .
-            "{$this->bibleReference->getVerseStart()}-" .
-            "{$this->bibleReference->getVerseEnd()}";
+            "{$this->passageReference->getChapterStart()}." .
+            "{$this->passageReference->getVerseStart()}-" .
+            "{$this->passageReference->getVerseEnd()}";
 
         // Replace the `%` placeholder in the external ID with the constructed value
         $formatted = str_replace('%', $bibleBookAndChapter, $this->bible->getExternalId());
@@ -102,9 +67,9 @@ class YouVersionPassageService
     public function getReferenceLocalLanguage(): string
     {
         $bookName = $this->getBookName();
-        $chapterAndVerse = "{$this->bibleReference->getChapterStart()}:" .
-            "{$this->bibleReference->getVerseStart()}-" .
-            "{$this->bibleReference->getVerseEnd()}";
+        $chapterAndVerse = "{$this->passageReference->getChapterStart()}:" .
+            "{$this->passageReference->getVerseStart()}-" .
+            "{$this->passageReference->getVerseEnd()}";
 
         return "{$bookName} {$chapterAndVerse}";
     }
@@ -149,8 +114,8 @@ class YouVersionPassageService
                   WHERE languageCodeHL = :languageCodeHL AND bookID = :bookID 
                   LIMIT 1";
         $params = [
-            ':languageCodeHL' => $this->bibleReference->getLanguageCodeHL(),
-            ':bookID' => $this->bibleReference->getBookID(),
+            ':languageCodeHL' => $this->passageReference->getLanguageCodeHL(),
+            ':bookID' => $this->passageReference->getBookID(),
         ];
 
         $result = $this->databaseService->executeQuery($query, $params);
@@ -177,8 +142,8 @@ class YouVersionPassageService
         $query = "INSERT INTO bible_book_names (bookId, languageCodeHL, name) 
                   VALUES (:bookId, :languageCodeHL, :name)";
         $params = [
-            ':bookId' => $this->bibleReference->getBookID(),
-            ':languageCodeHL' => $this->bibleReference->getLanguageCodeHL(),
+            ':bookId' => $this->passageReference->getBookID(),
+            ':languageCodeHL' => $this->passageReference->getLanguageCodeHL(),
             ':name' => $bookName,
         ];
         $this->databaseService->executeQuery($query, $params);
