@@ -2,22 +2,26 @@
 
 namespace App\Services\BiblePassage;
 
+use App\Services\BiblePassage\AbstractBiblePassageService;
+
+
 
 
 class BibleWordPassageService extends AbstractBiblePassageService
 {
-   
-/public function getPassageText(): string
+  
+public function getPassageUrl(): void
+{
+    // Implement logic to fetch passage URL
+    return "https://biblebrain.example.com/passage";
+}  
+public function getPassageText(): string
 {
     // Implement logic to fetch passage text from BibleBrain
     return "BibleBrain passage text";
 }
 
-public function getPassageUrl(): string
-{
-    // Implement logic to fetch passage URL
-    return "https://biblebrain.example.com/passage";
-}
+
 
 public function getReferenceLocalLanguage(): string
 {

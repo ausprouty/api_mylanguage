@@ -2,6 +2,9 @@
 
 namespace App\Services\BiblePassage;
 
+use App\Services\BiblePassage\AbstractBiblePassageService;
+
+
 
 /**
  * Service for interacting with YouVersion Bible passages.

@@ -9,6 +9,8 @@ use App\Repositories\BiblePassageRepository;
 use App\Services\Web\BibleGatewayConnectionService;
 use App\Services\LoggerService;
 use App\Configuration\Config;
+use App\Services\BiblePassage\AbstractBiblePassageService;
+
 
 /**
  * Controller to fetch Bible passages from BibleGateway

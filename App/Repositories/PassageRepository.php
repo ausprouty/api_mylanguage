@@ -76,16 +76,17 @@ class PassageRepository
     {
         $query = 'INSERT INTO bible_passages 
                   (bpid, referenceLocalLanguage, passageText, passageUrl, 
-                   dateLastUsed, timesUsed)
+                   dateLastUsed, dateChecked, timesUsed)
                   VALUES 
                   (:bpid, :referenceLocalLanguage, :passageText, :passageUrl, 
-                   :dateLastUsed, :timesUsed)';
+                   :dateLastUsed,:dateChecked, :timesUsed)';
         $params = [
             ':bpid' => $biblePassage->bpid,
             ':referenceLocalLanguage' => $biblePassage->getReferenceLocalLanguage(),
             ':passageText' => $biblePassage->getPassageText(),
             ':passageUrl' => $biblePassage->getPassageUrl(),
             ':dateLastUsed' => date("Y-m-d"),
+            ':dateChecked'=> $biblePassage->getDateChecked(),
             ':timesUsed' => $biblePassage->getTimesUsed()
         ];
 

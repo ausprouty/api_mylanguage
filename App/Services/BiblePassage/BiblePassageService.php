@@ -36,7 +36,6 @@ class BiblePassageService
         } else {
             $passage = $this->retrieveExternalPassage();
         }
-
         return $passage->getProperties();
     }
 
@@ -64,25 +63,26 @@ class BiblePassageService
     private function retrieveExternalPassage()
     {
         $service = $this->getPassageService();
-
-        $passageText = $service->getPassageText();
-        $passageUrl = $service->getPassageUrl();
-        $referenceLocalLanguage = $service->getReferenceLocalLanguage();
-
-        PassageModel::savePassageRecord($this->bpid, $referenceLocalLanguage, $passageText, $passageUrl);
+        $service->getWebpage();
+        $service->getPassageUrl();
+        $service->getPassageText();
+        $service->getReferenceLocalLanguage();
+        $passage = $service->getPassageModel();
+        return $passage;
+        
     }
 
     private function getPassageService(): AbstractBiblePassageService
     {
         switch ($this->bible->getSource()) {
             case 'bible_brain':
-                return new BibleBrainPassageService($this->passageReference, $this->bible);
+                return new BibleBrainPassageService($this->bible, $this->passageReference,  $this->databaseService);
             case 'bible_gateway':
-                return new BibleGatewayPassageService($this->passageReference, $this->bible);
+                return new BibleGatewayPassageService($this->bible, $this->passageReference,  $this->databaseService);
             case 'youversion':
-                return new YouVersionPassageService($this->passageReference, $this->bible);
+                return new YouVersionPassageService($this->bible, $this->passageReference, $this->databaseService);
             case 'word':
-                return new BibleWordPassageService($this->passageReference, $this->bible);
+                return new BibleWordPassageService($this->bible,$this->passageReference,  $this->databaseService);
             default:
                 throw new \InvalidArgumentException("Unsupported source: " . $this->bible->getSource());
         }

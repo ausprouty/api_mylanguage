@@ -10,7 +10,7 @@ class BibleBrainConnectionService extends WebsiteConnectionService
     /**
      * The root URL for the BibleBrain API.
      */
-    private const BASE_URL = 'https://4.dbt.io/api';
+    private const BASE_URL = 'https://4.dbt.io/api/';
 
     public function __construct(string $endpoint)
     {
@@ -26,7 +26,7 @@ class BibleBrainConnectionService extends WebsiteConnectionService
         } else {
             $url .= '?v=4&key=' . $apiKey;
         }
-
+ 
         // Call the parent constructor to initialize the URL and connection
         parent::__construct($url);
 

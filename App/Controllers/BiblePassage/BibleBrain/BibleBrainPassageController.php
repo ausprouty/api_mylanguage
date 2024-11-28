@@ -2,7 +2,7 @@
 
 namespace App\Controllers\BiblePassage\BibleBrain;
 
-use App\Services\Bible\BibleBrainPassageService;
+use App\Services\BiblePassage\BibleBrainPassageService;
 
 
 class BibleBrainPassageController

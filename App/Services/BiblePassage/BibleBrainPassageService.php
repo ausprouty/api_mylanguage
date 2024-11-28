@@ -2,100 +2,82 @@
 
 namespace App\Services\BiblePassage;
 
+use App\Factories\PassageFactory;
 use App\Services\Web\BibleBrainConnectionService;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\PassageReferenceModel;
+use App\Services\BiblePassage\AbstractBiblePassageService;
+use Mpdf\Tag\P;
 
 class BibleBrainPassageService extends AbstractBiblePassageService
 {
-
-
-
-    public function getPassageText(): string
+     // create like: https://live.bible.is/bible/AC1IBS/GEN/1
+     //but this may not work -- maybe look for others vide stream?
+    public function getPassageUrl():void
     {
-        // Implement logic to fetch passage text from BibleBrain
-        return "BibleBrain passage text";
+        $this->passageUrl = 'https://live.bible.is/bible/';
+        $this->passageUrl .= $this->bible->getExternalId() . '/';
+        $this->passageUrl .= $this->passageReference->getuversionBookID() . '/' . $this->passageReference->getChapterStart();
     }
-
-    public function getPassageUrl(): string
-    {
-        // Implement logic to fetch passage URL
-        return "https://biblebrain.example.com/passage";
-    }
-
-    public function getReferenceLocalLanguage(): string
-    {
-        // Implement logic to fetch reference in local language
-        return "BibleBrain reference in local language";
-    }
-
-
-
-
-    public function fetchAndFormatPassage()
-    {
-        $this->fetchPassageData();
-        return $this->formatPassageText();
-    }
-
-    private function fetchPassageData()
-    {
-        $url = '    ' . $this->bible->getIdBibleGateway();
+     //to get verses: https://4.dbt.io/api/bibles/filesets/:fileset_id/:book/:chapter?verse_start=5&verse_end=5&v=4
+     public function getWebpage():void{
+        $url = 'bibles/filesets/'. $this->bible->getExternalId();
         $url .= '/' . $this->passageReference->getBookID() . '/' . $this->passageReference->getChapterStart();
         $url .= '?verse_start=' . $this->passageReference->getVerseStart() . '&verse_end=' . $this->passageReference->getVerseEnd();
-        echo '<pre>';
-        var_export($url);
-        echo '</pre>';
         $passage = new BibleBrainConnectionService($url);
-        $this->response = $passage->response;
-    }
+        $this->webpage = $passage->response->data;
+        
+     }
 
-    public function formatPassageText()
+     /* you are given an array:
+
+     Array (
+    [0] => stdClass Object (
+        [book_id]         => ACT
+        [book_name]       => Acts
+        [book_name_alt]   => KISAH RASUI-RASUI
+        [chapter]         => 1
+        [chapter_alt]     => 1
+        [verse_start]     => 3
+        [verse_start_alt] => 3
+        [verse_end]       => 3
+        [verse_end_alt]   => 3
+        [verse_text]      => Óh ka lheueh Gobnyan maté, treb jih na peuet ploh uroe 
+                             Gobnyan kayém that geutunyok ngon cara nyang nyata 
+                             that ubak murit-murit Gobnyan bahwa Gobnyan biet-biet 
+                             udeb. Awaknyan jikalon Gobnyan, dan Gobnyan 
+                             geumeututoe ngon awaknyan keuhai pakriban Allah geumat 
+                             peurintah sibagoe Raja.
+    )
+)
+    */
+    public function getPassageText(): void
     {
-        $text = null;
-        $multiVerseLine = false;
-        $startVerseNumber = null;
-
-        if (!isset($this->response->data)) {
-            return null;
-        }
-
-        foreach ($this->response->data as $verse) {
-            if (!isset($verse->verse_text)) {
-                return null;
+        $text = '';
+        foreach ($this->webpage as $item){
+            if ($item->verse_start == $item->verse_end){
+                $verse_number = $item->verse_start;
             }
-
-            $verseNum = $verse->verse_start_alt;
-            if ($multiVerseLine) {
-                $multiVerseLine = false;
-                $verseNum = $startVerseNumber . '-' . $verse->verse_end_alt;
+            else{
+                $verse_number = $item->verse_start . "-". $item->verse_end;
             }
-
-            if ($verse->verse_text == '-') {
-                $multiVerseLine = true;
-                $startVerseNumber = $verse->verse_start_alt;
-            }
-
-            if ($verse->verse_text != '-') {
-                $text .= '<p><sup class="versenum">' . $verseNum . '</sup> ' . $verse->verse_text . '</p>';
-            }
-        }
-
-        return $text;
+            $text .= '<p>';
+            $text .= '<sup class="versenum">'. $verse_number . '</sup>';
+            $text .= $item->verse_text;
+            $text .= '</p>';
+        }// Implement logic to fetch passage text from BibleBrain
+        $this->passageText = $text;
     }
 
-    public function setReferenceLocalLanguage()
+    public function getReferenceLocalLanguage(): void
     {
-        return $this->getBookNameLocalLanguage() . ' ' . $this->passageReference->getChapterStart() . ':' .
-            $this->passageReference->getVerseStart() . '-' . $this->passageReference->getVerseEnd();
-    }
-
-    private function getBookNameLocalLanguage()
-    {
-        if (!isset($this->response->data)) {
-            return $this->passageReference->getBookName();
+        if (isset($this->webpage[0]) && isset($this->webpage[0]->book_name_alt)) {
+            $book_name = $this->webpage[0]->book_name_alt;
+            $this->referenceLocalLanguage = $book_name . ' ' . $this->passageReference->getChapterStart();
+            $this->referenceLocalLanguage .= ':' . $this->passageReference->getVerseStart() . '-' . $this->passageReference->getVerseEnd();
+        } else {
+            // Handle the case where $this->webpage[0] or its properties are not set
+            $this->referenceLocalLanguage = 'Unknown Reference'; // Or any fallback logic
         }
-
-        return $this->response->data[0]->book_name_alt ?? $this->passageReference->getBookName();
     }
-}
+}  

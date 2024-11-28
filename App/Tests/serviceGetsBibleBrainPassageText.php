@@ -20,10 +20,11 @@ $bibleRepository = new BibleRepository($databaseService);
 $bibleFactory = new BibleFactory($bibleRepository);
 $bibleModel = $bibleFactory->createFromBid(1779);
 
+
 $passageRepository = new PassageRepository($databaseService);
 $biblePassageService = new BiblePassageService($databaseService, $passageRepository);
 
-$passage = $biblePassageService->getPassage($bibleModel, $passageReferenceModel);
+$passage = $biblePassageService->getPassage($bibleModel, $passageReferenceModel, $databaseService);
 
 
 
