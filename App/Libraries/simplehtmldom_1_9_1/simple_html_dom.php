@@ -125,6 +125,7 @@ function dump_html_tree($node, $show_attr = true, $deep = 0)
 
 class simple_html_dom_node
 {
+    public $optional_closing_array = [];// added by Bob Prouty
 	public $nodetype = HDOM_TYPE_TEXT;
 	public $tag = 'text';
 	public $attr = array();
@@ -1387,6 +1388,7 @@ class simple_html_dom_node
 
 class simple_html_dom
 {
+	public $optional_closing_array = [];
 	public $root = null;
 	public $nodes = array();
 	public $callback = null;

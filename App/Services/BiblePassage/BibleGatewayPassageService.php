@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\BiblePassage;
+namespace App\Services\BiblePassage;
 
 use App\Models\Bible\PassageModel;
 use App\Models\Bible\PassageReferenceModel;
@@ -10,108 +10,70 @@ use App\Services\Web\BibleGatewayConnectionService;
 use App\Services\LoggerService;
 use App\Configuration\Config;
 use App\Services\BiblePassage\AbstractBiblePassageService;
-
+use DOMDocument;
+use DOMXPath;
+use Exception;
 
 /**
- * Controller to fetch Bible passages from BibleGateway
- * and save them to the database.
+ * Service to fetch Bible passages from BibleGateway
+ * and process them for saving to the database.
+ *
+ * @note This class uses a modified version of `simple_html_dom`.
+ *       Modification:
+ *       - Added `public $optional_closing_array = [];` to the `simple_html_dom` class.
+ *       Reason:
+ *       - To avoid deprecated warnings in PHP 8.2+ about dynamic property creation.
+ *       If upgrading the library, ensure this modification is reapplied.
  */
 class BibleGatewayPassageService extends AbstractBiblePassageService
 {
-    public function getPassageText(): string
-    {
-        // Implement logic to fetch passage text from BibleBrain
-        return "BibleBrain passage text";
-    }
-
-    public function getPassageUrl(): string
-    {
-        // Implement logic to fetch passage URL
-        return "https://biblebrain.example.com/passage";
-    }
-
-    public function getReferenceLocalLanguage(): string
-    {
-        // Implement logic to fetch reference in local language
-        return "BibleBrain reference in local language";
-    }
-
-
     /**
-     * Fetches a Bible passage from BibleGateway and saves it to the database.
-     */
-    public function fetchAndSavePassage(): PassageModel
-    {
-        $referenceShaped = str_replace(
-            ' ',
-            '%20',
-            $this->passageReference->getEntry()
-        );
-
-        $passageUrl = '/passage/?search=' .
-            $referenceShaped . '&version=' . $this->bible->getExternalId();
-        print_r($passageUrl);
-        print_r('<br><hr><br>');
-        flush();
-        $webpage = new BibleGatewayConnectionService($passageUrl);
-
-        $passageModel = new PassageModel();
-        if ($webpage->response) {
-
-            $passageModel->setPassageText(
-                $this->formatExternal($webpage->response)
-            );
-            $passageModel->setReferenceLocalLanguage(
-                $this->getReferenceLocalLanguage($webpage->response)
-            );
-            $passageModel->setPassageUrl($passageUrl);
-
-            $this->biblePassageRepository->savePassageRecord($passageModel);
-        }
-        return $passageModel;
-    }
-
-    /**
-     * Extracts the reference in the local language from the webpage.
+     * Constructs the passage URL for fetching from BibleGateway.
      *
-     * @param string $webpage The HTML content of the webpage.
-     * @return string The local reference.
+     * @return void
      */
-    private function getReferenceLocalLanguage(string $webpage): string
+    public function getPassageUrl(): void
     {
-        require_once(Config::get('ROOT_LIBRARIES') . '/simplehtmldom_1_9_1/simple_html_dom.php');
-
-        $html = str_get_html($webpage);
-        if (!$html) {
-            return '';
-        }
-
-        $title = $html->find('h1.passage-display-bcv', 0);
-        $localReference = $title ? $title->plaintext : '';
-
-        $html->clear();
-        unset($html);
-
-        return $localReference;
+        $referenceShaped = str_replace(' ', '%20', $this->passageReference->getEntry());
+        $this->passageUrl = BibleGatewayConnectionService::getBaseUrl();
+        $this->passageUrl .= '/passage/?search=' . $referenceShaped . '&version=' . $this->bible->getExternalId();
     }
 
     /**
-     * Formats the external HTML content into cleaned text.
+     * Retrieves the webpage content of the Bible passage.
      *
-     * @param string $webpage The HTML content of the webpage.
-     * @return string The cleaned passage text.
+     * @return void
      */
-    private function formatExternal(string $webpage): string
+    public function getWebPage(): void
     {
-        require_once(Config::get('ROOT_LIBRARIES') . '/simplehtmldom_1_9_1/simple_html_dom.php');
+        $referenceShaped = str_replace(' ', '%20', $this->passageReference->getEntry());
+        $passageUrl = '/passage/?search=' . $referenceShaped . '&version=' . $this->bible->getExternalId();
 
-        $html = str_get_html($webpage);
+        $response = new BibleGatewayConnectionService($passageUrl);
+        $this->webpage = $response->response;
+    }
+
+    /**
+     * Extracts and processes the text of the Bible passage.
+     *
+     * @return void
+     */
+    public function getPassageText(): void
+    {
+        require_once(ROOT_LIBRARIES . '/simplehtmldom_1_9_1/simple_html_dom.php');
+
+        $html = str_get_html($this->webpage);
         if (!$html) {
-            return '';
+            return;
         }
 
         $startDiv = $html->find('div.passage-text', 0);
-        $cleanedHtml = $startDiv ? $startDiv->outertext : '';
+        if (!$startDiv) {
+            echo "No passage-text found.";
+            return;
+        }
+
+        $cleanedHtml = $startDiv->outertext;
 
         $endDiv = $html->find('div.footnotes', 0);
         if ($endDiv) {
@@ -144,8 +106,7 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
         }
 
         foreach ($cleanedHtml->find('small-caps') as $smallCaps) {
-            $smallCaps->outertext =
-                '<span style="font-variant: small-caps" class="small-caps">' .
+            $smallCaps->outertext = '<span style="font-variant: small-caps" class="small-caps">' .
                 $smallCaps->innertext . '</span>';
         }
 
@@ -154,16 +115,48 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
         $cleanedHtml->clear();
         unset($cleanedHtml);
 
+        $this->passageText = $this->balanceDivTags($finalOutput);
+    }
 
+    /**
+     * Extracts the Bible passage reference in the local language from the webpage.
+     *
+     * @return void
+     * @throws Exception If HTML parsing fails.
+     *
+     * @note This method relies on a custom modification to `simple_html_dom`:
+     *       Added `public $optional_closing_array = [];` to prevent PHP 8.2+ deprecation warnings.
+     *       Ensure this change persists if the library is updated.
+     */
+ 
+    public function getReferenceLocalLanguage(): void
+    {
+        require_once(Config::get('ROOT_LIBRARIES') . '/simplehtmldom_1_9_1/simple_html_dom.php');
 
-        return $this->balanceDivTags($finalOutput);
+        $this->webpage = preg_replace('/<script.*?<\/script>/is', '', $this->webpage);
+        $this->webpage = preg_replace('/<style.*?<\/style>/is', '', $this->webpage);
+
+        $html = str_get_html($this->webpage, false, false, DEFAULT_TARGET_CHARSET, false, -1, false, DEFAULT_BR_TEXT);
+
+        if (!$html) {
+            throw new Exception("Failed to parse HTML");
+        }
+
+        $title = $html->find('div.passage-display', 0)
+            ?? $html->find('h1.passage-display', 0)
+            ?? $html->find('div.dropdown-display-text', 0);
+
+        $this->referenceLocalLanguage = $title ? $title->plaintext : '';
+
+        $html->clear();
+        unset($html);
     }
 
     /**
      * Removes specific <sup> tags from the HTML content.
      *
-     * @param string $htmlContent The HTML content.
-     * @return string The cleaned content.
+     * @param string $htmlContent The raw HTML content.
+     * @return string The cleaned HTML content.
      */
     private function removeSupTags(string $htmlContent): string
     {
@@ -179,22 +172,21 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      */
     private function balanceDivTags(string $html): string
     {
+        libxml_use_internal_errors(true);
 
-        // Create a DOM object
-        $dom = str_get_html($html);
+        $convmap = [0x80, 0xFFFF, 0, 0xFFFF];
+        $html = mb_encode_numericentity($html, $convmap, 'UTF-8');
 
-        // If parsing failed, return the original HTML
-        if (!$dom) {
-            return $html;
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->loadHTML('<!DOCTYPE html><html><body>' . $html . '</body></html>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+        libxml_clear_errors();
+
+        $balancedHtml = '';
+        foreach ($dom->getElementsByTagName('body')->item(0)->childNodes as $node) {
+            $balancedHtml .= $dom->saveHTML($node);
         }
 
-        // Get the cleaned and balanced HTML
-        $balancedHtml = $dom->save();
-
-        // Clear the memory used by the DOM object
-        $dom->clear();
-        unset($dom);
-
-        return $balancedHtml;
+        return mb_decode_numericentity($balancedHtml, $convmap, 'UTF-8');
     }
 }

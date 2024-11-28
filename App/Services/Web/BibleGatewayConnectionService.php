@@ -22,6 +22,9 @@ class BibleGatewayConnectionService extends WebsiteConnectionService
         parent::__construct($url);
 
     }
+    static function getBaseUrl():string{
+        return self::BASE_URL;
+    }
 
 
     
