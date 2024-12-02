@@ -27,6 +27,8 @@ class BibleBrainPassageService extends AbstractBiblePassageService
         $url .= '/' . $this->passageReference->getBookID() . '/' . $this->passageReference->getChapterStart();
         $url .= '?verse_start=' . $this->passageReference->getVerseStart() . '&verse_end=' . $this->passageReference->getVerseEnd();
         $passage = new BibleBrainConnectionService($url);
+        print_r ($passage->response->data);
+        die();
         return $passage->response->data;
         
      }

@@ -50,8 +50,10 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
         $referenceShaped = str_replace(' ', '%20', $this->passageReference->getEntry());
         $passageUrl = '/passage/?search=' . $referenceShaped . '&version=' . $this->bible->getExternalId();
 
-        $response = new BibleGatewayConnectionService($passageUrl);
-        return $response->response;
+        $passage = new BibleGatewayConnectionService($passageUrl);
+        $output = [];
+        $output[0] = $passage->response;
+        return $output;
     }
 
     /**
@@ -59,11 +61,11 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      *
      * @return void
      */
-    public function getPassageText(): text
+    public function getPassageText(): string
     {
         require_once(ROOT_LIBRARIES . '/simplehtmldom_1_9_1/simple_html_dom.php');
 
-        $html = str_get_html($this->webpage);
+        $html = str_get_html($this->webpage[0]);
         if (!$html) {
             return null;
         }
@@ -133,12 +135,10 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
     public function getReferenceLocalLanguage(): string
     {
         require_once(Config::get('ROOT_LIBRARIES') . '/simplehtmldom_1_9_1/simple_html_dom.php');
-
-        $this->webpage = preg_replace('/<script.*?<\/script>/is', '', $this->webpage);
-        $this->webpage = preg_replace('/<style.*?<\/style>/is', '', $this->webpage);
-
-        $html = str_get_html($this->webpage, false, false, DEFAULT_TARGET_CHARSET, false, -1, false, DEFAULT_BR_TEXT);
-
+        $webpage = $this->webpage[0];
+        $webpage = preg_replace('/<script.*?<\/script>/is', '', $webpage);
+        $webpage = preg_replace('/<style.*?<\/style>/is', '', $webpage);
+        $html = str_get_html($webpage, false, false, DEFAULT_TARGET_CHARSET, false, -1, false, DEFAULT_BR_TEXT);
         if (!$html) {
             throw new Exception("Failed to parse HTML");
         }

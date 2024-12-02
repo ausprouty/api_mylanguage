@@ -36,7 +36,7 @@ abstract class AbstractBiblePassageService
 
     // Force subclasses to implement these methods
     abstract public function getPassageUrl(): string;
-    abstract public function getWebpage(): array;
+    abstract public function getWebpage(): array; // BibleBrainPassageService return an array, so all must return an array.
     abstract public function getPassageText(): string;
     abstract public function getReferenceLocalLanguage(): string;
     

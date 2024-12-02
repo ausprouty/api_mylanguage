@@ -14,7 +14,7 @@ $databaseService = new DatabaseService();
 
 $passageReferenceRepository = new PassageReferenceRepository($databaseService);
 $passageFactory = new PassageReferenceFactory($passageReferenceRepository);
-$passageReferenceModel = $passageFactory->createFromEntry('Acts 1:3-11');
+$passageReferenceModel = $passageFactory->createFromEntry('Acts 1:1-11');
 
 $bibleRepository = new BibleRepository($databaseService);
 $bibleFactory = new BibleFactory($bibleRepository);

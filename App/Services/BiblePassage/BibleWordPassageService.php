@@ -41,7 +41,7 @@ public function  getWebPage() : array{
     {
         $baseDir = Config::get('ROOT_RESOURCES') . 'bibles/wordproject/';
         $externalId = $this->bible->getExternalId();
-        return $baseDir . $externalId . '/' . $externalId . '/'
+        return $baseDir . $externalId . '/' 
             . $this->formatChapterPage() . '.html';
     }
     /**
@@ -86,8 +86,9 @@ public function  getWebPage() : array{
     
     public function getPassageText(): string
     {
-        // Implement logic to fetch passage text from BibleBrain
-        return "BibleBrain passage text";
+        $chapter = $this->trimToChapter();
+        $verses = $this->trimToVerses($chapter);
+        return $verses;
     }
 
 
@@ -99,8 +100,9 @@ public function  getWebPage() : array{
      * @param string $webpage The HTML content to clean.
      * @return string The cleaned content.
      */
-    private function trimToChapter($webpage)
+    private function trimToChapter():string
     {
+        $webpage = $this->webpage[0];
         $startMarker = '<!--... the Word of God:-->';
         $endMarker = '<!--... sharper than any twoedged sword... -->';
         $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
@@ -108,9 +110,6 @@ public function  getWebPage() : array{
         $chapter = substr($webpage, $startPos, $endPos - $startPos);
         return $chapter;
     }
-
-
-
     /**
      * Extracts and formats a single verse line.
      *
@@ -236,19 +235,25 @@ public function  getWebPage() : array{
      * @param string $webpage The HTML content.
      * @return string The extracted reference language.
      */
-    private function getReferenceLanguage()
+    public function getReferenceLocalLanguage():string
     {
-        $webpage = $this->webpage;
-        $find = '<p class="ym-noprint">';
-        $posStart = strpos($webpage, $find) + strlen($find);
-        $posEnd = strpos($webpage, ':', $posStart);
-        $bookName = trim(substr($webpage, $posStart, $posEnd - $posStart));
-
-        $verses = $this->passageReference->getChapterStart() . ':' .
+        $webpage = $this->webpage[0];
+        $startMarker = '<!-- End of Display Options  -->';
+        $endMarker = '<!--... the Word of God:-->';
+        $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
+        $endPos = strpos($webpage, $endMarker);
+        $webpage = substr($webpage, $startPos, $endPos - $startPos);
+        $startMarker = '<h3>';
+        $endMarker = '</h3>';
+        $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
+        $endPos = strpos($webpage, $endMarker);
+        $bookName = trim(substr($webpage, $startPos, $endPos - $startPos));
+        $verses = ':'.
             $this->passageReference->getVerseStart() . '-' .
             $this->passageReference->getVerseEnd();
 
-        return $bookName . ' ' . $verses;
+        $reference =  $bookName  . $verses;
+        return $reference;
     }
 
 }
