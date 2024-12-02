@@ -5,34 +5,47 @@ namespace App\Services\BiblePassage;
 use App\Services\BiblePassage\AbstractBiblePassageService;
 use App\Services\Web\BibleWordConnectionService;
 use App\Services\LoggerService;
-Use App\Configuration\Config;
+use App\Configuration\Config;
 
-
-
-
+/**
+ * BibleWordPassageService handles Bible passage retrieval from WordProject.
+ * It determines whether to fetch data from a local file or a web source and
+ * processes the content for application use.
+ */
 class BibleWordPassageService extends AbstractBiblePassageService
 {
-  
-public function getPassageUrl():string
-{
-    // Implement logic to fetch passage URL
-    return "https://biblebrain.example.com/passage";
-}  
+    /**
+     * Generates the URL for the passage. 
+     * Currently returns a placeholder URL.
+     *
+     * @return string The passage URL.
+     */
+    public function getPassageUrl(): string
+    {
+        return "https://biblebrain.example.com/passage";
+    }
 
-// do I get from local or remote?
-public function  getWebPage() : array{
-    $webpage = [];
-    $localFile = $this->generateFilePath();
-    if (!file_exists($localFile)){
-        $webpage[0] = $this->fetchFromServerFile($localFile);
+    /**
+     * Retrieves the webpage content, deciding between local or remote sources.
+     *
+     * @return array The webpage content as an array.
+     */
+    public function getWebPage(): array
+    {
+        $webpage = [];
+        $localFile = $this->generateFilePath();
+
+        if (!file_exists($localFile)) {
+            $webpage[0] = $this->fetchFromServerFile($localFile);
+        } else {
+            $response = $this->fetchFromWeb();
+            $webpage[0] = $response->response;
+        }
+
+        return $webpage;
     }
-    else{
-        $response = $this->fetchFromWeb();
-        $webpage[0] = $response->response;
-    }
-    return $webpage;
-}
-/**
+
+    /**
      * Generates the file path for a local resource.
      *
      * @return string The generated file path.
@@ -41,20 +54,18 @@ public function  getWebPage() : array{
     {
         $baseDir = Config::get('ROOT_RESOURCES') . 'bibles/wordproject/';
         $externalId = $this->bible->getExternalId();
-        return $baseDir . $externalId . '/' 
-            . $this->formatChapterPage() . '.html';
+        return $baseDir . $externalId . '/' . $this->formatChapterPage() . '.html';
     }
+
     /**
-     * Formats the chapter and page structure for the URL or file path.
+     * Formats the chapter and page structure for the file path.
      *
      * @return string The formatted chapter and page.
      */
     private function formatChapterPage()
     {
         $bookNumber = $this->passageReference->getBookNumber();
-        if (strlen($bookNumber) === 1) {
-            $bookNumber = str_pad($bookNumber, 2, '0', STR_PAD_LEFT);
-        }
+        $bookNumber = str_pad($bookNumber, 2, '0', STR_PAD_LEFT);
         $chapterNumber = $this->passageReference->getChapterStart();
         return $bookNumber . '/' . $chapterNumber;
     }
@@ -62,28 +73,37 @@ public function  getWebPage() : array{
     /**
      * Fetches content from an external source using a web service.
      *
-     * @return PassageModel The Bible passage model with data.
+     * @return BibleWordConnectionService The response from the web service.
      */
     public function fetchFromWeb()
     {
-        $endpoint = $this->bible->getExternalId() . '/'
-            . $this->formatChapterPage() . '.htm';
-
+        $endpoint = $this->bible->getExternalId() . '/' . $this->formatChapterPage() . '.htm';
         $webpage = new BibleWordConnectionService($endpoint);
 
         if (!$webpage) {
             LoggerService::logError('Failed to fetch Bible passage from WordProject.');
             return null;
         }
+
         return $webpage;
-        
     }
 
-    private function fetchFromServerFile($filename){
-        $text =  file_get_contents($filename);
-        return $text;  
+    /**
+     * Reads content from a local file.
+     *
+     * @param string $filename The file path to read.
+     * @return string The file content.
+     */
+    private function fetchFromServerFile($filename)
+    {
+        return file_get_contents($filename);
     }
-    
+
+    /**
+     * Extracts and formats the passage text.
+     *
+     * @return string The formatted passage text.
+     */
     public function getPassageText(): string
     {
         $chapter = $this->trimToChapter();
@@ -91,86 +111,64 @@ public function  getWebPage() : array{
         return $verses;
     }
 
-
-
-
     /**
-     * Cleans a segment of HTML content between specific markers.
+     * Cleans and extracts chapter content from HTML.
      *
-     * @param string $webpage The HTML content to clean.
-     * @return string The cleaned content.
+     * @return string The cleaned chapter content.
      */
-    private function trimToChapter():string
+    private function trimToChapter(): string
     {
         $webpage = $this->webpage[0];
         $startMarker = '<!--... the Word of God:-->';
         $endMarker = '<!--... sharper than any twoedged sword... -->';
         $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
         $endPos = strpos($webpage, $endMarker);
-        $chapter = substr($webpage, $startPos, $endPos - $startPos);
-        return $chapter;
+        return substr($webpage, $startPos, $endPos - $startPos);
     }
+
     /**
-     * Extracts and formats a single verse line.
+     * Formats and cleans a specific verse line.
      *
      * @param int $verseNum The verse number.
-     * @param string $line The verse line content.
+     * @param string $line The raw verse line.
      * @return string The formatted verse line.
      */
     private function formatVerseLine($verseNum, $line)
     {
-        // Find the last occurrence of </span>
         $lastSpanPos = strripos($line, '</span>');
+        $verseText = $lastSpanPos !== false
+            ? substr($line, $lastSpanPos + strlen('</span>'))
+            : $line;
 
-        if ($lastSpanPos !== false) {
-            // Extract the content after the last </span>
-            $verseText = substr($line, $lastSpanPos + strlen('</span>'));
-        } else {
-            // If no </span> is found, assume the entire line is the verse text
-            $verseText = $line;
-        }
-
-        // Return the formatted line
         return '<p><sup>' . $verseNum . '</sup>' . $verseText . '</p>' . "\n";
     }
-
-    
 
     /**
      * Extracts the verse number from a line of text.
      *
      * @param string $line The line containing the verse.
-     * @return int The extracted verse number.
+     * @return int The verse number.
      */
     private function extractVerseNumber($line)
     {
-        // Find the position of the last '</span>'
-        $endPos = strripos($line, '</span>'); // Use strripos for the last occurrence
+        $endPos = strripos($line, '</span>');
         if ($endPos === false) {
-            return 0; // Return 0 if no closing </span> found
+            return 0;
         }
 
-        // Find the position of the last '>'
-        $startPos = strrpos(substr($line, 0, $endPos), '>'); // Search up to $endPos
+        $startPos = strrpos(substr($line, 0, $endPos), '>');
         if ($startPos === false) {
-            return 0; // Return 0 if no opening '>' found
+            return 0;
         }
 
-        // Extract the content between '>' and '</span>'
-        $verseNumber = substr($line, $startPos + 1, $endPos - $startPos - 1);
-
-        // Return the integer value of the verse number
-        return intval(trim($verseNumber)); // Trim in case of spaces
+        return intval(trim(substr($line, $startPos + 1, $endPos - $startPos - 1)));
     }
 
-
-    
-
     /**
-     * Formats and cleans external text from the webpage.
+     * Cleans and selects verses from chapter content.
      *
-     * @param string $webpage The raw HTML content.
-     * @return string The formatted passage text.
+     * @param string $webpage The cleaned chapter content.
+     * @return string The selected verses.
      */
     private function trimToVerses($webpage)
     {
@@ -182,60 +180,41 @@ public function  getWebPage() : array{
     }
 
     /**
-     * Selects and formats verses from the cleaned webpage content.
+     * Filters and formats verses from the chapter content.
      *
-     * @param string $page The cleaned webpage content.
-     * @return string The selected verses.
+     * @param string $page The chapter content.
+     * @return string The formatted verses.
      */
     private function selectVerses($page)
     {
-
         $page = str_replace(
             ['<!--span class="verse"', '<p>', '</p>', '<br/>', '<br />'],
             ['<span class="verse"', '', '', '<br>', '<br>'],
             $page
         );
-        $page = str_replace(
-            ['<span class="dimver">', '</span-->', "\n", "\r"],
-            ['', '</span>', '', ''],
-            $page
-        );
-        $page = str_replace(
-            ['  </span>'],
-            [''],
-            $page
-        );
-        $lines = explode('<br>', $page);
-        //print_r($lines);
-        //flush();
 
         $verseRange = range(
             intval($this->passageReference->getVerseStart()),
             intval($this->passageReference->getVerseEnd())
         );
 
-
         $verses = '';
-        foreach ($lines as $line) {
+        foreach (explode('<br>', $page) as $line) {
             $verseNum = $this->extractVerseNumber($line);
             if (in_array($verseNum, $verseRange)) {
                 $verses .= $this->formatVerseLine($verseNum, $line);
             }
         }
 
-        //print_r($verses);
-        //flush();
         return $verses;
     }
 
-
-/**
+    /**
      * Extracts the local language reference from the webpage.
      *
-     * @param string $webpage The HTML content.
-     * @return string The extracted reference language.
+     * @return string The extracted reference in local language.
      */
-    public function getReferenceLocalLanguage():string
+    public function getReferenceLocalLanguage(): string
     {
         $webpage = $this->webpage[0];
         $startMarker = '<!-- End of Display Options  -->';
@@ -243,17 +222,14 @@ public function  getWebPage() : array{
         $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
         $endPos = strpos($webpage, $endMarker);
         $webpage = substr($webpage, $startPos, $endPos - $startPos);
+
         $startMarker = '<h3>';
         $endMarker = '</h3>';
         $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
         $endPos = strpos($webpage, $endMarker);
         $bookName = trim(substr($webpage, $startPos, $endPos - $startPos));
-        $verses = ':'.
-            $this->passageReference->getVerseStart() . '-' .
-            $this->passageReference->getVerseEnd();
 
-        $reference =  $bookName  . $verses;
-        return $reference;
+        return $bookName . ':' . $this->passageReference->getVerseStart() .
+            '-' . $this->passageReference->getVerseEnd();
     }
-
 }
