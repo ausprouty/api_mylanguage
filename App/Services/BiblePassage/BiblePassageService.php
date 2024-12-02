@@ -63,10 +63,7 @@ class BiblePassageService
     private function retrieveExternalPassage()
     {
         $service = $this->getPassageService();
-        $service->getWebpage();
-        $service->getPassageUrl();
-        $service->getPassageText();
-        $service->getReferenceLocalLanguage();
+        $service->createPassageModel();
         $passage = $service->getPassageModel();
         return $passage;
         

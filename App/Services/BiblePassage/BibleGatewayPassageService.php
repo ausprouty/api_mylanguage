@@ -32,11 +32,12 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      *
      * @return void
      */
-    public function getPassageUrl(): void
+    public function getPassageUrl(): string
     {
         $referenceShaped = str_replace(' ', '%20', $this->passageReference->getEntry());
-        $this->passageUrl = BibleGatewayConnectionService::getBaseUrl();
-        $this->passageUrl .= '/passage/?search=' . $referenceShaped . '&version=' . $this->bible->getExternalId();
+        $passageUrl = BibleGatewayConnectionService::getBaseUrl();
+        $passageUrl .= '/passage/?search=' . $referenceShaped . '&version=' . $this->bible->getExternalId();
+        return $passageUrl;
     }
 
     /**
@@ -44,13 +45,13 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      *
      * @return void
      */
-    public function getWebPage(): void
+    public function getWebPage():array
     {
         $referenceShaped = str_replace(' ', '%20', $this->passageReference->getEntry());
         $passageUrl = '/passage/?search=' . $referenceShaped . '&version=' . $this->bible->getExternalId();
 
         $response = new BibleGatewayConnectionService($passageUrl);
-        $this->webpage = $response->response;
+        return $response->response;
     }
 
     /**
@@ -58,19 +59,19 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      *
      * @return void
      */
-    public function getPassageText(): void
+    public function getPassageText(): text
     {
         require_once(ROOT_LIBRARIES . '/simplehtmldom_1_9_1/simple_html_dom.php');
 
         $html = str_get_html($this->webpage);
         if (!$html) {
-            return;
+            return null;
         }
 
         $startDiv = $html->find('div.passage-text', 0);
         if (!$startDiv) {
             echo "No passage-text found.";
-            return;
+            return null;
         }
 
         $cleanedHtml = $startDiv->outertext;
@@ -115,7 +116,7 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
         $cleanedHtml->clear();
         unset($cleanedHtml);
 
-        $this->passageText = $this->balanceDivTags($finalOutput);
+        return $this->balanceDivTags($finalOutput);
     }
 
     /**
@@ -129,7 +130,7 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      *       Ensure this change persists if the library is updated.
      */
  
-    public function getReferenceLocalLanguage(): void
+    public function getReferenceLocalLanguage(): string
     {
         require_once(Config::get('ROOT_LIBRARIES') . '/simplehtmldom_1_9_1/simple_html_dom.php');
 
@@ -146,10 +147,11 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
             ?? $html->find('h1.passage-display', 0)
             ?? $html->find('div.dropdown-display-text', 0);
 
-        $this->referenceLocalLanguage = $title ? $title->plaintext : '';
+        $referenceLocalLanguage = $title ? $title->plaintext : '';
 
         $html->clear();
         unset($html);
+        return  $referenceLocalLanguage;
     }
 
     /**

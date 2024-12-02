@@ -35,11 +35,19 @@ abstract class AbstractBiblePassageService
     }
 
     // Force subclasses to implement these methods
-    abstract public function getPassageUrl(): void;
-    abstract public function getWebpage(): void;
-    abstract public function getPassageText(): void;
-    abstract public function getReferenceLocalLanguage(): void;
+    abstract public function getPassageUrl(): string;
+    abstract public function getWebpage(): array;
+    abstract public function getPassageText(): string;
+    abstract public function getReferenceLocalLanguage(): string;
     
+    public function createPassageModel(){
+        $this->passageUrl = $this->getPassageUrl();
+        $this->webpage = $this->getWebpage();
+        $this->passageText = $this->getPassageText();
+        $this->referenceLocalLanguage = $this->getReferenceLocalLanguage();
+    }
+
+
     public function getPassageModel(): PassageModel
     {
         $bpid = $this->bible->getBid() . '-' . $this->passageReference->getPassageID();
@@ -53,7 +61,7 @@ abstract class AbstractBiblePassageService
         $data->timesUsed = 1;
 
         $passageModel = PassageFactory::createFromData($data);
-        $this->passageRepository->savePassageRecord($passageModel);
+        //$this->passageRepository->savePassageRecord($passageModel);
         return $passageModel;
 
     }

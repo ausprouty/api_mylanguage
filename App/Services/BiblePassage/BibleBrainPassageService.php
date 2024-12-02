@@ -13,19 +13,21 @@ class BibleBrainPassageService extends AbstractBiblePassageService
 {
      // create like: https://live.bible.is/bible/AC1IBS/GEN/1
      //but this may not work -- maybe look for others vide stream?
-    public function getPassageUrl():void
+    public function getPassageUrl():string
     {
-        $this->passageUrl = 'https://live.bible.is/bible/';
-        $this->passageUrl .= $this->bible->getExternalId() . '/';
-        $this->passageUrl .= $this->passageReference->getuversionBookID() . '/' . $this->passageReference->getChapterStart();
+        $passageUrl = 'https://live.bible.is/bible/';
+        $passageUrl .= $this->bible->getExternalId() . '/';
+        $passageUrl .= $this->passageReference->getuversionBookID() . '/' . 
+            $this->passageReference->getChapterStart();
+        return $passageUrl;
     }
      //to get verses: https://4.dbt.io/api/bibles/filesets/:fileset_id/:book/:chapter?verse_start=5&verse_end=5&v=4
-     public function getWebpage():void{
+     public function getWebpage(): array{
         $url = 'bibles/filesets/'. $this->bible->getExternalId();
         $url .= '/' . $this->passageReference->getBookID() . '/' . $this->passageReference->getChapterStart();
         $url .= '?verse_start=' . $this->passageReference->getVerseStart() . '&verse_end=' . $this->passageReference->getVerseEnd();
         $passage = new BibleBrainConnectionService($url);
-        $this->webpage = $passage->response->data;
+        return $passage->response->data;
         
      }
 
@@ -51,7 +53,7 @@ class BibleBrainPassageService extends AbstractBiblePassageService
     )
 )
     */
-    public function getPassageText(): void
+    public function getPassageText(): string
     {
         $text = '';
         foreach ($this->webpage as $item){
@@ -66,18 +68,19 @@ class BibleBrainPassageService extends AbstractBiblePassageService
             $text .= $item->verse_text;
             $text .= '</p>';
         }// Implement logic to fetch passage text from BibleBrain
-        $this->passageText = $text;
+        return $text;
     }
 
-    public function getReferenceLocalLanguage(): void
+    public function getReferenceLocalLanguage(): string
     {
         if (isset($this->webpage[0]) && isset($this->webpage[0]->book_name_alt)) {
             $book_name = $this->webpage[0]->book_name_alt;
-            $this->referenceLocalLanguage = $book_name . ' ' . $this->passageReference->getChapterStart();
-            $this->referenceLocalLanguage .= ':' . $this->passageReference->getVerseStart() . '-' . $this->passageReference->getVerseEnd();
+            $referenceLocalLanguage = $book_name . ' ' . $this->passageReference->getChapterStart();
+            $referenceLocalLanguage .= ':' . $this->passageReference->getVerseStart() . '-' . $this->passageReference->getVerseEnd();
         } else {
             // Handle the case where $this->webpage[0] or its properties are not set
-            $this->referenceLocalLanguage = 'Unknown Reference'; // Or any fallback logic
+            $referenceLocalLanguage = 'Unknown Reference'; // Or any fallback logic
         }
+        return $referenceLocalLanguage;
     }
 }  

@@ -3,6 +3,9 @@
 namespace App\Services\BiblePassage;
 
 use App\Services\BiblePassage\AbstractBiblePassageService;
+use App\Services\Web\BibleWordConnectionService;
+use App\Services\LoggerService;
+Use App\Configuration\Config;
 
 
 
@@ -10,24 +13,85 @@ use App\Services\BiblePassage\AbstractBiblePassageService;
 class BibleWordPassageService extends AbstractBiblePassageService
 {
   
-public function getPassageUrl(): void
+public function getPassageUrl():string
 {
     // Implement logic to fetch passage URL
     return "https://biblebrain.example.com/passage";
 }  
-public function getPassageText(): string
-{
-    // Implement logic to fetch passage text from BibleBrain
-    return "BibleBrain passage text";
+
+// do I get from local or remote?
+public function  getWebPage() : array{
+    $webpage = [];
+    $localFile = $this->generateFilePath();
+    if (!file_exists($localFile)){
+        $webpage[0] = $this->fetchFromServerFile($localFile);
+    }
+    else{
+        $response = $this->fetchFromWeb();
+        $webpage[0] = $response->response;
+    }
+    return $webpage;
 }
+/**
+     * Generates the file path for a local resource.
+     *
+     * @return string The generated file path.
+     */
+    private function generateFilePath()
+    {
+        $baseDir = Config::get('ROOT_RESOURCES') . 'bibles/wordproject/';
+        $externalId = $this->bible->getExternalId();
+        return $baseDir . $externalId . '/' . $externalId . '/'
+            . $this->formatChapterPage() . '.html';
+    }
+    /**
+     * Formats the chapter and page structure for the URL or file path.
+     *
+     * @return string The formatted chapter and page.
+     */
+    private function formatChapterPage()
+    {
+        $bookNumber = $this->passageReference->getBookNumber();
+        if (strlen($bookNumber) === 1) {
+            $bookNumber = str_pad($bookNumber, 2, '0', STR_PAD_LEFT);
+        }
+        $chapterNumber = $this->passageReference->getChapterStart();
+        return $bookNumber . '/' . $chapterNumber;
+    }
+
+    /**
+     * Fetches content from an external source using a web service.
+     *
+     * @return PassageModel The Bible passage model with data.
+     */
+    public function fetchFromWeb()
+    {
+        $endpoint = $this->bible->getExternalId() . '/'
+            . $this->formatChapterPage() . '.htm';
+
+        $webpage = new BibleWordConnectionService($endpoint);
+
+        if (!$webpage) {
+            LoggerService::logError('Failed to fetch Bible passage from WordProject.');
+            return null;
+        }
+        return $webpage;
+        
+    }
+
+    private function fetchFromServerFile($filename){
+        $text =  file_get_contents($filename);
+        return $text;  
+    }
+    
+    public function getPassageText(): string
+    {
+        // Implement logic to fetch passage text from BibleBrain
+        return "BibleBrain passage text";
+    }
 
 
 
-public function getReferenceLocalLanguage(): string
-{
-    // Implement logic to fetch reference in local language
-    return "BibleBrain reference in local language";
-}
 
     /**
      * Cleans a segment of HTML content between specific markers.
@@ -71,25 +135,7 @@ public function getReferenceLocalLanguage(): string
         return '<p><sup>' . $verseNum . '</sup>' . $verseText . '</p>' . "\n";
     }
 
-    /**
-     * Extracts the local language reference from the webpage.
-     *
-     * @param string $webpage The HTML content.
-     * @return string The extracted reference language.
-     */
-    private function extractReferenceLanguage($webpage)
-    {
-        $find = '<p class="ym-noprint">';
-        $posStart = strpos($webpage, $find) + strlen($find);
-        $posEnd = strpos($webpage, ':', $posStart);
-        $bookName = trim(substr($webpage, $posStart, $posEnd - $posStart));
-
-        $verses = $this->passageReference->getChapterStart() . ':' .
-            $this->passageReference->getVerseStart() . '-' .
-            $this->passageReference->getVerseEnd();
-
-        return $bookName . ' ' . $verses;
-    }
+    
 
     /**
      * Extracts the verse number from a line of text.
@@ -119,73 +165,7 @@ public function getReferenceLocalLanguage(): string
     }
 
 
-    /**
-     * Fetches content from an external source using a web service.
-     *
-     * @return PassageModel The Bible passage model with data.
-     */
-    public function fetchFromWeb()
-    {
-        $passageModel = new PassageModel();
-        $endpoint = $this->bible->getExternalId() . '/'
-            . $this->formatChapterPage() . '.htm';
-
-        $webpage = new BibleWordConnectionService($endpoint);
-
-        if (!$webpage->response) {
-            LoggerService::logError('Failed to fetch Bible passage from WordProject.');
-            return $passageModel;
-        }
-        $text = $this->trimToVerses($webpage->response);
-        if (!$text) {
-            LoggerService::logError('Unable to extract Bible Word Text.');
-            return $passageModel;
-        }
-        $passageModel->setPassageText($text);
-        $passageModel->setReferenceLocalLanguage(
-            $this->extractReferenceLanguage($webpage->response)
-        );
-
-
-        return $passageModel;
-    }
-
-    /**
-     * Fetches content from a local server file.
-     *
-     * @return PassageModel The Bible passage model with data.
-     */
-    public function fetchFromServerFile()
-    {
-        $filePath = $this->generateFilePath();
-        $webpage = $this->loadWebpageContent($filePath);
-        $passageModel = new PassageModel();
-
-        $text = $this->trimToVerses($webpage);
-        if ($text) {
-            $passageModel->setPassageText($text);
-            $passageModel->setReferenceLocalLanguage(
-                $this->extractReferenceLanguage($webpage)
-            );
-        }
-
-        return $passageModel;
-    }
-
-    /**
-     * Formats the chapter and page structure for the URL or file path.
-     *
-     * @return string The formatted chapter and page.
-     */
-    private function formatChapterPage()
-    {
-        $bookNumber = $this->passageReference->getBookNumber();
-        if (strlen($bookNumber) === 1) {
-            $bookNumber = str_pad($bookNumber, 2, '0', STR_PAD_LEFT);
-        }
-        $chapterNumber = $this->passageReference->getChapterStart();
-        return $bookNumber . '/' . $chapterNumber;
-    }
+    
 
     /**
      * Formats and cleans external text from the webpage.
@@ -200,35 +180,6 @@ public function getReferenceLocalLanguage(): string
 
         return "\n<!-- begin bible -->" . $selectedVerses .
             "\n<!-- end bible -->\n";
-    }
-
-    /**
-     * Generates the file path for a local resource.
-     *
-     * @return string The generated file path.
-     */
-    private function generateFilePath()
-    {
-        $baseDir = Config::get('ROOT_RESOURCES') . 'bibles/wordproject/';
-        $externalId = $this->bible->getExternalId();
-        return $baseDir . $externalId . '/' . $externalId . '/'
-            . $this->formatChapterPage();
-    }
-
-    /**
-     * Loads webpage content from a file.
-     *
-     * @param string $filePath The path to the file.
-     * @return string|null The file content or null if not found.
-     */
-    private function loadWebpageContent($filePath)
-    {
-        if (file_exists($filePath . '.html')) {
-            return file_get_contents($filePath . '.html');
-        } elseif (file_exists($filePath . '.htm')) {
-            return file_get_contents($filePath . '.htm');
-        }
-        return null;
     }
 
     /**
@@ -277,4 +228,27 @@ public function getReferenceLocalLanguage(): string
         //flush();
         return $verses;
     }
+
+
+/**
+     * Extracts the local language reference from the webpage.
+     *
+     * @param string $webpage The HTML content.
+     * @return string The extracted reference language.
+     */
+    private function getReferenceLanguage()
+    {
+        $webpage = $this->webpage;
+        $find = '<p class="ym-noprint">';
+        $posStart = strpos($webpage, $find) + strlen($find);
+        $posEnd = strpos($webpage, ':', $posStart);
+        $bookName = trim(substr($webpage, $posStart, $posEnd - $posStart));
+
+        $verses = $this->passageReference->getChapterStart() . ':' .
+            $this->passageReference->getVerseStart() . '-' .
+            $this->passageReference->getVerseEnd();
+
+        return $bookName . ' ' . $verses;
+    }
+
 }
