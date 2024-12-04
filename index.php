@@ -1,7 +1,8 @@
 <?php
 // index.php
-$mode = 'tests';
+//$mode = 'tests';
 //$mode = 'scripts';
+$mode = 'normal';
 
 // Load the appropriate environment configuration
 require_once __DIR__ . '/App/Configuration/EnvironmentLoader.php'; // Load environment-specific config
@@ -57,6 +58,7 @@ if ($mode == 'tests'){
 }
 elseif ($mode == 'scripts'){
     require_once  __DIR__ . '/App/Configuration/ImportLoader.php'; 
-} else {
- require_once __DIR__ . '/routes.php';
-}
+} 
+
+require_once __DIR__ . '/App/Configuration/router.php';
+
