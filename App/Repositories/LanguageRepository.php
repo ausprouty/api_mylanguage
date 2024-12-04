@@ -25,6 +25,17 @@ class LanguageRepository
         $this->languageFactory = $languageFactory;
     }
 
+    public function getDbsLanguageOptions() {
+        $query = "
+            SELECT dbs_languages.*, hl_languages.name, hl_languages.ethnicName
+            FROM dbs_languages
+            INNER JOIN hl_languages
+            ON dbs_languages.languageCodeHL = hl_languages.languageCodeHL
+            ORDER BY hl_languages.name
+        ";
+        return $this->databaseService->fetchAll($query);
+    }
+
     /**
      * Checks if a language record exists by BibleBrain language code.
      */
