@@ -4,13 +4,25 @@
    Then store it
    Then send you the text you need
 */
+use App\Services\Database\DatabaseService;
+use App\Controllers\BibleStudy\Monolingual\MonolingualDbsTemplateController as MonolingualDbsTemplateController;
+use App\Services\QrCodeGeneratorService;
+use App\Traits\DbsFileNamingTrait;
+use App\Configuration\Config;
+use App\Repositories\LanguageRepository;
+use App\Factories\LanguageFactory;
+$databaseService = new DatabaseService;
+$languageFactory = new LanguageFactory($databaseService);
+$languageRepository = new LanguageRepository($databaseService, $languageFactory);
 
-use App\Controller\ReturnDataController as ReturnDataController;
-use App\Controller\BibleStudy\Monolingual\MonolingualDbsTemplateController as MonolingualDbsTemplateController;
 
-$fileName = MonolingualDbsTemplateController::findFileNameView($lesson, $languageCodeHL1);
-$path = MonolingualDbsTemplateController::getPathView();
+$qrCodeGeneratorService = new QrCodeGeneratorService();
+$controller = new MonolingualDbsTemplateController($qrCodeGeneratorService, $lesson, $languageCodeHL);
+
+$fileName = $this->dbsFileNameingTrait->generateFileName($lesson, $languageCodeHL);
+$path = Config::get('ROOT_RESOURCES');
 $filePath = $path . $fileName;
+print_r($filePath);
 writeLogDebug('dbsFilePath-13', $filePath);
 //if (!file_exists($filePath)){
 $study = new MonolingualDbsTemplateController($lesson, $languageCodeHL1);
@@ -19,4 +31,4 @@ $html =  $study->getTemplate();
 $study->saveMonolingualView();
 //}
 $response = file_get_contents($filePath);
-ReturnDataController::returnData($response);
+

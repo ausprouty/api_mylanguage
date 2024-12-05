@@ -2,9 +2,9 @@
 
 namespace App\Repositories;
 
-use App\Services\Database\DatabaseService;
 use App\Factories\LanguageFactory;
 use App\Models\Language\LanguageModel;
+use App\Services\Database\DatabaseService;
 
 /**
  * Handles database operations for the LanguageModel.
@@ -23,17 +23,6 @@ class LanguageRepository
     ) {
         $this->databaseService = $databaseService;
         $this->languageFactory = $languageFactory;
-    }
-
-    public function getDbsLanguageOptions() {
-        $query = "
-            SELECT dbs_languages.*, hl_languages.name, hl_languages.ethnicName
-            FROM dbs_languages
-            INNER JOIN hl_languages
-            ON dbs_languages.languageCodeHL = hl_languages.languageCodeHL
-            ORDER BY hl_languages.name
-        ";
-        return $this->databaseService->fetchAll($query);
     }
 
     /**
@@ -96,23 +85,62 @@ class LanguageRepository
         return $this->languageFactory->findOneLanguageByLanguageCodeHL($code);
     }
 
-    public function getCodeIsoFromCodeHL($languageCodeHL)
+    /**
+     * Retrieves ISO language code from HL language code.
+     */
+    public function getCodeIsoFromCodeHL(string $languageCodeHL): ?string
     {
-        $query = "SELECT languageCodeIso FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
-        return $this->databaseService->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
+        $query = 'SELECT languageCodeIso FROM hl_languages WHERE '
+            . 'languageCodeHL = :languageCodeHL LIMIT 1';
+        return $this->databaseService->fetchColumn($query, [
+            ':languageCodeHL' => $languageCodeHL
+        ]);
     }
 
-    public function getEnglishNameFromCodeHL($languageCodeHL)
-    {
-        $query = "SELECT name FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
-        return $this->databaseService->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
-    }
     /**
-     * Retrieves ethnic names for a language by its ISO code.
+     * Retrieves English name for a language by ISO code.
      */
-    public function getEthnicNamesForLanguageIso(
+    public function getEnglishNameForLanguageCodeIso(
         string $languageCodeIso
-    ): ?array {
+    ): ?string {
+        $query = 'SELECT name FROM hl_languages WHERE languageCodeIso = '
+            . ':languageCodeIso';
+        $result =  $this->databaseService->fetchColumn(
+            $query,
+            [':languageCodeIso' => $languageCodeIso]
+        );
+        if (is_array($result) && isset($result[0])) {
+            return $result[0];
+        }
+        // Return null if $result[0] is not accessible
+        return null;
+    }
+
+    /**
+     * Retrieves English name for a language by HL code.
+     */
+    public function getEnglishNameForLanguageCodeHL(
+        string $languageCodeHL
+    ): ?string {
+        $query = 'SELECT name FROM hl_languages WHERE languageCodeHL = '
+            . ':languageCodeHL';
+        $result =  $this->databaseService->fetchColumn(
+            $query,
+            [':languageCodeHL' => $languageCodeHL]
+        );
+        if (is_array($result) && isset($result[0])) {
+            return $result[0];
+        }
+        // Return null if $result[0] is not accessible
+        return null;
+    }
+
+    /**
+     * Retrieves ethnic name for a language by ISO code.
+     */
+    public function getEthnicNameForLanguageCodeIso(
+        string $languageCodeIso
+    ): ?string {
         $query = 'SELECT ethnicName FROM hl_languages WHERE languageCodeIso = '
             . ':languageCodeIso';
         return $this->databaseService->fetchColumn(
@@ -120,22 +148,41 @@ class LanguageRepository
             [':languageCodeIso' => $languageCodeIso]
         );
     }
-    public function getFontDataFromCodeHL(string $languageCodeHL)
+
+    /**
+     * Retrieves font data for a language by HL code.
+     */
+    public function getFontDataFromLanguageCodeHL(string $languageCodeHL): ?string
     {
-        $query = "SELECT fontData FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1";
-        $data = $this->databaseService->fetchColumn($query, [':languageCodeHL' => $languageCodeHL]);
-        return $data ? $data : null;
+        $query = 'SELECT fontData FROM hl_languages WHERE languageCodeHL = '
+            . ':languageCodeHL LIMIT 1';
+        return $this->databaseService->fetchColumn(
+            $query,
+            [':languageCodeHL' => $languageCodeHL]
+        );
     }
 
-    public function getLanguageCodes(string $languageCodeIso)
+    /**
+     * Retrieves language codes for a given ISO code.
+     */
+    public function getLanguageCodes(string $languageCodeIso): ?array
     {
-        $query = 'SELECT languageCodeHL, languageCodeBibleBrain FROM hl_languages 
-            WHERE languageCodeIso = :languageCodeIso LIMIT 1';
-        return $this->databaseService->fetchRow($query, [':languageCodeIso' => $languageCodeIso]);
+        $query = 'SELECT languageCodeHL, languageCodeBibleBrain FROM '
+            . 'hl_languages WHERE languageCodeIso = :languageCodeIso LIMIT 1';
+        return $this->databaseService->fetchRow(
+            $query,
+            [':languageCodeIso' => $languageCodeIso]
+        );
     }
-    public function getNextLanguageForLanguageDetails()
+
+    /**
+     * Retrieves the next language for language details processing.
+     */
+    public function getNextLanguageForLanguageDetails(): ?string
     {
-        $query = "SELECT languageCodeIso FROM hl_languages WHERE languageCodeBibleBrain IS NULL AND checkedBBBibles IS NOT NULL LIMIT 1";
+        $query = 'SELECT languageCodeIso FROM hl_languages WHERE '
+            . 'languageCodeBibleBrain IS NULL AND CheckedBBBibles IS NOT NULL '
+            . 'LIMIT 1';
         return $this->databaseService->fetchColumn($query);
     }
 
@@ -157,14 +204,17 @@ class LanguageRepository
         $this->databaseService->executeQuery($query, $params);
     }
 
-    public function languageIsoRecordExists(string $languageCodeIso)
+    /**
+     * Checks if an ISO language record exists.
+     */
+    public function languageIsoRecordExists(string $languageCodeIso): bool
     {
-        $query = 'SELECT id FROM hl_languages 
-            WHERE languageCodeIso = :languageCodeIso LIMIT 1';
+        $query = 'SELECT id FROM hl_languages WHERE languageCodeIso = '
+            . ':languageCodeIso LIMIT 1';
         return $this->databaseService->fetchColumn(
             $query,
             [':languageCodeIso' => $languageCodeIso]
-        );
+        ) !== null;
     }
 
     /**
@@ -176,7 +226,10 @@ class LanguageRepository
     ): void {
         $query = 'UPDATE hl_languages SET ethnicName = :ethnicName WHERE '
             . 'languageCodeIso = :languageCodeIso';
-        $params = [':ethnicName' => $ethnicName, ':languageCodeIso' => $languageCodeIso];
+        $params = [
+            ':ethnicName' => $ethnicName,
+            ':languageCodeIso' => $languageCodeIso
+        ];
         $this->databaseService->executeQuery($query, $params);
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers\BibleStudy\Bilingual;
+namespace App\Controllers\BibleStudy\Monolingual;
 
 use App\Repositories\BibleRepository;
 use App\Repositories\LanguageRepository;
@@ -8,9 +8,10 @@ use App\Services\QrCodeGeneratorService;
 use App\Traits\DbsFileNamingTrait;
 use App\Traits\TemplatePlaceholderTrait;
 use App\Controllers\BibleStudy\BibleBlockController;
+use App\Configuration\Config;
 
 /**
- * Class BilingualStudyTemplateController
+ * Class MonolingualStudyTemplateController
  *
  * This abstract controller provides a foundation for managing bilingual Bible study templates.
  * It includes methods for setting filenames, generating QR codes, creating Bible text blocks,
@@ -19,7 +20,7 @@ use App\Controllers\BibleStudy\BibleBlockController;
  *
  * @package App\Controllers\BibleStudy\Bilingual
  */
-abstract class BilingualStudyTemplateController
+abstract class MonolingualStudyTemplateController
 {
     use DbsFileNamingTrait, TemplatePlaceholderTrait;
 
@@ -38,6 +39,22 @@ abstract class BilingualStudyTemplateController
     protected $bibleReference;
 
     /**
+     * Abstract method to define a prefix for the filename. Must be implemented in derived classes.
+     *
+     * @return string The prefix to use for filenames in the derived class.
+     */
+    protected abstract function getFileNamePrefix(): string;
+
+    /**
+     * Abstract method start the generation process;  
+     * this will call the  returnStudy method with the name of the study
+     *
+     * @return string The prefix to use for filenames in the derived class.
+     */
+    public abstract function  generateStudy($lesson, $languageCodeHL): string;
+
+
+    /**
      * Initializes the BilingualStudyTemplateController.
      *
      * @param LanguageRepository $languageRepository The repository for managing language data.
@@ -53,6 +70,30 @@ abstract class BilingualStudyTemplateController
         $this->bibleRepository = $bibleRepository;
         $this->qrCodeService = $qrCodeService;
     }
+    // study can by one of 'DBS', 'Life', 'Leadership'
+    public function returnStudy($study, $lesson, $languageCodeHL){
+    // Generate the file path for the study
+        
+        $fileName = $this->generateFileName($lesson, $languageCodeHL);
+        $filePath = Config::get('ROOT_RESOURCES') . $fileName;
+        print_r ($filePath);
+        die();
+        // Check if the file exists; if not, create it
+        if (!file_exists($filePath)) {
+            $this->setLesson($lesson);
+            $this->setLanguageCode($languageCodeHL);
+
+            $this->setMonolingualTemplate('monolingualDbsView.twig');
+            $html = $this->getTemplate();
+            $this->saveMonolingualView($filePath, $html);
+        }
+
+        // Write the content into the response body
+        $response->getBody()->write(file_get_contents($filePath));
+
+        return $response->withHeader('Content-Type', 'text/html');
+    }
+
 
     /**
      * Creates a Bible block for the template by combining passages from both languages.
@@ -95,14 +136,7 @@ abstract class BilingualStudyTemplateController
 
         return $this->qrCodeService->getQrCodeUrl();
     }
-
-    /**
-     * Abstract method to define a prefix for the filename. Must be implemented in derived classes.
-     *
-     * @return string The prefix to use for filenames in the derived class.
-     */
-    protected abstract function getFileNamePrefix(): string;
-
+    
     /**
      * Generates QR codes for both Bible passages. Uses the QrCodeGeneratorService
      * to encapsulate QR code generation and maintain modularity.

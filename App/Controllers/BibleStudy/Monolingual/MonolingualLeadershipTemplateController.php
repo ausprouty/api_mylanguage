@@ -4,13 +4,11 @@ namespace App\Controllers\BibleStudy\Monolingual;
 
 use App\Controllers\BibleStudy\LeadershipStudyController;
 use App\Models\BibleStudy\LeadershipReferenceModel;
-use App\Traits\MonolingualQrCodeTrait;
-use App\Traits\DbsFileNamingTrait;
-use App\Traits\DbsTemplatePathsTrait;
+
 
 class MonolingualLeadershipTemplateController extends MonolingualStudyTemplateController
 {
-    use MonolingualQrCodeTrait, DbsFileNamingTrait, DbsTemplatePathsTrait;
+
 
     protected function findTitle(string $lesson, string $languageCodeHL): string
     {
