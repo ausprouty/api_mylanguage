@@ -37,9 +37,9 @@ trait DbsFileNamingTrait
      * 
      * @return string The generated filename without extension.
      */
-    public function generateFileName(string $lesson, string $languageCodeHL1, string $languageCodeHL2 = null): string
+    public function generateFileName(
+        string $study, string $format, string $session, string $languageCodeHL1, string $languageCodeHL2 = null): string
     {
-        $prefix = $this->getFileNamePrefix();
         $lang1 = $this->languageRepository->getEnglishNameForLanguageCodeHL($languageCodeHL1);
 
         if ($languageCodeHL2) {

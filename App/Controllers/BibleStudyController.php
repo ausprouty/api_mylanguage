@@ -20,6 +20,24 @@ class BibleStudyController {
     }
 
     /**
+     * Entry point for web requests. Extracts arguments from the route and delegates to `handleFetch`.
+     *
+     * @param array $args The route arguments.
+     * @return string The fetched study content.
+     */
+    public function fetchStudyFromWeb(array $args): string {
+        // Extract variables from the route arguments
+        $study = $args['study'];
+        $format = $args['format'];
+        $session = (int) $args['session'];
+        $languageCodeHL1 = $args['language1'];
+        $languageCodeHL2  = $args['language2'] ?? null;
+
+        // Delegate to the internal method
+        return $this->fetchStudy($study, $format, $session,  $languageCodeHL1, $languageCodeHL2);
+    }
+
+    /**
      * Fetch a Bible study based on study details.
      *
      * @param string      $study     The name of the study.
@@ -34,10 +52,16 @@ class BibleStudyController {
         string $study,
         string $format,
         int $session,
-        string $language1,
-        ?string $language2 = null
+        string $languageCodeHL1,
+        ?string $languageCodeHL2 = null
     ): string {
         // Delegate the work to the StudyService with the correct parameter order
-        return $this->studyService->fetchStudy($study, $format, $session, $language1, $language2);
+        return $this->studyService->fetchStudy(
+            $study, 
+            $format, 
+            $session, 
+            $languageCodeHL1, 
+            $languageCodeHL2
+        );
     }
 }

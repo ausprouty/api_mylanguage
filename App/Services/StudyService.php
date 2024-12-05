@@ -2,16 +2,29 @@
 namespace App\Services;
 
 use App\Renderers\RendererFactory;
+use \InvalidArgumentException;
+use App\Traits\DbsFileNamingTrait;
+use App\Repositories\LanguageRepository;
 
 class StudyService {
-    private $rendererFactory;
 
-    public function __construct(RendererFactory $rendererFactory) {
+    use DbsFileNamingTrait;
+
+    private $rendererFactory;
+    private $languageRepository;
+
+    public function __construct(
+        RendererFactory $rendererFactory, 
+        LanguageRepository $languageRepository) {
+            
         $this->rendererFactory = $rendererFactory;
+        $this->languageRepository = $languageRepository;
     }
         
-    public function fetchStudy(string $study, string $session, string $format, string $language1, string $language2 = null): string {
-        print_r ('I came to fetch');
+    public function fetchStudy(
+        string $study, string $format, string $session, string $languageCodeHL1, string $languageCodeHL2 = null): string {
+        $filename = $this->generateFileName($study, $format, $session, $languageCodeHL1, $languageCodeHL2);
+        print_r ('I came to fetch ');
         
         /* Example: Generate content
         $content = $this->generateStudyContent($type);
@@ -20,6 +33,7 @@ class StudyService {
         $renderer = $this->rendererFactory->getRenderer($format);
         return $renderer->render($content);
         */
+        return 'frodo';
     }
 
     private function generateStudyContent(string $type): string {

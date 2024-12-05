@@ -5,7 +5,7 @@ use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
 
-class TractController extends Tract {
+class TractController  {
 
     protected $databaseService;
 
