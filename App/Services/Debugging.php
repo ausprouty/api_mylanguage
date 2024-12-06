@@ -1,5 +1,6 @@
 <?php
 
+use App\Configuration\Config;
 /**
  * Writes a log entry to a file.
  * 
@@ -7,7 +8,8 @@
  * @param mixed $content The content to write to the log.
  */
 function writeLog($filename, $content) {
-    if (LOG_MODE !== 'write_log' && LOG_MODE !== 'write_time_log') {
+    if (Config::get('logging.mode') !== 'write_log' 
+        && Config::get('logging.mode') !== 'write_time_log') {
         return;
     }
 
@@ -15,7 +17,7 @@ function writeLog($filename, $content) {
     $filename = validateFilename($filename);
 
     // Append timestamp to filename if log mode is set to write_time_log
-    if (LOG_MODE == 'write_time_log') {
+    if (Config::get('logging.mode') == 'write_time_log') {
         $filename = time() . '-' . $filename;
     }
 
@@ -26,7 +28,7 @@ function writeLog($filename, $content) {
     ensureLogDirectoryExists();
 
     // Construct the full file path
-    $filePath = ROOT_LOG . $filename . '.txt';
+    $filePath = Config::get('paths.logs') . $filename . '.txt';
 
     // Write log content to the file, log to error log if writing fails
     if (file_put_contents($filePath, $text) === false) {
@@ -44,7 +46,7 @@ function writeLogAppend($filename, $content) {
     $filename = validateFilename($filename);
     $text = var_dump_ret($content);
     ensureLogDirectoryExists();
-    $filePath = ROOT_LOG . 'APPEND-' . $filename . '.txt';
+    $filePath = Config::get('paths.logs')  . 'APPEND-' . $filename . '.txt';
 
     // Append content to the file and lock it to prevent concurrent writes
     if (file_put_contents($filePath, $text, FILE_APPEND | LOCK_EX) === false) {
@@ -62,7 +64,7 @@ function writeLogDebug($filename, $content) {
     $filename = validateFilename($filename);
     $text = var_dump_ret($content);
     ensureLogDirectoryExists();
-    $filePath = ROOT_LOG . 'DEBUG-' . $filename . '.txt';
+    $filePath = Config::get('paths.logs') . 'DEBUG-' . $filename . '.txt';
 
     // Write debug log content to the file, log to error log if writing fails
     if (file_put_contents($filePath, $text) === false) {
@@ -80,7 +82,7 @@ function writeLogError($filename, $content) {
     $filename = validateFilename($filename);
     $text = var_dump_ret($content);
     ensureLogDirectoryExists();
-    $filePath = ROOT_LOG . 'ERROR-' . $filename . '.txt';
+    $filePath = ROConfig::get('paths.logs')  . 'ERROR-' . $filename . '.txt';
 
     // Write error log content to the file, log to error log if writing fails
     if (file_put_contents($filePath, $text) === false) {
@@ -108,9 +110,10 @@ function var_dump_ret($mixed = null) {
  * @throws RuntimeException If the directory cannot be created.
  */
 function ensureLogDirectoryExists() {
-    if (!file_exists(ROOT_LOG)) {
-        if (!mkdir(ROOT_LOG, 0755, true) && !is_dir(ROOT_LOG)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', ROOT_LOG));
+    $dir = Config::get('paths.logs');
+    if (!file_exists($dir)) {
+        if (!mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dir));
         }
     }
 }

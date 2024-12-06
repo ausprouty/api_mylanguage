@@ -33,7 +33,7 @@ class BibleStudyService {
         $renderer = $this->rendererFactory->getRenderer($format);
         return $renderer->render($content);
         */
-        return 'frodo';
+        return 'frodo;
     }
 
     private function generateStudyContent(string $type): string {

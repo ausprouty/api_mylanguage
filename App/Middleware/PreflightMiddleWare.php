@@ -44,39 +44,43 @@ class PreflightMiddleware
     public function handle($request, $next)
     {
         // Fetch accepted origins from the environment configuration
-        $acceptedOrigins = explode(',', Config::get('accepted_origins'));
+        $acceptedOrigins = Config::get('accepted_origins');
 
         // Check if the request is an OPTIONS (preflight) request
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
             // Check if the origin is allowed
-            if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], $acceptedOrigins)) {
-                // Log the allowed origin
-                error_log('PreflightMiddleware-18: Origin allowed: ' . $_SERVER['HTTP_ORIGIN']);
+            if (isset($_SERVER['HTTP_ORIGIN'])) {
+                if (in_array($_SERVER['HTTP_ORIGIN'], $acceptedOrigins)) {
+                    // Log the allowed origin
+                    error_log('PreflightMiddleware-18: Origin allowed: ' . $_SERVER['HTTP_ORIGIN']);
 
-                // Set CORS headers for allowed origin
-                header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
-                header('Access-Control-Allow-Credentials: true');
+                    // Set CORS headers for allowed origin
+                    header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
+                    header('Access-Control-Allow-Credentials: true');
 
-                // Allow specific headers and methods
-                header("Access-Control-Allow-Headers: Content-Type, Authorization, User-Authorization");
-                header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+                    // Allow specific headers and methods
+                    header("Access-Control-Allow-Headers: Content-Type, Authorization, User-Authorization");
+                    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 
-                // Respond with a 200 OK status
-                header("HTTP/1.1 200 OK");
-                exit;
+                    // Respond with a 200 OK status
+                    header("HTTP/1.1 200 OK");
+                    exit;
+                } else {
+                    print_r('origin not allowed');
+                    // Log the denied origin and respond with a 403 status
+                    error_log('PreflightMiddleware-27: Origin not allowed: ' . $_SERVER['HTTP_ORIGIN']);
+                    header("HTTP/1.1 403 Forbidden Source");
+                    exit;
+                }
             } else {
-                // Log the denied origin and respond with a 403 status
-                error_log('PreflightMiddleware-27: Origin not allowed: ' . $_SERVER['HTTP_ORIGIN']);
-                header("HTTP/1.1 403 Forbidden Source");
-                exit;
+                // Log that the request is not a preflight (OPTIONS) request
+                writeLog('PreflightMiddleware-32', 'No OPTIONS request');
             }
-        } else {
-            // Log that the request is not a preflight (OPTIONS) request
-            writeLog('PreflightMiddleware-32', 'No OPTIONS request');
-        }
 
-        // Proceed to the next middleware or application logic
-        return $next($request);
+
+            // Proceed to the next middleware or application logic
+            return $next($request);
+        }
     }
 }

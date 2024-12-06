@@ -45,9 +45,6 @@ trait BibleStudyFileNamingTrait
         string $languageCodeHL1,
         string $languageCodeHL2 = null
     ): string {
-        print_r($study);
-        print_r('<br>');
-        print_r(bible_study_names);
         $studyName = Config::get("bible_study_names.$study", 'Unknown Study');
         $lang1 = $this->languageRepository->getEnglishNameForLanguageCodeHL($languageCodeHL1);
 
@@ -70,22 +67,30 @@ trait BibleStudyFileNamingTrait
      * 
      * @return string The generated filename with a `.pdf` extension.
      */
-    public function generateFileNamePdf(string $lesson, string $languageCodeHL1, string $languageCodeHL2 = null): string
+    public function returnFolderName(string $study, string $format): string
     {
-        return $this->generateFileName($lesson, $languageCodeHL1, $languageCodeHL2) . '.pdf';
+        if ($format == 'pdf') {
+            $dir = Config::getDir('bible_studies_pdf');
+        } elseif ($format == 'view') {
+            $dir = Config::getDir('bible_studies_view');
+        } else {
+            $dir = Config::getDir('bible_studies_other');
+        }
+        $dir .= '/' . $study . '/';
+        return $dir;
     }
 
-    /**
-     * Generates a filename with a `.html` extension.
-     *
-     * @param string $lesson The lesson identifier.
-     * @param string $languageCodeHL1 The primary language code in HL format.
-     * @param string|null $languageCodeHL2 Optional secondary language code for bilingual filenames.
-     * 
-     * @return string The generated filename with a `.html` extension.
-     */
-    public function generateFileNameView(string $lesson, string $languageCodeHL1, string $languageCodeHL2 = null): string
-    {
-        return $this->generateFileName($lesson, $languageCodeHL1, $languageCodeHL2) . '.html';
+    public function returnUrl(string $study, string $format): string
+    { {
+            if ($format == 'pdf') {
+                $dir = Config::getUrl('bible_studies_pdf');
+            } elseif ($format == 'view') {
+                $dir = Config::getUrl('bible_studies_view');
+            } else {
+                $dir = Config::getUrl('bible_studies_other');
+            }
+            $dir .= '/' . $study . '/';
+            return $dir;
+        }
     }
 }

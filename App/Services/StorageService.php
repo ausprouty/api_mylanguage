@@ -29,13 +29,19 @@ class StorageService {
      * @param string $key The unique key (filename) identifying the stored file.
      * @return string|null The content of the file if it exists, or null if the file is not found.
      */
-    public function retrieve(string $key): ?string {
-        // Construct the full file path
-        $filePath = $this->storagePath . '/' . $key;
+    public function retrieve(string $key): ?string
+{
+    // Normalize the file path to prevent directory traversal attacks
+    $filePath = realpath($this->storagePath . '/' . $key);
 
-        // Check if the file exists and return its content; otherwise, return null
-        return file_exists($filePath) ? file_get_contents($filePath) : null;
+    // Check if the file exists within the allowed storage path
+    if ($filePath === false || strpos($filePath, $this->storagePath) !== 0 || !file_exists($filePath)) {
+        return null; // File does not exist or is outside the storage path
     }
+
+    // Return the file content, or null on failure
+    return file_get_contents($filePath) ?: null;
+}
 
     /**
      * Stores content in a file identified by a unique key.
