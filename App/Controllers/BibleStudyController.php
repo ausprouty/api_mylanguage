@@ -34,7 +34,7 @@ class BibleStudyController {
         $languageCodeHL2  = $args['language2'] ?? null;
 
         // Delegate to the internal method
-        return $this->fetchStudy($study, $format, $session,  $languageCodeHL1, $languageCodeHL2);
+        return $this->getStudy($study, $format, $session,  $languageCodeHL1, $languageCodeHL2);
     }
 
     /**

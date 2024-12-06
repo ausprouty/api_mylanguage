@@ -42,7 +42,9 @@ class ResourceStorageService
         $normalizedStoragePath = str_replace('\\', '/', strtolower($this->storagePath));
 
         // Check if the file exists within the allowed storage path
-        if ($filePath === false || strpos($normalizedFilePath, $normalizedStoragePath) !== 0 || !file_exists($filePath)) {
+        if ($filePath === false || 
+            strpos($normalizedFilePath, $normalizedStoragePath) !== 0 
+            || !file_exists($filePath)) {
             return null; // File does not exist or is outside the storage path
         }
 
