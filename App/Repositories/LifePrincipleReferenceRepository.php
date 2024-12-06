@@ -21,16 +21,20 @@ class LifePrincipleReferenceRepository
         $data = $this->databaseService->fetchRow($query, $params);
 
         if ($data) {
-            $reference = new LifePrincipleReferenceModel();
-            $reference->setLesson($data['lesson']);
-            $reference->setDescription($data['description']);
-            $reference->setReference($data['reference']);
-            $reference->setTestament($data['testament']);
-            $reference->setQuestion($data['question']);
-            $reference->setVideoCode($data['videoCode']);
-            $reference->setVideoSegment($data['videoSegment']);
-            $reference->setStartTime($data['startTime']);
-            $reference->setEndTime($data['endTime']);
+            $reference = new LifePrincipleReferenceModel(
+                $data['lesson'],
+                $data['description'],
+                $data['description_twig_key'],
+                $data['reference'],
+                $data['testament'],
+                $data['passage_reference_info'],
+                $data['question'],
+                $data['question_twig_key'],
+                $data['videoCode'] ?? null,
+                $data['videoSegment'] ?? 0,
+                $data['startTime'] ?? null,
+                $data['endTime'] ?? null,
+            );
 
             return $reference;
         }

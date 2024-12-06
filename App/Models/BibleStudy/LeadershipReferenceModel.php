@@ -2,7 +2,7 @@
 
 namespace App\Models\BibleStudy;
 
-class LeadershipStudyReferenceModel extends BaseStudyReferenceModel
+class LeadershipReferenceModel extends BaseStudyReferenceModel
 {
     protected string $video_code;
     protected int $video_segment;

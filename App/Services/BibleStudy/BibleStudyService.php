@@ -5,8 +5,10 @@ namespace App\Services\BibleStudy;
 use App\Renderers\RendererFactory;
 use App\Repositories\LanguageRepository;
 use App\Services\ResourceStorageService;
+use App\Services\Database\DatabaseService;
 use App\Traits\BibleStudyFileNamingTrait;
 use InvalidArgumentException;
+use DI\Container;
 
 class BibleStudyService
 {
@@ -14,16 +16,22 @@ class BibleStudyService
 
     private RendererFactory $rendererFactory;
     private LanguageRepository $languageRepository;
+    private DatabaseService $databaseService;
+    private Container $container;
 
     /**
      * Constructor initializes dependencies.
      */
     public function __construct(
         RendererFactory $rendererFactory,
-        LanguageRepository $languageRepository
+        LanguageRepository $languageRepository,
+        DatabaseService  $databaseService,
+        Container $container,
     ) {
         $this->rendererFactory = $rendererFactory;
         $this->languageRepository = $languageRepository;
+        $this->databaseService = $databaseService;
+        $this->container = $container;
     }
 
     /**
@@ -48,8 +56,8 @@ class BibleStudyService
         );
         $storagePath = $this->getStoragePath($study, $format);
         $storageService = new ResourceStorageService($storagePath);
-
-        $file = $storageService->retrieve($filename);
+        $file = null;  // TODO: remove this
+        //$file = $storageService->retrieve($filename);
         return $file 
             ? $file 
             : $this->createStudy(
@@ -99,9 +107,9 @@ class BibleStudyService
         string $languageCodeHL1
     ): string {
         $studyClass = $this->resolveStudyClass($study, false);
-        return (new $studyClass(
-            $study, $format, $session, $languageCodeHL1
-        ))->generate();
+        // Use PHP-DI container to resolve dependencies and create the class
+        $studyInstance = $this->container->get($studyClass); 
+        return $studyInstance->generate($study, $format, $session, $languageCodeHL1);
     }
 
     /**
@@ -122,9 +130,10 @@ class BibleStudyService
         string $languageCodeHL2
     ): string {
         $studyClass = $this->resolveStudyClass($study, true);
-        return (new $studyClass(
-            $study, $format, $session, $languageCodeHL1, $languageCodeHL2
-        ))->generate();
+        $studyClass = $this->resolveStudyClass($study, false);
+        // Use PHP-DI container to resolve dependencies and create the class
+        $studyInstance = $this->container->get($studyClass); 
+        return $studyInstance->generate($study, $format, $session, $languageCodeHL1, $languageCodeHL2);
     }
 
     /**
@@ -138,19 +147,19 @@ class BibleStudyService
     private function resolveStudyClass(string $study, bool $isBilingual): string
     {
         $studyClasses = [
-            'dbs' => $isBilingual ? 'BilingualDBSStudy' : 'MonoLingualDBSStudy',
+            'dbs' => $isBilingual ? 'BilingualDBS' : 'MonolingualDBS',
             'leadership' => $isBilingual
-                ? 'BilingualLeadershipStudy'
-                : 'MonoLingualLeadershipStudy',
+                ? 'BilingualLeadership'
+                : 'MonolingualLeadership',
             'principles' => $isBilingual
-                ? 'BilingualPrinciplesStudy'
-                : 'MonoLingualPrinciplesStudy',
+                ? 'BilingualPrinciples'
+                : 'MonolingualPrinciples',
         ];
 
         if (!isset($studyClasses[$study])) {
             throw new InvalidArgumentException('Unknown study type');
         }
 
-        return "\\App\\Studies\\" . $studyClasses[$study];
+        return "\\App\\Services\\BibleStudy\\" . $studyClasses[$study];
     }
 }

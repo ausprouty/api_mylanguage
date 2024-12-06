@@ -1,16 +1,23 @@
 <?php
+
 namespace App\Services\BibleStudy;
-abstract class AbstractBiLingualStudy extends AbstractBibleStudy {
-   
+
+abstract class AbstractBiLingualStudy extends AbstractBibleStudy
+{
     protected $secondaryLanguage;
+    protected $secondaryBible;
 
-    public function __construct($db, $primaryLanguage, $secondaryLanguage) {
-        parent::__construct($db);
-        $this->language = $primaryLanguage;
-        $this->secondaryLanguage = $secondaryLanguage;
-    }
 
-    public function getSecondaryLanguage(): string {
-        return $this->secondaryLanguage;
+    public function getLanguageInfo(): void
+    {
+        $this->primaryLanguage =
+            $this->languageFactory->findOneLanguageByLanguageCodeHL(
+                $this->languageCodeHL1
+            );
+        $this->secondaryLanguage =
+            $this->languageFactory->findOneLanguageByLanguageCodeHL(
+                $this->languageCodeHL2
+            );
+        return;
     }
 }

@@ -1,8 +1,23 @@
 <?php
 namespace App\Services\BibleStudy;
+
+
+
+
 abstract class AbstractMonoLingualStudy extends AbstractBibleStudy {
-    public function __construct($db, $language) {
-        parent::__construct($db);
-        $this->language = $language;
+
+    protected $language;
+
+    public function getLanguageInfo(): void
+    {
+        $this->primaryLanguage = 
+           $this->languageFactory->findOneLanguageByLanguageCodeHL($this->languageCodeHL1);
+    
+        return;
+    }
+    public function getBibleInfo():void{
+        print_r($this->languageCodeHL1);
+        $this->primaryBible = 
+            $this->bibleFactory->getBestByLanguageCodeHL($this->languageCodeHL1);
     }
 }

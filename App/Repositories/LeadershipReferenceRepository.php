@@ -22,9 +22,16 @@ class LeadershipReferenceRepository
         
         return $data 
             ? new LeadershipReferenceModel(
-                  $data['lesson'], 
-                  $data['reference'], 
-                  $data['description']
+                $data['lesson'],
+                $data['description'],
+                $data['description_twig_key'],
+                $data['reference'],
+                $data['testament'],
+                $data['passage_reference_info'],
+                $data['video_code'],
+                $data['video_segment'],
+                $data['start_time'],
+                $data['end_time'],
               ) 
             : null;
     }

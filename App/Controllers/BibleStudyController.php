@@ -48,7 +48,7 @@ class BibleStudyController {
      *
      * @return string The fetched study content.
      */
-    public function fetchStudy(
+    public function getStudy(
         string $study,
         string $format,
         int $session,
@@ -56,7 +56,7 @@ class BibleStudyController {
         ?string $languageCodeHL2 = null
     ): string {
         // Delegate the work to the StudyService with the correct parameter order
-        return $this->studyService->fetchStudy(
+        return $this->studyService->getStudy(
             $study, 
             $format, 
             $session, 

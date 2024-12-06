@@ -38,7 +38,7 @@ foreach ($iterator as $file) {
 
         try {
             $reflector = new ReflectionClass($class);
-            if ($reflector->isInstantiable()) {
+            if ($reflector->isInstantiable() || $reflector->isAbstract()) {
                 $constructor = $reflector->getConstructor();
                 if ($constructor) {
                     $dependencies = array_map(

@@ -27,12 +27,16 @@ class DbsReferenceRepository
 
         $data = $this->databaseService->fetchRow($query, $params);
 
-        return $data 
+        return $data
             ? new DbsReferenceModel(
-                  $data['lesson'], 
-                  $data['reference'], 
-                  $data['description']
-              ) 
+                $data['lesson'],
+                $data['description'],
+                $data['description_twig_key'],
+                $data['reference'],
+                $data['testament'],
+                $data['passage_reference'],
+                
+            )
             : null;
     }
 }

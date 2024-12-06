@@ -3,8 +3,9 @@
 namespace App\Repositories;
 
 use App\Services\Database\DatabaseService;
+use App\Models\Bible\BibleModel;
 
-class BibleRepository
+class BibleRepository extends BaseRepository
 {
     private $databaseService;
 
@@ -33,15 +34,15 @@ class BibleRepository
         }
     }
 
-    public function findBestBibleByLanguageCodeHL($languageCodeHL)
+    public function findBestBibleByLanguageCodeHL(string $languageCodeHL): ?BibleModel
     {
         $query = 'SELECT * FROM bibles WHERE languageCodeHL = :code 
                   ORDER BY weight DESC LIMIT 1';
         $params = [':code' => $languageCodeHL];
-        return $this->databaseService->fetchRow($query, $params);
+        return $this->fetchAndPopulateModel($query, $params, BibleModel::class);
     }
 
-    public function findBestDbsBibleByLanguageCodeHL($code, $testament = 'C')
+    public function findBestDbsBibleByLanguageCodeHL($code, $testament = 'C') : ?BibleModel
     {
         $query = 'SELECT * FROM bibles WHERE languageCodeHL = :code 
                   AND (collectionCode = :complete OR collectionCode = :testament) 
@@ -51,21 +52,21 @@ class BibleRepository
             ':complete' => 'C',
             ':testament' => $testament
         ];
-        return $this->databaseService->fetchRow($query, $params);
+        return $this->fetchAndPopulateModel($query, $params, BibleModel::class);
     }
 
-    public function findBibleByBid($bid)
+    public function findBibleByBid($bid): ?BibleModel
     {
         $query = 'SELECT * FROM bibles WHERE bid = :bid LIMIT 1';
         $params = [':bid' => $bid];
-        return $this->databaseService->fetchRow($query, $params);
+        return $this->fetchAndPopulateModel($query, $params, BibleModel::class);
     }
 
-    public function findBibleByExternalId($externalId)
+    public function findBibleByExternalId($externalId): ?BibleModel
     {
         $query = 'SELECT * FROM bibles WHERE externalId = :externalId LIMIT 1';
         $params = [':externalId' => $externalId];
-        return $this->databaseService->fetchRow($query, $params);
+        return $this->fetchAndPopulateModel($query, $params, BibleModel::class);;
     }
 
     public function getAllBiblesByLanguageCodeHL($languageCodeHL)

@@ -19,46 +19,6 @@ class BibleFactory
     {
         $this->repository = $repository;
     }
-
-    /**
-     * Creates a BibleModel populated from a database row by bid.
-     */
-    public function createFromBid(int $bid): BibleModel
-    {
-        $model = new BibleModel($this->repository);
-        $data = $this->repository->findBibleByBid($bid);
-        if ($data) {
-            $model->populate($data);
-        }
-        return $model;
-    }
-
-    /**
-     * Creates a BibleModel populated from a language code.
-     */
-    public function createFromLanguageCodeHL(string $languageCodeHL): BibleModel
-    {
-        $model = new BibleModel($this->repository);
-        $data = $this->repository->findBestBibleByLanguageCodeHL($languageCodeHL);
-        if ($data) {
-            $model->populate($data);
-        }
-        return $model;
-    }
-
-    /**
-     * Creates a BibleModel populated from an external ID.
-     */
-    public function createFromExternalId(string $externalId): BibleModel
-    {
-        $model = new BibleModel($this->repository);
-        $data = $this->repository->findBibleByExternalId($externalId);
-        if ($data) {
-            $model->populate($data);
-        }
-        return $model;
-    }
-
     /**
      * Creates a BibleModel with media type properties set.
      */
