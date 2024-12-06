@@ -7,6 +7,7 @@ use PDOException;
 use Exception;
 use InvalidArgumentException;
 use App\Services\LoggerService;
+use App\Configuration\Config;
 
 /**
  * DatabaseService
@@ -27,21 +28,21 @@ class DatabaseService
 
     public function __construct($configType = 'standard')
     {
-        if (!isset(DATABASES[$configType])) {
+        $databaseConfig = Config::get("databases.$configType", null);
+
+        if ($databaseConfig === null) {
             LoggerService::logError("Database configuration type '$configType' not found.");
             throw new InvalidArgumentException("Configuration type '$configType' not found.");
         }
 
-        $config = DATABASES[$configType];
-        $this->host = $config['DB_HOST'] ?? 'localhost';
-        $this->username = $config['DB_USERNAME'];
-        $this->password = $config['DB_PASSWORD'];
-        $this->database = $config['DB_DATABASE'];
-        $this->port = $config['DB_PORT'] ?? 3306;
-        $this->charset = $config['DB_CHARSET'];
-        $this->collation = $config['DB_COLLATION'];
-        $this->prefix = $config['PREFIX'] ?? '';
-
+        $this->host = $databaseConfig['DB_HOST'] ?? 'localhost';
+        $this->username = $databaseConfig['DB_USERNAME'];
+        $this->password = $databaseConfig['DB_PASSWORD'];
+        $this->database = $databaseConfig['DB_DATABASE'];
+        $this->port = $databaseConfig['DB_PORT'] ?? 3306;
+        $this->charset = $databaseConfig['DB_CHARSET'];
+        $this->collation = $databaseConfig['DB_COLLATION'];
+        $this->prefix = $databaseConfig['PREFIX'] ?? '';
         $this->connect();
     }
 

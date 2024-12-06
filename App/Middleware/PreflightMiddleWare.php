@@ -1,6 +1,9 @@
 <?php
 
-Namespace App\Middleware;
+
+namespace App\Middleware;
+
+use App\Configuration\Config;
 
 /**
  * PreflightMiddleware
@@ -11,7 +14,7 @@ Namespace App\Middleware;
  * CORS headers and responds with a `200 OK` status. If the origin is not allowed, it responds 
  * with a `403 Forbidden` status.
  *
- * - **Allowed Origins**: The list of accepted origins is fetched from the environment configuration (`ACCEPTED_ORIGINS`).
+ * - **Allowed Origins**: The list of accepted origins is fetched from the environment configuration (`accepted_origins`).
  * - **CORS Headers**: Sets the necessary CORS headers (`Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, 
  *   `Access-Control-Allow-Methods`, `Access-Control-Allow-Credentials`).
  * - **Preflight Requests**: Handles `OPTIONS` requests by verifying the origin and responding accordingly.
@@ -22,7 +25,8 @@ Namespace App\Middleware;
  * 
  * @return mixed The result of the next middleware or application logic.
  */
-class PreflightMiddleware {
+class PreflightMiddleware
+{
     /**
      * Handle an incoming request and manage CORS preflight requests.
      * 
@@ -37,10 +41,11 @@ class PreflightMiddleware {
      * 
      * @return mixed The result of the next middleware or application logic.
      */
-    public function handle($request, $next) {
+    public function handle($request, $next)
+    {
         // Fetch accepted origins from the environment configuration
-        $acceptedOrigins = explode(',', ACCEPTED_ORIGINS);
-      
+        $acceptedOrigins = explode(',', Config::get('accepted_origins'));
+
         // Check if the request is an OPTIONS (preflight) request
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
@@ -48,15 +53,15 @@ class PreflightMiddleware {
             if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], $acceptedOrigins)) {
                 // Log the allowed origin
                 error_log('PreflightMiddleware-18: Origin allowed: ' . $_SERVER['HTTP_ORIGIN']);
-                
+
                 // Set CORS headers for allowed origin
                 header('Access-Control-Allow-Origin: ' . $_SERVER['HTTP_ORIGIN']);
                 header('Access-Control-Allow-Credentials: true');
-                
+
                 // Allow specific headers and methods
                 header("Access-Control-Allow-Headers: Content-Type, Authorization, User-Authorization");
                 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-                
+
                 // Respond with a 200 OK status
                 header("HTTP/1.1 200 OK");
                 exit;

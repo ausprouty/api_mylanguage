@@ -84,76 +84,212 @@
         ""
     ],
     "App\\Controllers\\Video\\LifeVideoController": [],
-    "App\\Controllers\\Video\\VideoController": null,
+    "App\\Controllers\\Video\\VideoController": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
     "App\\Controllers\\Video\\VideoLumoController": null,
-    "App\\Factories\\BibleBrainConnectionFactory": null,
-    "App\\Factories\\BibleFactory": null,
-    "App\\Factories\\BibleStudyReferenceFactory": null,
-    "App\\Factories\\LanguageFactory": null,
-    "App\\Factories\\PassageFactory": null,
-    "App\\Factories\\PassageReferenceFactory": null,
-    "App\\Helpers\\FilenameHelper": null,
+    "App\\Factories\\BibleBrainConnectionFactory": [],
+    "App\\Factories\\BibleFactory": [
+        "App\\Repositories\\BibleRepository"
+    ],
+    "App\\Factories\\BibleStudyReferenceFactory": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Factories\\LanguageFactory": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Factories\\PassageFactory": [],
+    "App\\Factories\\PassageReferenceFactory": [
+        "App\\Repositories\\PassageReferenceRepository"
+    ],
+    "App\\Helpers\\FilenameHelper": [
+        "App\\Repositories\\LanguageRepository"
+    ],
     "App\\Helpers\\for": null,
     "name": null,
-    "App\\Services\\LoggerService": null,
+    "App\\Services\\LoggerService": [],
     "simple_html_dom_node": null,
     "CORSMiddleware": null,
-    "App\\Middleware\\PostAuthorizationMiddleware": null,
+    "App\\Middleware\\PostAuthorizationMiddleware": [],
     "PreflightMiddleware": null,
-    "App\\Models\\AskQuestionModel": null,
+    "App\\Models\\AskQuestionModel": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
     "App\\Model\\Authorize": null,
-    "App\\Models\\Bible\\BibleBookNameModel": null,
-    "App\\Models\\Bible\\BibleModel": null,
-    "App\\Models\\Bible\\PassageModel": null,
-    "App\\Models\\Bible\\PassageReferenceModel": null,
+    "App\\Models\\Bible\\BibleBookNameModel": [],
+    "App\\Models\\Bible\\BibleModel": [
+        "App\\Repositories\\BibleRepository"
+    ],
+    "App\\Models\\Bible\\PassageModel": [],
+    "App\\Models\\Bible\\PassageReferenceModel": [],
     "App\\Models\\BibleStudy\\BaseStudyReferenceModel": null,
-    "App\\Models\\BibleStudy\\DbsReferenceModel": null,
-    "App\\Models\\BibleStudy\\LeadershipStudyReferenceModel": null,
+    "App\\Models\\BibleStudy\\DbsReferenceModel": [
+        "int",
+        "string",
+        "string",
+        "string",
+        "string",
+        "string"
+    ],
+    "App\\Models\\BibleStudy\\LeadershipStudyReferenceModel": [
+        "int",
+        "string",
+        "string",
+        "string",
+        "string",
+        "string",
+        "string",
+        "int",
+        "string",
+        "string"
+    ],
     "App\\Models\\BibleStudy\\LifePrincipleReferenceModel": null,
     "App\\Models\\Country\r\n\\Country": null,
-    "App\\Models\\Language\\CountryLanguageModel": null,
-    "App\\Models\\Language\\DbsLanguageModel": null,
-    "App\\Models\\Language\\LanguageModel": null,
-    "App\\Models\\Tract\\TractModel": null,
-    "App\\Models\\Video\\JesusVideoSegmentModel": null,
-    "App\\Models\\Video\\VideoModel": null,
-    "App\\Renderers\\HtmlRenderer": null,
-    "App\\Renderers\\PdfRenderer": null,
-    "App\\Renderers\\RendererFactory": null,
-    "App\\Repositories\\AskQuestionRepository": null,
-    "App\\Repositories\\BibleBookRepository": null,
-    "App\\Repositories\\BibleGatewayRepository": null,
-    "App\\Repositories\\BibleRepository": null,
-    "App\\Repositories\\CountryLanguageRepository": null,
-    "App\\Repositories\\DbsLanguageRepository": null,
-    "App\\Repositories\\DbsReferenceRepository": null,
-    "App\\Repositories\\LanguageRepository": null,
-    "App\\Repositories\\LeadershipReferenceRepository": null,
+    "App\\Models\\Language\\CountryLanguageModel": [
+        "",
+        "",
+        ""
+    ],
+    "App\\Models\\Language\\DbsLanguageModel": [
+        "",
+        "",
+        ""
+    ],
+    "App\\Models\\Language\\LanguageModel": [],
+    "App\\Models\\Tract\\TractModel": [],
+    "App\\Models\\Video\\JesusVideoSegmentModel": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Models\\Video\\VideoModel": [
+        "",
+        "",
+        "",
+        "",
+        ""
+    ],
+    "App\\Renderers\\HtmlRenderer": [],
+    "App\\Renderers\\PdfRenderer": [],
+    "App\\Renderers\\RendererFactory": [
+        "array"
+    ],
+    "App\\Repositories\\AskQuestionRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Repositories\\BibleBookRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Repositories\\BibleGatewayRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Repositories\\BibleRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Repositories\\CountryLanguageRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Repositories\\DbsLanguageRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Repositories\\DbsReferenceRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Repositories\\LanguageRepository": [
+        "App\\Services\\Database\\DatabaseService",
+        "App\\Factories\\LanguageFactory"
+    ],
+    "App\\Repositories\\LeadershipReferenceRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
     "App\\Repositories\\LifePrincipleReferenceRepository": null,
-    "App\\Repositories\\PassageReferenceRepository": null,
-    "App\\Repositories\\PassageRepository": null,
-    "App\\Repositories\\VideoRepository": null,
-    "App\\Services\\Bible\\BibleBrainLanguageService": null,
-    "App\\Services\\Bible\\BibleGatewayDataParserService": null,
-    "App\\Services\\Bible\\BibleUpdateService": null,
+    "App\\Repositories\\PassageReferenceRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Repositories\\PassageRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Repositories\\VideoRepository": [
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Services\\Bible\\BibleBrainLanguageService": [
+        "App\\Repositories\\LanguageRepository",
+        "App\\Factories\\LanguageFactory"
+    ],
+    "App\\Services\\Bible\\BibleGatewayDataParserService": [],
+    "App\\Services\\Bible\\BibleUpdateService": [
+        "App\\Services\\Database\\DatabaseService",
+        "App\\Models\\Bible\\BibleModel"
+    ],
     "App\\Services\\BiblePassage\\AbstractBiblePassageService": null,
-    "App\\Services\\BiblePassage\\BibleBrainPassageService": null,
-    "App\\Services\\BiblePassage\\BibleGatewayPassageService": null,
+    "App\\Services\\BiblePassage\\BibleBrainPassageService": [
+        "App\\Models\\Bible\\BibleModel",
+        "App\\Models\\Bible\\PassageReferenceModel",
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Services\\BiblePassage\\BibleGatewayPassageService": [
+        "App\\Models\\Bible\\BibleModel",
+        "App\\Models\\Bible\\PassageReferenceModel",
+        "App\\Services\\Database\\DatabaseService"
+    ],
     "App\\Services\\BiblePassage\\checks": null,
-    "App\\Services\\BiblePassage\\BibleWordPassageService": null,
-    "App\\Services\\BiblePassage\\YouVersionPassageService": null,
-    "App\\Services\\Database\\DatabaseService": null,
-    "App\\Services\\Language\\DbsLanguageService": null,
-    "App\\Services\\Language\\LanguageLookupService": null,
-    "App\\Services\\Language\\TranslationService": null,
-    "App\\Services\\QrCodeGeneratorService": null,
-    "App\\Services\\StorageService": null,
+    "App\\Services\\BiblePassage\\BibleWordPassageService": [
+        "App\\Models\\Bible\\BibleModel",
+        "App\\Models\\Bible\\PassageReferenceModel",
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Services\\BiblePassage\\YouVersionPassageService": [
+        "App\\Models\\Bible\\BibleModel",
+        "App\\Models\\Bible\\PassageReferenceModel",
+        "App\\Services\\Database\\DatabaseService"
+    ],
+    "App\\Services\\Database\\DatabaseService": [
+        ""
+    ],
+    "App\\Services\\Language\\DbsLanguageService": [
+        "App\\Repositories\\LanguageRepository"
+    ],
+    "App\\Services\\Language\\LanguageLookupService": [
+        "App\\Repositories\\LanguageRepository"
+    ],
+    "App\\Services\\Language\\TranslationService": [
+        "string",
+        "string"
+    ],
+    "App\\Services\\QrCodeGeneratorService": [],
+    "App\\Services\\StorageService": [
+        "string"
+    ],
     "App\\Services\\StudyService": null,
-    "App\\Services\\Web\\BibleBrainConnectionService": null,
-    "App\\Services\\Web\\BibleGatewayConnectionService": null,
-    "App\\Services\\Web\\BibleWordConnectionService": null,
-    "App\\Services\\Web\\CloudFrontConnectionService": null,
-    "App\\Services\\Web\\WebsiteConnectionService": null,
-    "App\\Services\\Web\\YouVersionConnectionService": null,
-    "App\\Traits\\that": null
+    "App\\Services\\Web\\BibleBrainConnectionService": [
+        "string"
+    ],
+    "App\\Services\\Web\\BibleGatewayConnectionService": [
+        "string"
+    ],
+    "App\\Services\\Web\\BibleWordConnectionService": [
+        "string"
+    ],
+    "App\\Services\\Web\\CloudFrontConnectionService": [
+        "string"
+    ],
+    "App\\Services\\Web\\WebsiteConnectionService": [
+        "string"
+    ],
+    "App\\Services\\Web\\YouVersionConnectionService": [
+        "string"
+    ],
+    "App\\Traits\\that": null,
+    "$logger = new LoggerService()\\in": null,
+    "App\\Services\\BibleStudy\\BibleStudyService": [
+        "App\\Renderers\\RendererFactory",
+        "App\\Repositories\\LanguageRepository"
+    ]
 }

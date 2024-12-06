@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\Repositories\LanguageRepository;
+use App\Configuration\Config;
 
 /**
  * Trait DbsFileNamingTrait
@@ -12,9 +13,9 @@ use App\Repositories\LanguageRepository;
  *
  * @package App\Traits
  */
-trait DbsFileNamingTrait
+trait BibleStudyFileNamingTrait
 {
-  
+
 
     /**
      * Returns the prefix used in filenames.
@@ -38,15 +39,23 @@ trait DbsFileNamingTrait
      * @return string The generated filename without extension.
      */
     public function generateFileName(
-        string $study, string $format, string $session, string $languageCodeHL1, string $languageCodeHL2 = null): string
-    {
+        string $study,
+        string $format,
+        string $session,
+        string $languageCodeHL1,
+        string $languageCodeHL2 = null
+    ): string {
+        print_r($study);
+        print_r('<br>');
+        print_r(bible_study_names);
+        $studyName = Config::get("bible_study_names.$study", 'Unknown Study');
         $lang1 = $this->languageRepository->getEnglishNameForLanguageCodeHL($languageCodeHL1);
 
         if ($languageCodeHL2) {
             $lang2 = $this->languageRepository->getEnglishNameForLanguageCodeHL($languageCodeHL2);
-            $fileName = "{$prefix}{$lesson}({$lang1}-{$lang2})";
+            $fileName = "{$studyName}{$session}({$lang1}-{$lang2})";
         } else {
-            $fileName = "{$prefix}{$lesson}({$lang1})";
+            $fileName = "{$studyName}{$session}({$lang1})";
         }
 
         return str_replace(' ', '_', trim($fileName));

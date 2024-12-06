@@ -4,8 +4,9 @@
 //$mode = 'scripts';
 $mode = 'normal';
 
-// Load the appropriate environment configuration
-require_once __DIR__ . '/App/Configuration/EnvironmentLoader.php'; // Load environment-specific config
+// Load the appropriate environment configuration; moved to Config.
+
+//require_once __DIR__ . '/App/Configuration/EnvironmentLoader.php'; // Load environment-specific config
 
 // Load Debugging tools
 require_once __DIR__ . '/App/Services/Debugging.php'; 

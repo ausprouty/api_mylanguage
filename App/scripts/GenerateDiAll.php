@@ -2,6 +2,7 @@
 $directory = __DIR__ . '/../'; // Adjust the path as needed
 $progressFile = __DIR__ . '/php-di-progress.json'; // File to save progress
 $outputFile = __DIR__ . '/../Configuration/di/di-all.php';
+// File to save the final definitions
 
 echo "Checking directory: $directory\n";
 if (!is_dir($directory)) {
@@ -10,10 +11,7 @@ if (!is_dir($directory)) {
 
 require __DIR__ . '/../../Vendor/autoload.php';
 
-// Load previous progress if the file exists
-$definitions = file_exists($progressFile)
-    ? json_decode(file_get_contents($progressFile), true)
-    : [];
+$definitions = []; // Initialize an empty array to hold definitions
 
 $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
 
@@ -32,17 +30,9 @@ foreach ($iterator as $file) {
     if (preg_match('/class\s+(\w+)/', $content, $matches)) {
         $class = $namespace ? $namespace . '\\' . $matches[1] : $matches[1];
 
-        // Skip if already processed
-        if (isset($definitions[$class])) {
-            echo "Skipping: Already processed -> $class\n";
-            continue;
-        }
-
         // Check if the class exists before reflecting
         if (!class_exists($class)) {
             echo "Skipping: Class not found -> $class\n";
-            $definitions[$class] = null; // Record it to avoid re-checking
-            file_put_contents($progressFile, json_encode($definitions, JSON_PRETTY_PRINT));
             continue;
         }
 
@@ -69,15 +59,21 @@ foreach ($iterator as $file) {
             $definitions[$class] = null; // Record the error for this class
         }
 
-        // Save progress after processing each class
-        file_put_contents($progressFile, json_encode($definitions, JSON_PRETTY_PRINT));
-        echo "Saved progress for: $class\n";
+        echo "Processed: $class\n";
     }
 }
 
-// Write final PHP-DI configuration file
+// Write final PHP-DI configuration file for Factories
+$phpDiConfig = "<?php\nreturn [\n";
+foreach ($definitions as $class => $dependencies) {
+    $phpDiConfig .= "    '$class' => DI\\autowire()->constructor(\n";
+    if (!empty($dependencies)) {
+        $phpDiConfig .= implode(",\n", array_map(fn($dep) => "        DI\\get('$dep')", $dependencies));
+    }
+    $phpDiConfig .= "\n    ),\n";
+}
+$phpDiConfig .= "];\n";
 
-$phpDiConfig = "<?php\nreturn " . var_export($definitions, true) . ";";
 file_put_contents($outputFile, $phpDiConfig);
 
 echo "PHP-DI configuration file generated: $outputFile\n";

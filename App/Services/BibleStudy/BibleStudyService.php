@@ -3,12 +3,12 @@ namespace App\Services\BibleStudy;
 
 use App\Renderers\RendererFactory;
 use \InvalidArgumentException;
-use App\Traits\DbsFileNamingTrait;
+use App\Traits\BibleStudyFileNamingTrait;
 use App\Repositories\LanguageRepository;
 
 class BibleStudyService {
 
-    use DbsFileNamingTrait;
+    use BibleStudyFileNamingTrait;
 
     private $rendererFactory;
     private $languageRepository;
@@ -24,7 +24,7 @@ class BibleStudyService {
     public function fetchStudy(
         string $study, string $format, string $session, string $languageCodeHL1, string $languageCodeHL2 = null): string {
         $filename = $this->generateFileName($study, $format, $session, $languageCodeHL1, $languageCodeHL2);
-        print_r ('I came to fetch ');
+        print_r ('I came to fetch '. $filename);
         
         /* Example: Generate content
         $content = $this->generateStudyContent($type);
