@@ -5,6 +5,7 @@ use App\Renderers\RendererFactory;
 use \InvalidArgumentException;
 use App\Traits\BibleStudyFileNamingTrait;
 use App\Repositories\LanguageRepository;
+use App\Services\ResourceStorageService;
 
 class BibleStudyService {
 
@@ -15,7 +16,8 @@ class BibleStudyService {
 
     public function __construct(
         RendererFactory $rendererFactory, 
-        LanguageRepository $languageRepository) {
+        LanguageRepository $languageRepository,
+    ) {
             
         $this->rendererFactory = $rendererFactory;
         $this->languageRepository = $languageRepository;
@@ -23,8 +25,16 @@ class BibleStudyService {
         
     public function fetchStudy(
         string $study, string $format, string $session, string $languageCodeHL1, string $languageCodeHL2 = null): string {
-        $filename = $this->generateFileName($study, $format, $session, $languageCodeHL1, $languageCodeHL2);
-        print_r ('I came to fetch '. $filename);
+        $filename = $this->getFileName($study, $format, $session, $languageCodeHL1, $languageCodeHL2);
+        $storagePath = $this->getStoragePath($study, $format);
+        $storageService = new ResourceStorageService($storagePath);
+        $file = $storageService->retrieve($filename);
+        if ($file){
+            return $file;
+        }
+        else{
+            return "not found";
+        }
         
         /* Example: Generate content
         $content = $this->generateStudyContent($type);
@@ -33,7 +43,7 @@ class BibleStudyService {
         $renderer = $this->rendererFactory->getRenderer($format);
         return $renderer->render($content);
         */
-        return 'frodo;
+        return '';
     }
 
     private function generateStudyContent(string $type): string {

@@ -38,7 +38,7 @@ trait BibleStudyFileNamingTrait
      * 
      * @return string The generated filename without extension.
      */
-    public function generateFileName(
+    public function getFileName(
         string $study,
         string $format,
         string $session,
@@ -54,6 +54,12 @@ trait BibleStudyFileNamingTrait
         } else {
             $fileName = "{$studyName}{$session}({$lang1})";
         }
+        if ($format == 'view'){
+            $fileName .= '.html';
+        }
+        else if ($format == 'pdf'){
+            $fileName .= '.pdf';
+        }
 
         return str_replace(' ', '_', trim($fileName));
     }
@@ -67,20 +73,32 @@ trait BibleStudyFileNamingTrait
      * 
      * @return string The generated filename with a `.pdf` extension.
      */
-    public function returnFolderName(string $study, string $format): string
+    public function getDir(string $study, string $format): string
     {
         if ($format == 'pdf') {
-            $dir = Config::getDir('bible_studies_pdf');
+            $dir = Config::getDir('resources.bible_studies_pdf');
         } elseif ($format == 'view') {
-            $dir = Config::getDir('bible_studies_view');
+            $dir = Config::getDir('resources.bible_studies_view');
         } else {
-            $dir = Config::getDir('bible_studies_other');
+            $dir = Config::getDir('resources.bible_studies_other');
         }
-        $dir .= '/' . $study . '/';
+        $dir .=  $study . '/';
+        return $dir;
+    }
+    public function getStoragePath(string $study, string $format): string
+    {
+        if ($format == 'pdf') {
+            $dir = Config::get('paths.resources.bible_studies_pdf');
+        } elseif ($format == 'view') {
+            $dir = Config::get('paths.resources.bible_studies_view');
+        } else {
+            $dir = Config::get('paths.resources.bible_studies_other');
+        }
+        $dir .=  $study . '/';
         return $dir;
     }
 
-    public function returnUrl(string $study, string $format): string
+    public function getUrl(string $study, string $format): string
     { {
             if ($format == 'pdf') {
                 $dir = Config::getUrl('bible_studies_pdf');
