@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Services\StudyService;
+use App\Services\BibleStudy\BibleStudyService;
 
 class BibleStudyController {
     /**
@@ -15,7 +15,7 @@ class BibleStudyController {
      *
      * @param StudyService $studyService The service responsible for fetching Bible studies.
      */
-    public function __construct(StudyService $studyService) {
+    public function __construct(BibleStudyService $studyService) {
         $this->studyService = $studyService;
     }
 
@@ -25,7 +25,7 @@ class BibleStudyController {
      * @param array $args The route arguments.
      * @return string The fetched study content.
      */
-    public function fetchStudyFromWeb(array $args): string {
+    public function webRequestToFetchStudy(array $args): string {
         // Extract variables from the route arguments
         $study = $args['study'];
         $format = $args['format'];

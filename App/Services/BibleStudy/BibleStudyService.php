@@ -1,12 +1,12 @@
 <?php
-namespace App\Services;
+namespace App\Services\BibleStudy;
 
 use App\Renderers\RendererFactory;
 use \InvalidArgumentException;
 use App\Traits\DbsFileNamingTrait;
 use App\Repositories\LanguageRepository;
 
-class StudyService {
+class BibleStudyService {
 
     use DbsFileNamingTrait;
 

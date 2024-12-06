@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers\Video;
 
-class VideoLumoController extends Video {
+class VideoLumoController  {
 
     // input videoCode is 6_529 -GOLUKE
     private function changeVideoLanguage($languageCodeJF){

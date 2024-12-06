@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers\Video;
 
-class VideoLumoController extends VideoLumoController{
+class VideoLumoController {
 
     private $videoCodeString1;
     private $videoCodeString2;

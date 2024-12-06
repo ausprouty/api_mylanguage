@@ -4,7 +4,7 @@ namespace App\Controllers\Video;
 use App\Services\Database\DatabaseService;
 use PDO as PDO;
 
-class VideoController extends Video {
+class VideoController  {
 
     protected $databaseService;
 
