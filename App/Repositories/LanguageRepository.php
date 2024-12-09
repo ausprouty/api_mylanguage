@@ -11,7 +11,7 @@ use App\Services\Database\DatabaseService;
  */
 class LanguageRepository extends BaseRepository
 {
-    private $databaseService;
+
     private $languageFactory;
 
     /**
@@ -123,9 +123,11 @@ class LanguageRepository extends BaseRepository
     public function getEnglishNameForLanguageCodeHL(
         string $languageCodeHL
     ): ?string {
+       
         $query = 'SELECT name FROM hl_languages WHERE languageCodeHL = '
             . ':languageCodeHL';
-        $result =  $this->databaseService->fetchColumn(
+        print_r($languageCodeHL);
+        $result =  $this->databaseService->fetchSingleValue(
             $query,
             [':languageCodeHL' => $languageCodeHL]
         );

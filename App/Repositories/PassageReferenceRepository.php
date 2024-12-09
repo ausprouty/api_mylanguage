@@ -13,7 +13,7 @@ class PassageReferenceRepository extends BaseRepository
     /**
      * @var DatabaseService Database service instance for query execution.
      */
-    private $databaseService;
+ 
 
     /**
      * Constructor.

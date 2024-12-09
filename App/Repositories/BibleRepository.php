@@ -7,7 +7,7 @@ use App\Models\Bible\BibleModel;
 
 class BibleRepository extends BaseRepository
 {
-    private $databaseService;
+    
 
     public function __construct(DatabaseService $databaseService)
     {

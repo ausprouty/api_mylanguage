@@ -15,7 +15,7 @@ class PassageRepository extends BaseRepository
     /**
      * @var DatabaseService The service for interacting with the database.
      */
-    private $databaseService;
+  
 
     /**
      * Constructor to initialize the repository with a database service.

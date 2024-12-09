@@ -6,7 +6,7 @@ use PDO;
 
 class BibleGatewayRepository extends BaseRepository
 {
-    private $databaseService;
+   
 
     public function __construct(DatabaseService $databaseService)
     {

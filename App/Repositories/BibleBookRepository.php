@@ -6,7 +6,7 @@ use App\Services\Database\DatabaseService;
 
 class BibleBookRepository extends BaseRepository
 {
-    private $databaseService;
+   
 
     public function __construct(DatabaseService $databaseService)
     {

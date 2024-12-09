@@ -7,7 +7,6 @@ use App\Models\Language\DbsLanguageModel;
 
 class DbsLanguageRepository extends BaseRepository
 {
-    private $databaseService;
 
     public function __construct(DatabaseService $databaseService)
     {
