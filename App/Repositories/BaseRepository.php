@@ -16,7 +16,11 @@ abstract class BaseRepository
     /**
      * Fetch a single row and populate the model.
      */
-    protected function fetchAndPopulateModel(string $query, array $params, string $modelClass)
+    protected function fetchAndPopulateModel(
+            string $query, 
+            array $params, 
+            string $modelClass
+    )
     {
         $data = $this->databaseService->fetchRow($query, $params);
         if ($data) {

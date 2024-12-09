@@ -11,20 +11,24 @@ class LifePrincipleReferenceModel extends BaseStudyReferenceModel
     protected ?string $startTime = null;
     protected ?string $endTime = null;
 
-    /**
-     * Populates the model with data from an associative array.
-     *
-     * @param array $data Associative array with keys matching property names.
-     */
-    public function populate(array $data): void
-    {
-        foreach ($data as $key => $value) {
-            if (property_exists($this, $key)) {
-                $this->$key = $value;
-            }
-        }
-    }
 
+    /**
+     * Constructor to initialize default values for the derived class.
+     */
+    public function __construct()
+    {
+        // Call parent constructor to initialize base properties
+        parent::__construct();
+
+        // Initialize new properties for LifePrincipleReferenceModel
+        $this->question = '';            // Default empty string
+        $this->question_twig_key = '';   // Default empty string
+        $this->videoCode = null;         // Default null
+        $this->videoSegment = 0;         // Default integer value
+        $this->startTime = null;         // Default null
+        $this->endTime = null;           // Default null
+    }
+    
 
     // Getters
     public function getQuestion(): string

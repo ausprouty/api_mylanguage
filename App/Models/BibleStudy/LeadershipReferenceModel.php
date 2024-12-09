@@ -10,7 +10,17 @@ class LeadershipReferenceModel extends BaseStudyReferenceModel
     protected string $start_time;
     protected string $end_time;
 
-    
+    public function __construct()
+    {
+        // Call parent constructor to initialize base properties
+        parent::__construct();
+
+        // Initialize new properties for LeadershipReferenceModel
+        $this->video_code = '';        // Default empty string
+        $this->video_segment = 0;      // Default integer value
+        $this->start_time = '';        // Default empty string
+        $this->end_time = '';          // Default empty string
+    }
 
     // Shared getters and setters for video-related properties
     public function getVideoCode(): string

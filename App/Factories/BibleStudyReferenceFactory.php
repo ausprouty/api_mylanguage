@@ -65,7 +65,8 @@ class BibleStudyReferenceFactory
         }
 
         $result = $this->expandPassageReferenceInfo($data);
-        return new DbsReferenceModel($result);
+        print_r($result);
+        return (new DbsReferenceModel ())->populate($result);
     }
 
     /**
@@ -78,7 +79,7 @@ class BibleStudyReferenceFactory
     public function createLifePrincipleReferenceModel(
         int $lesson
     ): LifePrincipleReferenceModel {
-        $query = 'SELECT * FROM life_principle_references WHERE lesson = :lesson';
+        $query = 'SELECT * FROM study_life_principle_references WHERE lesson = :lesson';
         $params = [':lesson' => $lesson];
         $data = $this->databaseService->fetchRow($query, $params);
 
@@ -87,7 +88,7 @@ class BibleStudyReferenceFactory
         }
 
         $result = $this->expandPassageReferenceInfo($data);
-        return new LifePrincipleReferenceModel($result);
+        return (new LifePrincipleReferenceModel())->populate($result);
     }
 
     /**
@@ -100,7 +101,7 @@ class BibleStudyReferenceFactory
     public function createLeadershipReferenceModel(
         int $lesson
     ): LeadershipReferenceModel {
-        $query = 'SELECT * FROM leadership_references WHERE lesson = :lesson';
+        $query = 'SELECT * FROM study_leadership_references WHERE lesson = :lesson';
         $params = [':lesson' => $lesson];
         $data = $this->databaseService->fetchRow($query, $params);
 
@@ -109,7 +110,7 @@ class BibleStudyReferenceFactory
         }
 
         $result = $this->expandPassageReferenceInfo($data);
-        return new LeadershipReferenceModel($result);
+        return (new LeadershipReferenceModel())->populate($result);
     }
 
     /**

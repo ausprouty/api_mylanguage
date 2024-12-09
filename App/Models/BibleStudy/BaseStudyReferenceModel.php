@@ -22,17 +22,32 @@ abstract class BaseStudyReferenceModel
     protected ?string $uversionBookID = null;
 
     /**
+     * Constructor to initialize default values.
+     */
+    public function __construct()
+    {
+        $this->lesson = 0; // Default value for an integer property
+        $this->description = ''; // Default value for a string property
+        $this->description_twig_key = '';
+        $this->reference = '';
+        $this->testament = '';
+        $this->passage_reference_info = '';
+        // Nullable properties already have default null values
+    }
+
+    /**
      * Populates the model with data from an associative array.
      *
      * @param array $data Associative array with keys matching property names.
      */
-    public function populate(array $data): void
+    public function populate(array $data): self
     {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
                 $this->$key = $value;
             }
         }
+        return $this;
     }
 
 
