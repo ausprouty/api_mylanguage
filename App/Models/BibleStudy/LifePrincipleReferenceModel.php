@@ -2,45 +2,31 @@
 
 namespace App\Models\BibleStudy;
 
-use ReflectionClass;
-
 class LifePrincipleReferenceModel extends BaseStudyReferenceModel
 {
     protected string $question;
     protected string $question_twig_key;
     protected ?string $videoCode = null;
-    protected int $videoSegment;
+    protected int $videoSegment = 0;
     protected ?string $startTime = null;
     protected ?string $endTime = null;
 
-    public function __construct(
-        int $lesson,
-        string $description,
-        string $description_twig_key,
-        string $reference,
-        string $testament,
-        string $passage_reference_info,
-        string $question,
-        string $question_twig_key,
-        ?string $videoCode = null,
-        int $videoSegment = 0,
-        ?string $startTime = null,
-        ?string $endTime = null
-    ) {
-        parent::__construct(
-            $lesson,
-            $description,
-            $description_twig_key,
-            $reference,
-            $testament,
-            $passage_reference_info
-        );
-        $this->question = $question;
-        $this->question_twig_key = $question_twig_key;
-        $this->videoCode = $videoCode;
-        $this->videoSegment = $videoSegment;
-        $this->startTime = $startTime;
-        $this->endTime = $endTime;
+    /**
+     * Constructor accepts an associative array to populate properties.
+     *
+     * @param array $data Associative array with keys matching property names.
+     */
+    public function __construct(array $data)
+    {
+        // Call the parent constructor to handle BaseStudyReferenceModel properties
+        parent::__construct($data);
+
+        // Assign additional properties specific to LifePrincipleReferenceModel
+        foreach ($data as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
     }
 
     // Getters
@@ -103,19 +89,5 @@ class LifePrincipleReferenceModel extends BaseStudyReferenceModel
     public function setEndTime(?string $endTime): void
     {
         $this->endTime = $endTime;
-    }
-
-    /**
-     * Returns all properties as an associative array, including inherited ones.
-     */
-    public function getProperties(): array
-    {
-        $reflection = new ReflectionClass($this);
-        $propsArray = [];
-        foreach ($reflection->getProperties() as $property) {
-            $property->setAccessible(true);
-            $propsArray[$property->getName()] = $property->getValue($this);
-        }
-        return $propsArray;
     }
 }

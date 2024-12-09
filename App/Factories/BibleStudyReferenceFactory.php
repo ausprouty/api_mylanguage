@@ -8,98 +8,119 @@ use App\Models\BibleStudy\LifePrincipleReferenceModel;
 use App\Services\Database\DatabaseService;
 
 /**
- * Factory for creating and populating Three PassageReferenceModel instances.
+ * Factory for creating and populating Bible Study Reference Models.
  */
 class BibleStudyReferenceFactory
 {
-    private $databaseService;
+    private DatabaseService $databaseService;
 
+    /**
+     * Constructor to inject the DatabaseService.
+     *
+     * @param DatabaseService $databaseService
+     */
     public function __construct(DatabaseService $databaseService)
     {
         $this->databaseService = $databaseService;
     }
 
     /**
-     * Creates a DbsReferenceModel and populates it with provided data.
+     * Creates and populates a DbsReferenceModel.
+     *
+     * @param int $lesson The lesson identifier.
+     * @return DbsReferenceModel
+     * @throws \Exception If no data is found for the given lesson.
      */
-    public function createDbsReferenceModel($lesson): DbsReferenceModel
+    public function createDbsReferenceModel(int $lesson): DbsReferenceModel
     {
-        $query = 'SELECT * FROM dbs_references WHERE lesson = :lesson';
+        $query = 'SELECT * FROM study_dbs_references WHERE lesson = :lesson';
         $params = [':lesson' => $lesson];
-        $result = $this->databaseService->fetchRow($query, $params);
-        if (!$result) {
+        $data = $this->databaseService->fetchRow($query, $params);
+
+        if (!$data) {
             throw new \Exception("No record found for lesson: $lesson");
         }
-        $model = new DbsReferenceModel(
-            $result['lesson'],
-            $result['description'],
-            $result['description_twig_key'],
-            $result['reference'],
-            $result['testament'],
-            $result['passage_reference_info']
-        );
-        return $model;
+
+        $result = $this->expandPassageReferenceInfo($data);
+
+        return new DbsReferenceModel($result);
     }
 
     /**
-     * Creates a LifePrincipleReferenceModel and populates it with data from the database.
+     * Creates and populates a LifePrincipleReferenceModel.
+     *
+     * @param int $lesson The lesson identifier.
+     * @return LifePrincipleReferenceModel
+     * @throws \Exception If no data is found for the given lesson.
      */
-    public function createLifePrincipleReferenceModel(int $lesson): LifePrincipleReferenceModel
-    {
-        $model = new LifePrincipleReferenceModel();
+    public function createLifePrincipleReferenceModel(
+        int $lesson
+    ): LifePrincipleReferenceModel {
         $query = 'SELECT * FROM life_principle_references WHERE lesson = :lesson';
         $params = [':lesson' => $lesson];
+        $data = $this->databaseService->fetchRow($query, $params);
 
-        $result = $this->databaseService->fetchRow($query, $params);
-
-        if (!$result) {
+        if (!$data) {
             throw new \Exception("No record found for lesson: $lesson");
         }
 
-        // Populate the model
-        $model->setLesson($result['lesson']);
-        $model->setDescription($result['description']);
-        $model->setDescriptionTwigKey($result['descripttion_twig_key']);
-        $model->setReference($result['reference']);
-        $model->setTestament($result['testament']);
-        $model->setPassageReferenceInfo($result['passage_reference_info']);
-        $model->setQuestion($result['question']);
-        $model->setQuestionTwigKey($result['question_twig_key']);
-        $model->setVideoCode($result['videoCode']);
-        $model->setVideoSegment($result['videoSegment']);
-        $model->setStartTime($result['startTime']);
-        $model->setEndTime($result['endTime']);
+        $result = $this->expandPassageReferenceInfo($data);
 
-        return $model;
+        return new LifePrincipleReferenceModel($result);
     }
 
     /**
-     * Creates a LeadershipReferenceModel and populates it with data from the database.
+     * Creates and populates a LeadershipReferenceModel.
+     *
+     * @param int $lesson The lesson identifier.
+     * @return LeadershipReferenceModel
+     * @throws \Exception If no data is found for the given lesson.
      */
-    public function createLeadershipReferenceModel(int $lesson): LeadershipReferenceModel
-    {
-        $model = new LeadershipReferenceModel();
+    public function createLeadershipReferenceModel(
+        int $lesson
+    ): LeadershipReferenceModel {
         $query = 'SELECT * FROM leadership_references WHERE lesson = :lesson';
         $params = [':lesson' => $lesson];
+        $data = $this->databaseService->fetchRow($query, $params);
 
-        $result = $this->databaseService->fetchRow($query, $params);
-
-        if (!$result) {
+        if (!$data) {
             throw new \Exception("No record found for lesson: $lesson");
         }
 
-        // Populate the model
-        $model->setLesson($result['lesson']);
-        $model->setDescription($result['description']);
-        $model->setDescriptionTwigKey($result['description_twig_key']);
-        $model->setReference($result['reference']);
-        $model->setTestament($result['testament']);
-        $model->setPassageReferenceInfo($result['passage_reference_info']);
-        $model->setVideoCode($result['video_code']);
-        $model->setVideoSegment($result['video_segment']);
-        $model->setStartTime($result['start_time']);
-        $model->setEndTime($result['end_time']);
+        $result = $this->expandPassageReferenceInfo($data);
 
-        return $model;
+        return new LeadershipReferenceModel($result);
+    }
+
+    /**
+     * Expands the passage_reference_info field into detailed fields.
+     *
+     * @param array $reference The reference data.
+     * @return array The expanded reference data.
+     */
+    protected function expandPassageReferenceInfo(array $reference): array
+    {
+        $json = json_decode($reference['passage_reference_info'] ?? '', true);
+
+        if (is_array($json)) {
+            $reference['chapterStart'] = $json['chapterStart'] ?? null;
+            $reference['chapterEnd'] = $json['chapterEnd'] ?? null;
+            $reference['verseStart'] = $json['verseStart'] ?? null;
+            $reference['verseEnd'] = $json['verseEnd'] ?? null;
+            $reference['passageID'] = $json['passageID'] ?? null;
+            $reference['uversionBookID'] = $json['uversionBookID'] ?? null;
+        } else {
+            $reference['chapterStart'] = null;
+            $reference['chapterEnd'] = null;
+            $reference['verseStart'] = null;
+            $reference['verseEnd'] = null;
+            $reference['passageID'] = null;
+            $reference['uversionBookID'] = null;
+
+            error_log('Failed to decode passage_reference_info: ' .
+                ($reference['passage_reference_info'] ?? ''));
+        }
+
+        return $reference;
     }
 }

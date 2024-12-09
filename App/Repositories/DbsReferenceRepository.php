@@ -5,7 +5,7 @@ namespace App\Repositories;
 use App\Models\BibleStudy\DbsReferenceModel;
 use App\Services\Database\DatabaseService;
 
-class DbsReferenceRepository
+class DbsReferenceRepository extends BaseStudyRepository
 {
     private $databaseService;
 
@@ -22,21 +22,24 @@ class DbsReferenceRepository
      */
     public function getReferenceByLesson(string $lesson): ?DbsReferenceModel
     {
-        $query = 'SELECT * FROM dbs_references WHERE lesson = :lesson';
+        $query = 'SELECT * FROM study_study_dbs_references WHERE lesson = :lesson';
         $params = [':lesson' => $lesson];
 
         $data = $this->databaseService->fetchRow($query, $params);
 
-        return $data
-            ? new DbsReferenceModel(
+        if ($data) {
+
+            $reference = [
                 $data['lesson'],
                 $data['description'],
                 $data['description_twig_key'],
                 $data['reference'],
                 $data['testament'],
                 $data['passage_reference'],
-                
-            )
-            : null;
+
+            ];
+            $model = new DbsReferenceModel($data);
+            return $model;
+        }
     }
 }
