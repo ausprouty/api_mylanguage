@@ -4,13 +4,13 @@ namespace App\Repositories;
 
 use App\Services\Database\DatabaseService;
 
-class BibleBookRepository
+class BibleBookRepository extends BaseRepository
 {
     private $databaseService;
 
     public function __construct(DatabaseService $databaseService)
     {
-        $this->databaseService = $databaseService;
+        parent::__construct($databaseService);
     }
 
     public function getBookName($languageCodeHL, $bookID): ?string

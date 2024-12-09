@@ -9,7 +9,7 @@ use App\Services\Database\DatabaseService;
 /**
  * Handles database operations for the LanguageModel.
  */
-class LanguageRepository
+class LanguageRepository extends BaseRepository
 {
     private $databaseService;
     private $languageFactory;
@@ -21,9 +21,10 @@ class LanguageRepository
         DatabaseService $databaseService,
         LanguageFactory $languageFactory
     ) {
-        $this->databaseService = $databaseService;
-        $this->languageFactory = $languageFactory;
+        parent::__construct($databaseService); // Call the parent constructor inside the body
+        $this->languageFactory = $languageFactory; // Initialize other properties
     }
+    
 
     /**
      * Checks if a language record exists by BibleBrain language code.

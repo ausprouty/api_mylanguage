@@ -10,7 +10,7 @@ use PDO;
 /**
  * Repository for handling Bible passage records in the database.
  */
-class PassageRepository
+class PassageRepository extends BaseRepository
 {
     /**
      * @var DatabaseService The service for interacting with the database.
@@ -24,7 +24,7 @@ class PassageRepository
      */
     public function __construct(DatabaseService $databaseService)
     {
-        $this->databaseService = $databaseService;
+        parent::__construct($databaseService);
     }
 
     /**

@@ -7,6 +7,7 @@ namespace App\Services\BibleStudy;
 abstract class AbstractMonoLingualStudy extends AbstractBibleStudy {
 
     protected $language;
+    
 
     public function getLanguageInfo(): void
     {
@@ -18,6 +19,6 @@ abstract class AbstractMonoLingualStudy extends AbstractBibleStudy {
     public function getBibleInfo():void{
         print_r($this->languageCodeHL1);
         $this->primaryBible = 
-            $this->bibleFactory->getBestByLanguageCodeHL($this->languageCodeHL1);
+            $this->bibleRepository->findBestBibleByLanguageCodeHL($this->languageCodeHL1);
     }
 }

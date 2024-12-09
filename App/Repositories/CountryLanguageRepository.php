@@ -7,13 +7,13 @@ use App\Models\Language\CountryLanguageModel;
 use PDO;
 use Exception;
 
-class CountryLanguageRepository
+class CountryLanguageRepository extends BaseRepository
 {
     private $databaseService;
 
     public function __construct(DatabaseService $databaseService)
     {
-        $this->databaseService = $databaseService;
+        parent::__construct($databaseService);
     }
 
     public function getLanguagesWithContentForCountry($countryCode)

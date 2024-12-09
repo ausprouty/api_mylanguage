@@ -5,13 +5,13 @@ use App\Services\Database\DatabaseService;
 use App\Models\AskQuestionModel;
 use PDO;
 
-class AskQuestionRepository
+class AskQuestionRepository extends BaseRepository
 {
     private $databaseService;
 
     public function __construct(DatabaseService $databaseService)
     {
-        $this->databaseService = $databaseService;
+        parent::__construct($databaseService);
     }
 
     public function getBestSiteByLanguageCodeHL($code)

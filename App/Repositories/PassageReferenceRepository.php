@@ -8,7 +8,7 @@ use PDO;
 /**
  * Repository for Bible references and related data retrieval.
  */
-class PassageReferenceRepository
+class PassageReferenceRepository extends BaseRepository
 {
     /**
      * @var DatabaseService Database service instance for query execution.
@@ -22,7 +22,7 @@ class PassageReferenceRepository
      */
     public function __construct(DatabaseService $databaseService)
     {
-        $this->databaseService = $databaseService;
+        parent::__construct($databaseService);
     }
 
     /**

@@ -5,13 +5,13 @@ namespace App\Repositories;
 use App\Services\Database\DatabaseService;
 use App\Models\Language\DbsLanguageModel;
 
-class DbsLanguageRepository
+class DbsLanguageRepository extends BaseRepository
 {
     private $databaseService;
 
     public function __construct(DatabaseService $databaseService)
     {
-        $this->databaseService = $databaseService;
+        parent::__construct($databaseService);
     }
 
     /**

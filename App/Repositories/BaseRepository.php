@@ -6,7 +6,7 @@ use App\Services\Database\DatabaseService;
 
 abstract class BaseRepository
 {
-    protected DatabaseService $databaseService;
+    private DatabaseService $databaseService;
 
     public function __construct(DatabaseService $databaseService)
     {

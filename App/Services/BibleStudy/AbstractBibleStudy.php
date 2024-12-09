@@ -3,7 +3,7 @@
 namespace App\Services\BibleStudy;
 
 use App\Factories\LanguageFactory;
-use App\Factories\BibleFactory;
+use App\Repositories\BibleRepository;
 use App\Services\Database\DatabaseService;
 
 abstract class AbstractBibleStudy {
@@ -20,7 +20,7 @@ abstract class AbstractBibleStudy {
 
     protected $databaseService;
     protected $languageFactory;
-    protected $bibleFactory;
+    protected $bibleRepository;
     // get information about the study lesson including title and Bible reference
     
     abstract function getStudyInfo(): array;
@@ -29,10 +29,12 @@ abstract class AbstractBibleStudy {
 
     public function __construct(
         DatabaseService $databaseService, 
-        LanguageFactory $languageFactory) 
+        LanguageFactory $languageFactory,
+        BibleRepository $bibleRepository) 
     {
         $this->databaseService = $databaseService;
         $this->languageFactory = $languageFactory;
+        $this->bibleRepository = $bibleRepository;
     }
     
     public function generate($study, $format, $session, $languageCodeHL1, $languageCodeHL2 = null): string

@@ -4,13 +4,13 @@ namespace App\Repositories;
 use App\Services\Database\DatabaseService;
 use PDO;
 
-class BibleGatewayRepository
+class BibleGatewayRepository extends BaseRepository
 {
     private $databaseService;
 
     public function __construct(DatabaseService $databaseService)
     {
-        $this->databaseService = $databaseService;
+        parent::__construct($databaseService);
     }
 
     public function recordExists($externalId)

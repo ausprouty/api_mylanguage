@@ -11,9 +11,8 @@ class BibleRepository extends BaseRepository
 
     public function __construct(DatabaseService $databaseService)
     {
-        $this->databaseService = $databaseService;
+        parent::__construct($databaseService); // Call BaseRepository constructor
     }
-
     public function addBibleBrainBible(array $bibleData)
     {
         $query = 'SELECT bid FROM bibles WHERE externalId = :externalId';
