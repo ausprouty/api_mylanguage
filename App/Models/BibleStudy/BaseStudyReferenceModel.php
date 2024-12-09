@@ -22,7 +22,7 @@ abstract class BaseStudyReferenceModel
     protected ?string $uversionBookID = null;
 
     /**
-     * Constructor accepts an associative array and dynamically assigns properties.
+     * Constructor accepts an associative array and assigns properties.
      *
      * @param array $data Associative array with keys matching property names.
      */
@@ -35,51 +35,152 @@ abstract class BaseStudyReferenceModel
         }
     }
 
-    /**
-     * Generic Getter
-     *
-     * @param string $name Property name to retrieve.
-     * @return mixed The value of the property.
-     * @throws \Exception If the property does not exist.
-     */
-    public function __get(string $name)
+    // Explicit Getters and Setters
+
+    public function getLesson(): int
     {
-        if (property_exists($this, $name)) {
-            return $this->$name;
-        }
-        throw new \Exception("Property '{$name}' does not exist.");
+        return $this->lesson;
     }
 
-    /**
-     * Generic Setter
-     *
-     * @param string $name Property name to set.
-     * @param mixed $value Value to assign to the property.
-     * @throws \Exception If the property does not exist.
-     */
-    public function __set(string $name, $value): void
+    public function setLesson(int $lesson): void
     {
-        if (property_exists($this, $name)) {
-            $this->$name = $value;
-        } else {
-            throw new \Exception("Property '{$name}' does not exist.");
-        }
+        $this->lesson = $lesson;
     }
 
-    /**
-     * Returns a formatted reference with testament information.
-     *
-     * @return string The formatted reference string.
-     */
-    public function getReferenceInfo(): string
+    public function getDescription(): string
     {
-        return "{$this->reference} ({$this->testament})";
+        return $this->description;
+    }
+
+    public function setDescription(string $description): void
+    {
+        $this->description = $description;
+    }
+
+    public function getDescriptionTwigKey(): string
+    {
+        return $this->description_twig_key;
+    }
+
+    public function setDescriptionTwigKey(string $description_twig_key): void
+    {
+        $this->description_twig_key = $description_twig_key;
+    }
+
+    public function getReference(): string
+    {
+        return $this->reference;
+    }
+
+    public function setReference(string $reference): void
+    {
+        $this->reference = $reference;
+    }
+
+    public function getTestament(): string
+    {
+        return $this->testament;
+    }
+
+    public function setTestament(string $testament): void
+    {
+        $this->testament = $testament;
+    }
+
+    public function getPassageReferenceInfo(): string
+    {
+        return $this->passage_reference_info;
+    }
+
+    public function setPassageReferenceInfo(string $passage_reference_info): void
+    {
+        $this->passage_reference_info = $passage_reference_info;
+    }
+
+    public function getBookName(): ?string
+    {
+        return $this->bookName;
+    }
+
+    public function setBookName(?string $bookName): void
+    {
+        $this->bookName = $bookName;
+    }
+
+    public function getBookID(): ?string
+    {
+        return $this->bookID;
+    }
+
+    public function setBookID(?string $bookID): void
+    {
+        $this->bookID = $bookID;
+    }
+
+    public function getChapterStart(): ?string
+    {
+        return $this->chapterStart;
+    }
+
+    public function setChapterStart(?string $chapterStart): void
+    {
+        $this->chapterStart = $chapterStart;
+    }
+
+    public function getChapterEnd(): ?string
+    {
+        return $this->chapterEnd;
+    }
+
+    public function setChapterEnd(?string $chapterEnd): void
+    {
+        $this->chapterEnd = $chapterEnd;
+    }
+
+    public function getVerseStart(): ?string
+    {
+        return $this->verseStart;
+    }
+
+    public function setVerseStart(?string $verseStart): void
+    {
+        $this->verseStart = $verseStart;
+    }
+
+    public function getVerseEnd(): ?string
+    {
+        return $this->verseEnd;
+    }
+
+    public function setVerseEnd(?string $verseEnd): void
+    {
+        $this->verseEnd = $verseEnd;
+    }
+
+    public function getPassageID(): ?string
+    {
+        return $this->passageID;
+    }
+
+    public function setPassageID(?string $passageID): void
+    {
+        $this->passageID = $passageID;
+    }
+
+    public function getUversionBookID(): ?string
+    {
+        return $this->uversionBookID;
+    }
+
+    public function setUversionBookID(?string $uversionBookID): void
+    {
+        $this->uversionBookID = $uversionBookID;
     }
 
     /**
      * Returns all properties as an associative array.
      *
-     * @return array Associative array of all property names and values.
+     * @return array Associative array of all property names and their values.
      */
     public function getProperties(): array
     {
@@ -91,4 +192,5 @@ abstract class BaseStudyReferenceModel
         }
         return $propsArray;
     }
+
 }

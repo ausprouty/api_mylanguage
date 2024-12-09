@@ -2,7 +2,7 @@
 
 namespace App\Models\BibleStudy;
 
-abstract class BaseStudyReferenceModel
+class LeadershipReferenceModel extends BaseStudyReferenceModel
 {
     // Shared properties
     protected string $video_code;
@@ -10,36 +10,7 @@ abstract class BaseStudyReferenceModel
     protected string $start_time;
     protected string $end_time;
 
-    /**
-     * Generic Getter
-     *
-     * @param string $name Property name to retrieve.
-     * @return mixed The value of the property.
-     * @throws \Exception If the property does not exist.
-     */
-    public function __get(string $name)
-    {
-        if (property_exists($this, $name)) {
-            return $this->$name;
-        }
-        throw new \Exception("Property '{$name}' does not exist.");
-    }
-
-    /**
-     * Generic Setter
-     *
-     * @param string $name Property name to set.
-     * @param mixed $value Value to assign to the property.
-     * @throws \Exception If the property does not exist.
-     */
-    public function __set(string $name, $value): void
-    {
-        if (property_exists($this, $name)) {
-            $this->$name = $value;
-        } else {
-            throw new \Exception("Property '{$name}' does not exist.");
-        }
-    }
+    
 
     // Shared getters and setters for video-related properties
     public function getVideoCode(): string
