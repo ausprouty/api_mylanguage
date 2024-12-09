@@ -24,7 +24,7 @@ class LanguageRepository extends BaseRepository
         parent::__construct($databaseService); // Call the parent constructor inside the body
         $this->languageFactory = $languageFactory; // Initialize other properties
     }
-    
+
 
     /**
      * Checks if a language record exists by BibleBrain language code.
@@ -68,23 +68,39 @@ class LanguageRepository extends BaseRepository
     }
 
     /**
-     * Finds a language by a specific source code using the factory.
+     * Finds a language by a specific source code using the base repository method.
      */
     public function findOneByCode(
         string $source,
         string $code
     ): ?LanguageModel {
-        return $this->languageFactory->findOneByCode($source, $code);
+        $field = 'languageCode' . $source;
+        $query = 'SELECT * FROM hl_languages WHERE ' . $field . ' = :id';
+        return $this->fetchAndPopulateModel(
+            $query,
+            [':id' => $code],
+            LanguageModel::class
+        );
     }
 
     /**
-     * Finds a language by its HL code using the factory.
+     * Finds a LanguageModel by its HL code.
      */
     public function findOneLanguageByLanguageCodeHL(
         string $code
     ): ?LanguageModel {
-        return $this->languageFactory->findOneLanguageByLanguageCodeHL($code);
+        $query = 'SELECT * FROM hl_languages WHERE languageCodeHL = :id';
+        return $this->fetchAndPopulateModel(
+            $query,
+            [':id' => $code],
+            LanguageModel::class
+        );
     }
+
+
+    /**
+     * Finds a LanguageModel by a specific source code.
+     */
 
     /**
      * Retrieves ISO language code from HL language code.
@@ -123,7 +139,7 @@ class LanguageRepository extends BaseRepository
     public function getEnglishNameForLanguageCodeHL(
         string $languageCodeHL
     ): ?string {
-       
+
         $query = 'SELECT name FROM hl_languages WHERE languageCodeHL = '
             . ':languageCodeHL';
         print_r($languageCodeHL);

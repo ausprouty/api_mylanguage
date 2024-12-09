@@ -27,27 +27,9 @@ class LanguageFactory
         return $model;
     }
 
-    /**
-     * Finds a LanguageModel by a specific source code.
-     */
-    public function findOneByCode(
-        string $source,
-        string $code
-    ): ?LanguageModel {
-        $field = 'languageCode' . $source;
-        $query = 'SELECT * FROM hl_languages WHERE ' . $field . ' = :id';
-        $data = $this->databaseService->fetchRow($query, [':id' => $code]);
-        return $data ? $this->create($data) : null;
-    }
+    
 
-    /**
-     * Finds a LanguageModel by its HL code.
-     */
-    public function findOneLanguageByLanguageCodeHL(
-        string $code
-    ): ?LanguageModel {
-        $query = 'SELECT * FROM hl_languages WHERE languageCodeHL = :id';
-        $data = $this->databaseService->fetchRow($query, [':id' => $code]);
-        return $data ? $this->create($data) : null;
-    }
+    
+
+    
 }

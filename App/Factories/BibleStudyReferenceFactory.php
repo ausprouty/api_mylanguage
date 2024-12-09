@@ -6,6 +6,7 @@ use App\Models\BibleStudy\DbsReferenceModel;
 use App\Models\BibleStudy\LeadershipReferenceModel;
 use App\Models\BibleStudy\LifePrincipleReferenceModel;
 use App\Services\Database\DatabaseService;
+use Exception;
 
 /**
  * Factory for creating and populating Bible Study Reference Models.
@@ -17,7 +18,7 @@ class BibleStudyReferenceFactory
     /**
      * Constructor to inject the DatabaseService.
      *
-     * @param DatabaseService $databaseService
+     * @param DatabaseService $databaseService The database service instance.
      */
     public function __construct(DatabaseService $databaseService)
     {
@@ -25,11 +26,33 @@ class BibleStudyReferenceFactory
     }
 
     /**
+     * Creates a study reference model based on the study type.
+     *
+     * @param string $study The type of study (e.g., 'dbs', 'principle', 'leader').
+     * @param int $lesson The lesson identifier.
+     * @return mixed The created reference model.
+     * @throws Exception If the study type is invalid or data is not found.
+     */
+    public function createModel(string $study, int $lesson)
+    {
+        switch ($study) {
+            case 'dbs':
+                return $this->createDbsReferenceModel($lesson);
+            case 'principle':
+                return $this->createLifePrincipleReferenceModel($lesson);
+            case 'leader':
+                return $this->createLeadershipReferenceModel($lesson);
+            default:
+                throw new Exception("Invalid study type: $study");
+        }
+    }
+
+    /**
      * Creates and populates a DbsReferenceModel.
      *
      * @param int $lesson The lesson identifier.
-     * @return DbsReferenceModel
-     * @throws \Exception If no data is found for the given lesson.
+     * @return DbsReferenceModel The populated model.
+     * @throws Exception If no data is found for the given lesson.
      */
     public function createDbsReferenceModel(int $lesson): DbsReferenceModel
     {
@@ -38,11 +61,10 @@ class BibleStudyReferenceFactory
         $data = $this->databaseService->fetchRow($query, $params);
 
         if (!$data) {
-            throw new \Exception("No record found for lesson: $lesson");
+            throw new Exception("No record found for lesson: $lesson");
         }
 
         $result = $this->expandPassageReferenceInfo($data);
-
         return new DbsReferenceModel($result);
     }
 
@@ -50,8 +72,8 @@ class BibleStudyReferenceFactory
      * Creates and populates a LifePrincipleReferenceModel.
      *
      * @param int $lesson The lesson identifier.
-     * @return LifePrincipleReferenceModel
-     * @throws \Exception If no data is found for the given lesson.
+     * @return LifePrincipleReferenceModel The populated model.
+     * @throws Exception If no data is found for the given lesson.
      */
     public function createLifePrincipleReferenceModel(
         int $lesson
@@ -61,11 +83,10 @@ class BibleStudyReferenceFactory
         $data = $this->databaseService->fetchRow($query, $params);
 
         if (!$data) {
-            throw new \Exception("No record found for lesson: $lesson");
+            throw new Exception("No record found for lesson: $lesson");
         }
 
         $result = $this->expandPassageReferenceInfo($data);
-
         return new LifePrincipleReferenceModel($result);
     }
 
@@ -73,8 +94,8 @@ class BibleStudyReferenceFactory
      * Creates and populates a LeadershipReferenceModel.
      *
      * @param int $lesson The lesson identifier.
-     * @return LeadershipReferenceModel
-     * @throws \Exception If no data is found for the given lesson.
+     * @return LeadershipReferenceModel The populated model.
+     * @throws Exception If no data is found for the given lesson.
      */
     public function createLeadershipReferenceModel(
         int $lesson
@@ -84,11 +105,10 @@ class BibleStudyReferenceFactory
         $data = $this->databaseService->fetchRow($query, $params);
 
         if (!$data) {
-            throw new \Exception("No record found for lesson: $lesson");
+            throw new Exception("No record found for lesson: $lesson");
         }
 
         $result = $this->expandPassageReferenceInfo($data);
-
         return new LeadershipReferenceModel($result);
     }
 
@@ -117,8 +137,10 @@ class BibleStudyReferenceFactory
             $reference['passageID'] = null;
             $reference['uversionBookID'] = null;
 
-            error_log('Failed to decode passage_reference_info: ' .
-                ($reference['passage_reference_info'] ?? ''));
+            error_log(
+                'Failed to decode passage_reference_info: ' .
+                ($reference['passage_reference_info'] ?? '')
+            );
         }
 
         return $reference;

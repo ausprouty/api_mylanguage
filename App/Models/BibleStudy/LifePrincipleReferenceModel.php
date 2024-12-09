@@ -12,22 +12,19 @@ class LifePrincipleReferenceModel extends BaseStudyReferenceModel
     protected ?string $endTime = null;
 
     /**
-     * Constructor accepts an associative array to populate properties.
+     * Populates the model with data from an associative array.
      *
      * @param array $data Associative array with keys matching property names.
      */
-    public function __construct(array $data)
+    public function populate(array $data): void
     {
-        // Call the parent constructor to handle BaseStudyReferenceModel properties
-        parent::__construct($data);
-
-        // Assign additional properties specific to LifePrincipleReferenceModel
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
                 $this->$key = $value;
             }
         }
     }
+
 
     // Getters
     public function getQuestion(): string

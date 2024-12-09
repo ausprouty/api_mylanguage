@@ -38,40 +38,6 @@ class BibleModel
     private $volumeNameAlt;
     private $weight;
 
-    public function __construct(BibleRepository $repository)
-    {
-        $this->repository = $repository;
-        $this->initializeDefaultValues();
-    }
-
-    /**
-     * Initializes default values for all properties.
-     */
-    private function initializeDefaultValues()
-    {
-        $this->bid = 0;
-        $this->source = '';
-        $this->externalId = '';
-        $this->volumeName = '';
-        $this->volumeNameAlt = '';
-        $this->languageName = '';
-        $this->languageEnglish = '';
-        $this->languageCodeHL = '';
-        $this->languageCodeIso = '';
-        $this->idBibleGateway = '';
-        $this->collectionCode = '';
-        $this->direction = '';
-        $this->numerals = '';
-        $this->spacePdf = '';
-        $this->noBoldPdf = '';
-        $this->format = '';
-        $this->text = 0;
-        $this->audio = 0;
-        $this->video = 0;
-        $this->weight = 0;
-        $this->dateVerified = '';
-    }
-
     /**
      * Populates the model with data from an associative array.
      *

@@ -12,12 +12,20 @@ class CountryLanguageModel
     private $languageCodeHL;
     private $languageNameEnglish;
 
-    public function __construct($countryCode = '', $languageCodeHL = '', $languageNameEnglish = '')
+    /**
+     * Populates the model with data from an associative array.
+     *
+     * @param array $data Associative array with keys matching property names.
+     */
+    public function populate(array $data): void
     {
-        $this->countryCode = $countryCode;
-        $this->languageCodeHL = $languageCodeHL;
-        $this->languageNameEnglish = $languageNameEnglish;
+        foreach ($data as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
     }
+
 
     // Getters
     public function getCountryCode()

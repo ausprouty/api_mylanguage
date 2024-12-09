@@ -11,13 +11,18 @@ class Country
     private $contenentName;
     private $inEuropeanUnion;
 
-    public function __construct(){
-        $this->countryCodeIso= '';
-        $this->countryCodeIso3= '';
-        $this->countryNameEnglish= '';
-        $this->countryName= '';
-        $this->continentCode= '';
-        $this->contenentName= '';
-        $this->inEuropeanUnion= ''; 
+    /**
+     * Populates the model with data from an associative array.
+     *
+     * @param array $data Associative array with keys matching property names.
+     */
+    public function populate(array $data): void
+    {
+        foreach ($data as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
     }
+
 }

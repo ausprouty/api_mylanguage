@@ -2,9 +2,10 @@
 
 namespace App\Services\BibleStudy;
 
-use App\Factories\LanguageFactory;
+use App\Repositories\LanguageRepository;
 use App\Repositories\BibleRepository;
 use App\Services\Database\DatabaseService;
+use App\Factories\BibleStudyReferenceFactory;
 
 abstract class AbstractBibleStudy {
 
@@ -17,24 +18,28 @@ abstract class AbstractBibleStudy {
 
     protected $primaryLanguage;
     protected $primaryBible;
+    
+    protected $studyReferenceInfo;
 
     protected $databaseService;
-    protected $languageFactory;
+    protected $languageRepository;
     protected $bibleRepository;
     // get information about the study lesson including title and Bible reference
     
-    abstract function getStudyInfo(): array;
+ 
     abstract function getLanguageInfo(): void;
     abstract function getBibleInfo(): void;
 
     public function __construct(
         DatabaseService $databaseService, 
-        LanguageFactory $languageFactory,
-        BibleRepository $bibleRepository) 
+        LanguageRepository $languageRepository,
+        BibleRepository $bibleRepository,
+        BibleStudyReferenceFactory  $bibleStudyReferenceFactory) 
     {
         $this->databaseService = $databaseService;
-        $this->languageFactory = $languageFactory;
+        $this->languageRepository = $languageRepository;
         $this->bibleRepository = $bibleRepository;
+        $this->$bibleStudyReferenceFactory = $bibleStudyReferenceFactory;
     }
     
     public function generate($study, $format, $session, $languageCodeHL1, $languageCodeHL2 = null): string
@@ -47,7 +52,15 @@ abstract class AbstractBibleStudy {
         
         $this->getLanguageInfo();
         $this->getBibleInfo();
+        $this->getStudyReferenceInfo();
         return 'fred';
+    }
+
+    public function getStudyReferenceInfo(){
+        $this->studyReferenceInfo = 
+            $this->bibleStudyReferenceFactory
+                 ->createModel($this->study, $this->session);
+
     }
 
     

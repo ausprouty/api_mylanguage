@@ -7,7 +7,6 @@ use PDO;
 
 class AskQuestionRepository extends BaseRepository
 {
-    private $databaseService;
 
     public function __construct(DatabaseService $databaseService)
     {

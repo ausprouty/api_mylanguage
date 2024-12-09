@@ -11,11 +11,11 @@ abstract class AbstractBiLingualStudy extends AbstractBibleStudy
     public function getLanguageInfo(): void
     {
         $this->primaryLanguage =
-            $this->languageFactory->findOneLanguageByLanguageCodeHL(
+            $this->languageRepository->findOneLanguageByLanguageCodeHL(
                 $this->languageCodeHL1
             );
         $this->secondaryLanguage =
-            $this->languageFactory->findOneLanguageByLanguageCodeHL(
+            $this->languageRepository->findOneLanguageByLanguageCodeHL(
                 $this->languageCodeHL2
             );
         return;

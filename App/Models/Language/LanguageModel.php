@@ -26,46 +26,21 @@ class LanguageModel
     /**
      * Constructor to initialize properties with default values.
      */
-    public function __construct()
-    {
-        $this->id = null;
-        $this->name = null;
-        $this->ethnicName = null;
-        $this->languageCodeBibleBrain = null;
-        $this->languageCodeHL = null;
-        $this->languageCodeIso = null;
-        $this->languageCodeBing = null;
-        $this->languageCodeBrowser = null;
-        $this->languageCodeGoogle = null;
-        $this->direction = 'ltr';
-        $this->numeralSet = null;
-        $this->isChinese = null;
-        $this->font = null;
-        $this->fontData = null;
-    }
-
+   
     /**
      * Populates the model with data from an associative array.
      *
-     * @param array $data The data to populate the model with.
+     * @param array $data Associative array with keys matching property names.
      */
     public function populate(array $data): void
     {
-        $this->id = $data['id'] ?? null;
-        $this->name = $data['name'] ?? null;
-        $this->ethnicName = $data['ethnicName'] ?? null;
-        $this->languageCodeBibleBrain = $data['languageCodeBibleBrain'] ?? null;
-        $this->languageCodeHL = $data['languageCodeHL'] ?? null;
-        $this->languageCodeIso = $data['languageCodeIso'] ?? null;
-        $this->languageCodeBing = $data['languageCodeBing'] ?? null;
-        $this->languageCodeBrowser = $data['languageCodeBrowser'] ?? null;
-        $this->languageCodeGoogle = $data['languageCodeGoogle'] ?? null;
-        $this->direction = $data['direction'] ?? 'ltr';
-        $this->numeralSet = $data['numeralSet'] ?? null;
-        $this->isChinese = $data['isChinese'] ?? null;
-        $this->font = $data['font'] ?? null;
-        $this->fontData = isset($data['fontData']) ? json_decode($data['fontData'], true) : null;
+        foreach ($data as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
     }
+
 
     /**
      * Returns the language properties as an associative array.

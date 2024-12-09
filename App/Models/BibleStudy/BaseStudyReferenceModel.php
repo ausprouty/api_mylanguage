@@ -22,11 +22,11 @@ abstract class BaseStudyReferenceModel
     protected ?string $uversionBookID = null;
 
     /**
-     * Constructor accepts an associative array and assigns properties.
+     * Populates the model with data from an associative array.
      *
      * @param array $data Associative array with keys matching property names.
      */
-    public function __construct(array $data)
+    public function populate(array $data): void
     {
         foreach ($data as $key => $value) {
             if (property_exists($this, $key)) {
@@ -34,6 +34,7 @@ abstract class BaseStudyReferenceModel
             }
         }
     }
+
 
     // Explicit Getters and Setters
 

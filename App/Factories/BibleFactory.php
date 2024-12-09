@@ -19,6 +19,41 @@ class BibleFactory
     {
         $this->repository = $repository;
     }
+
+        /**
+     * Create a new instance of BibleModel with default values.
+     *
+     * @return BibleModel
+     */
+    public static function createWithDefaults(): BibleModel
+    {
+        $bible = new BibleModel();
+        $bible->populate([
+            'bid' => 0,
+            'source' => '',
+            'externalId' => '',
+            'volumeName' => '',
+            'volumeNameAlt' => '',
+            'languageName' => '',
+            'languageEnglish' => '',
+            'languageCodeHL' => '',
+            'languageCodeIso' => '',
+            'idBibleGateway' => '',
+            'collectionCode' => '',
+            'direction' => '',
+            'numerals' => '',
+            'spacePdf' => '',
+            'noBoldPdf' => '',
+            'format' => '',
+            'text' => 0,
+            'audio' => 0,
+            'video' => 0,
+            'weight' => 0,
+            'dateVerified' => '',
+        ]);
+        return $bible;
+    }
+
     /**
      * Creates a BibleModel with media type properties set.
      */
@@ -66,4 +101,7 @@ class BibleFactory
 
         return $model;
     }
+
+
 }
+

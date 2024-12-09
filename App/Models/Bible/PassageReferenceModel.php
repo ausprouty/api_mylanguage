@@ -23,22 +23,7 @@ class PassageReferenceModel
     private $verseEnd;
     private $passageID;
 
-    public function __construct()
-    {
-        $this->entry = ' ';
-        $this->languageCodeHL = null;
-        $this->languageCodeIso = null;
-        $this->bookName = ' ';
-        $this->bookID = null;
-        $this->uversionBookID = null;
-        $this->bookNumber = 1;
-        $this->testament = null;
-        $this->chapterStart = null;
-        $this->verseStart = null;
-        $this->chapterEnd = null;
-        $this->verseEnd = null;
-        $this->passageID = null;
-    }
+    
 
     /**
      * Populates the model with data from an associative array.

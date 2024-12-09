@@ -7,12 +7,20 @@ class DbsLanguageModel {
     private $collectionCode;
     private $format;
 
-    public function __construct($languageCodeHL = null, $collectionCode = null, $format = null)
+    /**
+     * Populates the model with data from an associative array.
+     *
+     * @param array $data Associative array with keys matching property names.
+     */
+    public function populate(array $data): void
     {
-        $this->languageCodeHL = $languageCodeHL;
-        $this->collectionCode = $collectionCode;
-        $this->format = $format;
+        foreach ($data as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
     }
+
 
     // Getters
     public function getLanguageCodeHL()
