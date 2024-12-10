@@ -3,10 +3,22 @@
 namespace App\Services;
 
 use Exception;
+use App\Configuration\Config;
 
 class LoggerService
 {
-    private static $logFile = ROOT_LOG . '/application.log';
+    private static $logFile;
+
+    /**
+     * Initializes the log file path.
+     * This method should be called once before using the logger, or ensure a default configuration is set.
+     */
+    public static function init(): void
+    {
+        if (!self::$logFile) {
+            self::$logFile = Config::get('paths.logs') . 'application.log';
+        }
+    }
 
     /**
      * Logs an error message.
@@ -46,13 +58,19 @@ class LoggerService
      */
     private static function log(string $level, string $message): void
     {
+        // Ensure log file path is initialized
+        if (!self::$logFile) {
+            throw new Exception("Log file path is not initialized. Call LoggerService::init() first.");
+        }
+
         $timestamp = date('Y-m-d H:i:s');
         $formattedMessage = "[{$timestamp}] [{$level}] {$message}" . PHP_EOL;
 
         try {
+            print_r (self::$logFile);
             file_put_contents(self::$logFile, $formattedMessage, FILE_APPEND);
         } catch (Exception $e) {
-            // If logging fails, you might want to handle this (e.g., output to console)
+            // If logging fails, handle it (e.g., output to console or error log)
             error_log("Logging failed: " . $e->getMessage());
         }
     }
