@@ -25,11 +25,12 @@ abstract class AbstractMonoLingualStudy extends AbstractBibleStudy
             );
     }
 
-    public function getBibleText():void{
-        $this->primaryBiblePassage = 
+    public function getBibleText():array{
+        $result = 
         $this->biblePassageService->getPassage
             ($this->primaryBible, 
-            $this->studyReferenceInfo);
+            $this->passageReferenceInfo);
+        return $result;
        
     }
 }

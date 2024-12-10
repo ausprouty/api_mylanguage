@@ -38,7 +38,6 @@ class PassageReferenceFactory
     public function createFromStudy($studyObject): PassageReferenceModel
     {
         if ($studyObject->getPassageID() === null) {
-            print_r("I am creating new entry");
             return $this->createFromEntry($studyObject->getReference());
         } else {
             return $this->createFromStudyObject($studyObject);
@@ -49,7 +48,6 @@ class PassageReferenceFactory
      */
     public function createFromStudyObject($studyObject): PassageReferenceModel
     {
-        print_r($studyObject->getProperties());
         $model = new PassageReferenceModel();
         $model->populate([
             'entry' => $studyObject->getReference(),

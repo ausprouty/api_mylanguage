@@ -76,8 +76,7 @@ abstract class MonolingualStudyTemplateController
         
         $fileName = $this->generateFileName($lesson, $languageCodeHL);
         $filePath = Config::get('ROOT_RESOURCES') . $fileName;
-        print_r ($filePath);
-        die();
+       
         // Check if the file exists; if not, create it
         if (!file_exists($filePath)) {
             $this->setLesson($lesson);

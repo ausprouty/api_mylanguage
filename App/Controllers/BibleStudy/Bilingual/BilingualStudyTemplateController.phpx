@@ -76,32 +76,24 @@ abstract class BilingualStudyTemplateController
     {
         $this->language1 =
             $this->languageRepository->findOneLanguageByLanguageCodeHL($languageCodeHL1);
-        print_r($this->language1->getProperties());
-        print_r("<br><br><br>");
-        flush();
+       
         $this->language2 =
             $this->languageRepository->findOneLanguageByLanguageCodeHL($languageCodeHL2);
-        print_r($this->language2->getProperties());
-        print_r("<br><br><br>");
-        flush();
+       
+   
     }
     public function setLesson(string $lesson)
     {
         $this->lesson = $lesson;
         $this->studyReferenceInfo = $this->getStudyReferenceInfo();
-        print_r($this->studyReferenceInfo->getProperties());
-        print_r("<br><br><br>");
-        flush();
+       
     }
     public function setBibles()
     {
         $this->bible1 = $this->getBible($this->language1->getLanguageCodeHl());
-        print_r($this->bible1->getProperties());
-        print_r("<br><br><br>");
-        flush();
+       
         $this->bible2 = $this->getBible($this->language2->getLanguageCodeHl());
-        print_r($this->bible2->getProperties());
-        print_r("<br><br><br>");
+       
         flush();
     }
     public function getBible($languageCodeHL)

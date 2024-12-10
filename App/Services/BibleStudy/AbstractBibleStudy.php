@@ -10,6 +10,10 @@ use App\Factories\BibleStudyReferenceFactory;
 use App\Models\Language\LanguageModel;
 use App\Services\BiblePassage\BiblePassageService;
 use App\Factories\PassageReferenceFactory;
+use App\Configuration\Config;
+use Symfony\Component\String\AbstractString;
+use App\Services\BibleStudy\TemplateService;
+
 
 abstract class AbstractBibleStudy
 {
@@ -24,6 +28,7 @@ abstract class AbstractBibleStudy
     protected $primaryLanguage;
     protected $primaryBible;
     protected $primaryBiblePassage;
+    protected $template;
 
     protected $studyReferenceInfo;
     protected $passageReferenceInfo;
@@ -34,11 +39,14 @@ abstract class AbstractBibleStudy
     protected $biblePassageService;
     protected $bibleStudyReferenceFactory;
     protected $passageReferenceFactory;
+    protected $templateService;
     // get information about the study lesson including title and Bible reference
 
 
     abstract function getLanguageInfo(): LanguageModel;
     abstract function getBibleInfo(): BibleModel;
+    abstract function getBibleText(): array;
+    abstract function getTemplate(string $format): string;
 
     public function __construct(
         DatabaseService $databaseService,
@@ -47,6 +55,7 @@ abstract class AbstractBibleStudy
         BibleStudyReferenceFactory  $bibleStudyReferenceFactory,
         BiblePassageService   $biblePassageService,
         PassageReferenceFactory $passageReferenceFactory,
+        TemplateService  $templateService,
     ) {
         $this->databaseService = $databaseService;
         $this->languageRepository = $languageRepository;
@@ -54,9 +63,12 @@ abstract class AbstractBibleStudy
         $this->bibleStudyReferenceFactory = $bibleStudyReferenceFactory;
         $this->biblePassageService = $biblePassageService;
         $this->passageReferenceFactory = $passageReferenceFactory;
+        $this->templateService = $templateService;
     }
 
-    public function generate($study, $format, $lesson, $languageCodeHL1, $languageCodeHL2 = null): string
+    public function generate(
+        $study, 
+        $format, $lesson, $languageCodeHL1, $languageCodeHL2 = null): array
     {
         $this->study = $study;
         $this->format = $format;
@@ -70,9 +82,13 @@ abstract class AbstractBibleStudy
              $this->getStudyReferenceInfo();
         $this->passageReferenceInfo = 
              $this->passageReferenceFactory->createFromStudy($this->studyReferenceInfo);
-        print_r($this->passageReferenceInfo->getProperties() );
-        //$this->getBibleText();
-        return 'fred';
+        $this->primaryBiblePassage = $this->getBibleText();
+        $this->template = $this->getTemplate($format);
+        print_r($this->template);
+        $array = array(
+            'Bob'=> 'done'
+        );
+        return $array;
     }
 
     /**

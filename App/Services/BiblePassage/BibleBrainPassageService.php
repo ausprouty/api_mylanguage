@@ -47,10 +47,6 @@ class BibleBrainPassageService extends AbstractBiblePassageService
         // Instantiate the connection service to fetch the passage.
         $passage = new BibleBrainConnectionService($url);
 
-        // Debugging and returning response data.
-        print_r($passage->response->data);
-        die();
-
         return $passage->response->data;
     }
 

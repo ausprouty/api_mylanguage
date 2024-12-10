@@ -22,8 +22,7 @@ $controller = new MonolingualDbsTemplateController($qrCodeGeneratorService, $les
 $fileName = $this->dbsFileNameingTrait->generateFileName($lesson, $languageCodeHL);
 $path = Config::get('ROOT_RESOURCES');
 $filePath = $path . $fileName;
-//print_r($filePath);
-writeLogDebug('dbsFilePath-13', $filePath);
+
 //if (!file_exists($filePath)){
 $study = new MonolingualDbsTemplateController($lesson, $languageCodeHL1);
 $study->setMonolingualTemplate('monolingualDbsView.twig');

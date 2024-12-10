@@ -37,8 +37,7 @@ class MonolingualDbsTemplateController extends MonolingualStudyTemplateControlle
     public function generateStudy($lesson, $languageCodeHL):string
     {
         $study = 'dbs';
-        $something = $this->returnStudy($study, $lesson, $languageCodeHL);
-        print_r($something);
+       
     }
 
     /**

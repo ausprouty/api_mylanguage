@@ -260,8 +260,7 @@ class BibleWordPassageController
             $page
         );
         $lines = explode('<br>', $page);
-        //print_r($lines);
-        //flush();
+       
 
         $verseRange = range(
             intval($this->bibleReference->getVerseStart()),
@@ -277,8 +276,7 @@ class BibleWordPassageController
             }
         }
 
-        //print_r($verses);
-        //flush();
+      
         return $verses;
     }
 }

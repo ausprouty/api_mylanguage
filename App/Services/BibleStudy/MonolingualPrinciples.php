@@ -1,19 +1,25 @@
 <?php
-namespace App\Services\BibleStudy;
-use App\Services\BibleStudy\AbstractMonolingualStudy;
 
-class MonoLingualPrinciples extends AbstractMonoLingualStudy {
+namespace App\Services\BibleStudy;
+
+use App\Services\BibleStudy\AbstractMonolingualStudy;
+use App\Configuration\Config;
+
+class MonoLingualPrinciples extends AbstractMonoLingualStudy
+{
     protected $studyType = 'principles';
 
-   
-
-    public function getStudyInfo():array {
-        $info = [];
-        return $info;
+    public function getTemplate(string $format): string
+    {
+        // Determine the template file based on the format
+        if ($format === 'view') {
+            $template = $this->templateService('monolingualLifePrinciplesView.twig');
+        } elseif ($format === 'pdf') {
+            $template = $this->templateService('monolingualLifePrinciplesView.twig');
+        } else {
+            $message = "Invalid format specified: $format.";
+            LoggerService::logError($message);
+            throw new \InvalidArgumentException($message);
+        }
     }
-
-    
-    public function getLanguageInfo(): void{
-        return;
-      }
 }

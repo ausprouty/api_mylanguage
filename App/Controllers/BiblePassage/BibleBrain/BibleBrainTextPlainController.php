@@ -34,11 +34,9 @@ class BibleBrainTextPlainController
             $bibleReference->getVerseStart(),
             $bibleReference->getVerseEnd()
         );
-        //print_r($url);
-        flush();
+      
         $this->response = (new BibleBrainConnectionService($url))->response;
-        //print_r($this->response);
-        flush();
+       
         $this->passageText = $this->formatter->formatPassageText($this->response->data ?? []);
     }
 

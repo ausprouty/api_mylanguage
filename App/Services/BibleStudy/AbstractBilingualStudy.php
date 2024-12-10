@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services\BibleStudy;
+use App\Models\Language\LanguageModel;
 
 abstract class AbstractBiLingualStudy extends AbstractBibleStudy
 {
@@ -8,7 +9,7 @@ abstract class AbstractBiLingualStudy extends AbstractBibleStudy
     protected $secondaryBible;
 
 
-    public function getLanguageInfo(): void
+    public function getLanguageInfo(): LanguageModel
     {
         $this->primaryLanguage =
             $this->languageRepository->findOneLanguageByLanguageCodeHL(
@@ -18,6 +19,6 @@ abstract class AbstractBiLingualStudy extends AbstractBibleStudy
             $this->languageRepository->findOneLanguageByLanguageCodeHL(
                 $this->languageCodeHL2
             );
-        return;
+        return $this->primaryLanguage;
     }
 }
