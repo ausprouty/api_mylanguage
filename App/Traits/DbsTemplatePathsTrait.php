@@ -22,7 +22,8 @@ trait DbsTemplatePathsTrait
      *
      * @return string The absolute path to the PDF directory, including the specific path prefix.
      */
-    public static function getPathPdf(): string {
+    public static function getPathPdf(): string
+    {
         return ROOT_RESOURCES . 'pdf/' . static::getPathPrefix() . '/';
     }
 
@@ -31,8 +32,9 @@ trait DbsTemplatePathsTrait
      *
      * @return string The URL to the PDF directory, including the specific path prefix.
      */
-    public static function getUrlPdf(): string {
-        return WEBADDRESS_RESOURCES . 'pdf/' . static::getPathPrefix() . '/';
+    public static function getUrlPdf(): string
+    {
+        return Config::getDir('web.webaddress_resources') . 'pdf/' . static::getPathPrefix() . '/';
     }
 
     /**
@@ -40,7 +42,8 @@ trait DbsTemplatePathsTrait
      *
      * @return string The absolute path to the HTML view directory, including the specific path prefix.
      */
-    public static function getPathView(): string {
+    public static function getPathView(): string
+    {
         return ROOT_RESOURCES . 'view/' . static::getPathPrefix() . '/';
     }
 
@@ -49,8 +52,9 @@ trait DbsTemplatePathsTrait
      *
      * @return string The URL to the HTML view directory, including the specific path prefix.
      */
-    public static function getUrlView(): string {
-        return WEBADDRESS_RESOURCES . 'view/' . static::getPathPrefix() . '/';
+    public static function getUrlView(): string
+    {
+        return Config::getDir('web.webaddress_resources') . 'view/' . static::getPathPrefix() . '/';
     }
 
     /**

@@ -4,6 +4,7 @@ namespace App\Services\BibleStudy;
 
 use App\Models\Language\LanguageModel;
 use App\Models\Bible\BibleModel;
+use App\Services\TranslationService;
 
 abstract class AbstractMonoLingualStudy extends AbstractBibleStudy
 {
@@ -32,5 +33,10 @@ abstract class AbstractMonoLingualStudy extends AbstractBibleStudy
             $this->passageReferenceInfo);
         return $result;
        
+    }
+
+    public function getTwigTranslation(): string{
+        return $this->translationService->
+            loadTranslationFile($this->languageCodeHL1, $this->study);
     }
 }

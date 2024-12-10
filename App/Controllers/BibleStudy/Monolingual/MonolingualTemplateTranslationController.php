@@ -5,6 +5,7 @@ namespace App\Controllers\BibleStudy\Monolingual;
 use App\Services\Language\TranslationService;
 use App\Models\Language\LanguageModel;
 use App\Repositories\LanguageRepository;
+use App\Configuration\Config;
 
 class MonolingualTemplateTranslationController
 {
@@ -47,7 +48,7 @@ class MonolingualTemplateTranslationController
 
     private function loadTemplate(): void
     {
-        $filePath = ROOT_TEMPLATES . $this->templateName . '.twig';
+        $filePath = Config::getDir('paths.resources.root'); . $this->templateName . '.twig';
 
         if (!file_exists($filePath)) {
             writeLogError('MonolingualTemplateTranslationController-28', 'ERROR - no such template as ' . $filePath);

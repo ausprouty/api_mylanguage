@@ -45,7 +45,7 @@ trait BibleStudyFileNamingTrait
         string $languageCodeHL1,
         string $languageCodeHL2 = null
     ): string {
-        $studyName = Config::get("bible_study_names.$study", 'Unknown Study');
+        $studyName = Config::getDir("bible_study_names.$study", 'Unknown Study');
         $lang1 = $this->languageRepository->getEnglishNameForLanguageCodeHL($languageCodeHL1);
 
         if ($languageCodeHL2) {
@@ -54,10 +54,9 @@ trait BibleStudyFileNamingTrait
         } else {
             $fileName = "{$studyName}{$session}({$lang1})";
         }
-        if ($format == 'view'){
+        if ($format == 'view') {
             $fileName .= '.html';
-        }
-        else if ($format == 'pdf'){
+        } else if ($format == 'pdf') {
             $fileName .= '.pdf';
         }
 
@@ -88,11 +87,11 @@ trait BibleStudyFileNamingTrait
     public function getStoragePath(string $study, string $format): string
     {
         if ($format == 'pdf') {
-            $dir = Config::get('paths.resources.bible_studies_pdf');
+            $dir = Config::getDir('paths.resources.bible_studies_pdf');
         } elseif ($format == 'view') {
-            $dir = Config::get('paths.resources.bible_studies_view');
+            $dir = Config::getDir('paths.resources.bible_studies_view');
         } else {
-            $dir = Config::get('paths.resources.bible_studies_other');
+            $dir = Config::getDir('paths.resources.bible_studies_other');
         }
         $dir .=  $study . '/';
         return $dir;

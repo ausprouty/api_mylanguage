@@ -52,7 +52,7 @@ class BibleWordPassageService extends AbstractBiblePassageService
      */
     private function generateFilePath()
     {
-        $baseDir = Config::get('ROOT_RESOURCES') . 'bibles/wordproject/';
+        $baseDir = Config::getDir('paths.resources.root') . 'bibles/wordproject/';
         $externalId = $this->bible->getExternalId();
         return $baseDir . $externalId . '/' . $this->formatChapterPage() . '.html';
     }

@@ -6,13 +6,16 @@
 namespace App\Controller;
 
 use App\Models\Language\LanguageModel as LanguageModel;
+use App\Configuration\Config;
 
-class PdfController {
+class PdfController
+{
 
     private $mpdf;
 
-    public function __construct($languageCodeHL1 = null, $languageCodeHL2 = null){
-        require_once ROOT_VENDOR .'autoload.php';
+    public function __construct($languageCodeHL1 = null, $languageCodeHL2 = null)
+    {
+        require_once Config::getDir('paths.vendor') . 'autoload.php';
         $this->mpdf = new \Mpdf\Mpdf();
         // Set the default font configuration to use a Bengali Unicode font
         $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
@@ -23,11 +26,11 @@ class PdfController {
         $fontDataForLanguages = $this->getFontData($languageCodeHL1, $languageCodeHL2);
 
         // Set the default configuration
-        $fontDataToUse = array_merge ($fontData, $fontDataForLanguages);
-     
+        $fontDataToUse = array_merge($fontData, $fontDataForLanguages);
+
         $this->mpdf = new \Mpdf\Mpdf([
             'fontDir' => array_merge($fontDirs, [
-                ROOT_FONTS
+                Config::getDir('paths.resources.fonts')
             ]),
             'fontdata' => $fontDataToUse,
             'default_font' => 'arial',
@@ -35,24 +38,24 @@ class PdfController {
             'orientation' => 'P'
         ]);
         $this->mpdf->SetDisplayMode('fullpage');
-        
     }
 
-    private function getFontData($languageCodeHL1, $languageCodeHL2){
+    private function getFontData($languageCodeHL1, $languageCodeHL2)
+    {
         //Sample fontData: {"dejavusans": {"B": "DejaVuSans-Bold.ttf", "I": "DejaVuSans-Oblique.ttf", "R": "DejaVuSans.ttf", "BI": "DejaVuSans-BoldOblique.ttf", "useOTL": 255, "useKashida": 75}, "dejavusanscondensed": {"B": "DejaVuSansCondensed-Bold.ttf", "I": "DejaVuSansCondensed-Oblique.ttf", "R": "DejaVuSansCondensed.ttf", "BI": "DejaVuSansCondensed-BoldOblique.ttf", "useOTL": 255, "useKashida": 75}}
         $fontData = array();
-        if ($languageCodeHL1){
+        if ($languageCodeHL1) {
             $data = LanguageModel::getFontDataFromCodeHL($languageCodeHL1);
-            if ($data){
-                foreach ($data as $key=>$value){
+            if ($data) {
+                foreach ($data as $key => $value) {
                     $fontData[$key] =  $value;
                 }
             }
         }
-        if ($languageCodeHL2){
+        if ($languageCodeHL2) {
             $data = LanguageModel::getFontDataFromCodeHL($languageCodeHL2);
-            if ($data){
-                foreach ($data as $key=>$value){
+            if ($data) {
+                foreach ($data as $key => $value) {
                     $fontData[$key] =  $value;
                 }
             }
@@ -60,22 +63,21 @@ class PdfController {
         return $fontData;
     }
 
-    public function writeToBrowser($html, $stylesheet){
-        $stylesheet = file_get_contents(ROOT_STYLES . $stylesheet);
-        $this->mpdf->WriteHTML($stylesheet,\Mpdf\HTMLParserMode::HEADER_CSS);
-        $this->mpdf->WriteHTML($html,\Mpdf\HTMLParserMode::HTML_BODY);
+    public function writeToBrowser($html, $stylesheet)
+    {
+        $stylesheet = file_get_contents(Config::getDir('paths.resources.styles') . $stylesheet);
+        $this->mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
+        $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
         $this->mpdf->Output();
     }
-    public function writePdfToComputer($html, $stylesheet, $filename){
-        if (strpos ($filename, '.pdf') == FALSE){
+    public function writePdfToComputer($html, $stylesheet, $filename)
+    {
+        if (strpos($filename, '.pdf') == FALSE) {
             $filename .= '.pdf';
         }
-        $stylesheet = file_get_contents(ROOT_STYLES . $stylesheet);
-        $this->mpdf->WriteHTML($stylesheet,\Mpdf\HTMLParserMode::HEADER_CSS);
-        $this->mpdf->WriteHTML($html,\Mpdf\HTMLParserMode::HTML_BODY);
+        $stylesheet = file_get_contents(Config::getDir('paths.resources.styles') . $stylesheet);
+        $this->mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
+        $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
         $this->mpdf->Output($filename, 'F');
     }
-          
 }
-
-    

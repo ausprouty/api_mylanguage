@@ -43,7 +43,7 @@ class BibleGatewayPassageController
 
         $passageUrl = '/passage/?search=' .
             $referenceShaped . '&version=' . $this->bible->getExternalId();
-    
+
         $webpage = new BibleGatewayConnectionService($passageUrl);
 
         $passageModel = new PassageModel();
@@ -70,7 +70,7 @@ class BibleGatewayPassageController
      */
     private function getReferenceLocalLanguage(string $webpage): string
     {
-        require_once(Config::get('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
+        require_once(Config::getDir('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
 
         $html = str_get_html($webpage);
         if (!$html) {
@@ -94,7 +94,7 @@ class BibleGatewayPassageController
      */
     private function formatExternal(string $webpage): string
     {
-        require_once(Config::get('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
+        require_once(Config::getDir('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
 
         $html = str_get_html($webpage);
         if (!$html) {

@@ -23,7 +23,7 @@ class ResourceStorageService
     public function __construct(string $storagePath)
     {
         // Combine ROOT_RESOURCES with the provided storage subdirectory
-        $this->storagePath = Config::get('base_dir') . $storagePath;
+        $this->storagePath = Config::getDir('base_dir') . $storagePath;
     }
 
     /**
@@ -42,9 +42,11 @@ class ResourceStorageService
         $normalizedStoragePath = str_replace('\\', '/', strtolower($this->storagePath));
 
         // Check if the file exists within the allowed storage path
-        if ($filePath === false || 
-            strpos($normalizedFilePath, $normalizedStoragePath) !== 0 
-            || !file_exists($filePath)) {
+        if (
+            $filePath === false ||
+            strpos($normalizedFilePath, $normalizedStoragePath) !== 0
+            || !file_exists($filePath)
+        ) {
             return null; // File does not exist or is outside the storage path
         }
 

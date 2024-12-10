@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Controllers\BiblePassage\BibleGateway;
 
 use App\Repositories\BibleGatewayRepository;
@@ -25,7 +26,7 @@ class BibleGatewayBibleController
 
     public function import()
     {
-        $filename = Config::get('ROOT_IMPORT_DATA') . 'BibleGatewayBibles.txt';
+        $filename = Config::getDir('paths.import') . 'BibleGatewayBibles.txt';
         if (!file_exists($filename)) {
             // Log an error, display an error message, or provide instructions
             LoggerService::logError("File not found: {$filename}");
@@ -43,7 +44,7 @@ class BibleGatewayBibleController
             } elseif (strpos($line, 'class="spacer"') === false) {
                 $externalId = $this->parser->parseExternalId($line);
                 $existingRecord = $this->repository->recordExists($externalId);
-                
+
                 if ($existingRecord) {
                     $this->repository->updateVerified($existingRecord);
                     $this->repository->updateLanguage($existingRecord, $languageCodeIso, $languageName);

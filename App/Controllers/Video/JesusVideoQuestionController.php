@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Video;
 
+use App\Configuration\Config;
+
 class JesusVideoQuestionController
 {
     private $template;
@@ -13,6 +15,6 @@ class JesusVideoQuestionController
 
     public function getBilingualTemplate($languageCodeHL1, $languageCodeHL2)
     {
-        $template = file_get_contents(ROOT_TEMPLATES . 'bilingualJesusVideoQuestions.twig');
+        $template = file_get_contents(Config::getDir('paths.resources.template') . 'bilingualJesusVideoQuestions.twig');
     }
 }

@@ -2,7 +2,8 @@
 
 namespace App\Controllers\BibleStudy\Bilingual;
 
-use \App\Services\Language\TranslationService as TranslationService;
+use App\Services\Language\TranslationService as TranslationService;
+use App\Configuration\Config;
 
 class BilingualTemplateTranslationController
 {
@@ -35,7 +36,7 @@ class BilingualTemplateTranslationController
 
    private function setTemplate()
    {
-      $filename = ROOT_TEMPLATES . $this->templateName . '.twig';
+      $filename = Config::getDir('paths.resources.template') . $this->templateName . '.twig';
       if (!file_exists($filename)) {
          writeLogError('BilingualTemplateTranslationController-28', 'ERROR - no such template as ' . $filename);
          return null;

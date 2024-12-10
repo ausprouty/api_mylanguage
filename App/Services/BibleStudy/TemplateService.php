@@ -15,7 +15,7 @@ class TemplateService
             LoggerService::init();
 
             // Get the directory path
-            $dir = Config::get('paths.resources.templates');
+            $dir = Config::getDir('paths.resources.templates');
             if (!$dir) {
                 $message = "Templates directory not configured.";
                 LoggerService::logError($message);

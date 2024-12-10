@@ -213,7 +213,7 @@ class BibleWordPassageController
      */
     private function generateFilePath()
     {
-        $baseDir = Config::get('ROOT_RESOURCES') . 'bibles/wordproject/';
+        $baseDir = Config::getDir('paths.resources.root'). 'bibles/wordproject/';
         $externalId = $this->bible->getExternalId();
         return $baseDir . $externalId . '/' . $externalId . '/'
             . $this->formatChapterPage();

@@ -8,6 +8,7 @@ where the gap after the  18 is a non-breaking space
 namespace App\Controllers\BibleStudy;
 
 use stdClass as stdClass;
+use App\Configuration\Config;
 
 
 class BibleBlockController
@@ -79,7 +80,7 @@ class BibleBlockController
 
     private function setTemplate()
     {
-        $file = ROOT_TEMPLATES . 'bibleBlockTable.twig';
+        $file = Config::getDir('paths.resources.template') . 'bibleBlockTable.twig';
         if (!file_exists($file)) {
             $this->template = NULL;
         }

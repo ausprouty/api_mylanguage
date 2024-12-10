@@ -13,6 +13,7 @@ use App\Factories\PassageReferenceFactory;
 use App\Configuration\Config;
 use Symfony\Component\String\AbstractString;
 use App\Services\BibleStudy\TemplateService;
+use App\Services\Language\TranslationService;
 
 
 abstract class AbstractBibleStudy
@@ -41,6 +42,7 @@ abstract class AbstractBibleStudy
     protected $bibleStudyReferenceFactory;
     protected $passageReferenceFactory;
     protected $templateService;
+    protected $translationService;
     // get information about the study lesson including title and Bible reference
 
 
@@ -48,6 +50,7 @@ abstract class AbstractBibleStudy
     abstract function getBibleInfo(): BibleModel;
     abstract function getBibleText(): array;
     abstract function getTemplate(string $format): string;
+    abstract function getTwigTranslation():string;
 
     public function __construct(
         DatabaseService $databaseService,
@@ -57,6 +60,7 @@ abstract class AbstractBibleStudy
         BiblePassageService   $biblePassageService,
         PassageReferenceFactory $passageReferenceFactory,
         TemplateService  $templateService,
+        TranslationService $translationService
     ) {
         $this->databaseService = $databaseService;
         $this->languageRepository = $languageRepository;
@@ -85,7 +89,8 @@ abstract class AbstractBibleStudy
              $this->passageReferenceFactory->createFromStudy($this->studyReferenceInfo);
         $this->primaryBiblePassage = $this->getBibleText();
         $this->template = $this->getTemplate($format);
-        print_r($this->template);
+        $this->twigTranslation1 = $this->getTwigTranslation();
+        print_r ($this->twigTranslation1);
         $array = array(
             'Bob'=> 'done'
         );

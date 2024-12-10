@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Language;
 
 use App\Repositories\LanguageRepository;
@@ -15,14 +16,14 @@ class LanguageLookupService
 
     public function findOrInsertLanguageCode($code, $languageName)
     {
-        $isoCode = $this->repository->findOneByCode('languageCodeIso',$code)
-            ?? $this->repository->findOneByCode('languageCodeGoogle',$code)
-            ?? $this->repository->findOneByCode('languageCodeBrowser',$code);
+        $isoCode = $this->repository->findOneByCode('languageCodeIso', $code)
+            ?? $this->repository->findOneByCode('languageCodeGoogle', $code)
+            ?? $this->repository->findOneByCode('languageCodeBrowser', $code);
 
         if (!$isoCode) {
             $isoCode = $this->repository->insertLanguage($code, $languageName);
         }
-        
+
         return $isoCode;
     }
     /**
@@ -33,7 +34,7 @@ class LanguageLookupService
      */
     public static function getNextLanguageForDbs(string $languageCodeHL): string
     {
-        $directory = Config::get('paths.resources.translations') . 'languages/';
+        $directory = Config::getDir('paths.resources.translations') . 'languages/';
         $scanned_directory = array_diff(scandir($directory), ['..', '.']);
         sort($scanned_directory); // Ensure sorted order for comparison
 
@@ -45,4 +46,3 @@ class LanguageLookupService
         return 'end';
     }
 }
-

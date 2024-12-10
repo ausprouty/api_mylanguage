@@ -49,7 +49,7 @@ class BibleGatewayPassageController extends PassageModel
 
     private function formatExternal($webpage)
     {
-        require_once Config::get('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php';
+        require_once Config::getDir('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php';
         $html = str_get_html($webpage);
 
         if (!$this->findAndSetLocalReference($html)) {

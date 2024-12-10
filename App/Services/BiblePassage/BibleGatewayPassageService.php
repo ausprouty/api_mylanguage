@@ -58,7 +58,7 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      */
     public function getPassageText(): string
     {
-        require_once(Config::get('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
+        require_once(Config::getDir('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
 
         $html = str_get_html($this->webpage[0]);
         if (!$html) {
@@ -130,7 +130,7 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      */
     public function getReferenceLocalLanguage(): string
     {
-        require_once(Config::get('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
+        require_once(Config::getDir('paths.libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
 
         $webpage = preg_replace('/<script.*?<\/script>/is', '', $this->webpage[0]);
         $webpage = preg_replace('/<style.*?<\/style>/is', '', $webpage);
