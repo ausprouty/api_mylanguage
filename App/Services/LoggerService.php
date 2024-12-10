@@ -67,7 +67,6 @@ class LoggerService
         $formattedMessage = "[{$timestamp}] [{$level}] {$message}" . PHP_EOL;
 
         try {
-            print_r (self::$logFile);
             file_put_contents(self::$logFile, $formattedMessage, FILE_APPEND);
         } catch (Exception $e) {
             // If logging fails, handle it (e.g., output to console or error log)

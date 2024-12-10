@@ -7,6 +7,7 @@ abstract class AbstractBiLingualStudy extends AbstractBibleStudy
 {
     protected $secondaryLanguage;
     protected $secondaryBible;
+    protected $twigTranslation2;
 
 
     public function getLanguageInfo(): LanguageModel

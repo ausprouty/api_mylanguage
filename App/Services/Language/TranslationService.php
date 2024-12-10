@@ -21,7 +21,7 @@ class TranslationService
             case 'dbs':
                 $filename = 'dbs.json';
                 break;
-            case 'leadership':
+            case 'lead':
                 $filename = 'leadership.json';
                 break;
             case 'life':
@@ -34,8 +34,7 @@ class TranslationService
                 return [];
         }
 
-        // Get the ROOT_TRANSLATIONS path from the Config class
-        $rootTranslationsPath = Config::get('ROOT_TRANSLATIONS');
+        $rootTranslationsPath = Config::get('paths.resources.translations');
 
         // Attempt to load the specified language file
         $file = $rootTranslationsPath . 'languages/' . $languageCodeHL . '/' . $filename;

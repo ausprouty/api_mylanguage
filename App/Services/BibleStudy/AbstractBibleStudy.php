@@ -29,6 +29,7 @@ abstract class AbstractBibleStudy
     protected $primaryBible;
     protected $primaryBiblePassage;
     protected $template;
+    protected $twigTranslation1;
 
     protected $studyReferenceInfo;
     protected $passageReferenceInfo;

@@ -2,6 +2,7 @@
 namespace App\Services\Language;
 
 use App\Repositories\LanguageRepository;
+use App\Configuration\Config;
 
 class LanguageLookupService
 {
@@ -32,7 +33,7 @@ class LanguageLookupService
      */
     public static function getNextLanguageForDbs(string $languageCodeHL): string
     {
-        $directory = ROOT_TRANSLATIONS . 'languages/';
+        $directory = Config::get('paths.resources.translations') . 'languages/';
         $scanned_directory = array_diff(scandir($directory), ['..', '.']);
         sort($scanned_directory); // Ensure sorted order for comparison
 

@@ -2,6 +2,7 @@
 namespace App\Services\Language;
 
 use App\Repositories\LanguageRepository;
+use App\Configuration\Config;
 
 class DbsLanguageService {
     protected $languageRepository;
@@ -11,7 +12,7 @@ class DbsLanguageService {
     }
 
     public function processLanguageFiles() {
-        $directory = ROOT_TRANSLATIONS . 'languages/';
+        $directory = Config::get('paths.resources.translations').  'languages/';
         $scannedDirectory = array_diff(scandir($directory), ['..', '.']);
         foreach ($scannedDirectory as $languageCodeHL) {
             $bible = $this->languageRepository->getBestBibleByLanguageCodeHL($languageCodeHL);
