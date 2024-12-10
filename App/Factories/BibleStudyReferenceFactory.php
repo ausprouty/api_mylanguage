@@ -6,6 +6,7 @@ use App\Models\BibleStudy\DbsReferenceModel;
 use App\Models\BibleStudy\LeadershipReferenceModel;
 use App\Models\BibleStudy\LifePrincipleReferenceModel;
 use App\Services\Database\DatabaseService;
+use App\Repositories\PassageReferenceRepository;
 use Exception;
 
 /**
@@ -14,15 +15,20 @@ use Exception;
 class BibleStudyReferenceFactory
 {
     private DatabaseService $databaseService;
+    private PassageReferenceRepository $passageReferenceRepository;
 
     /**
      * Constructor to inject the DatabaseService.
      *
      * @param DatabaseService $databaseService The database service instance.
      */
-    public function __construct(DatabaseService $databaseService)
+    public function __construct(
+        DatabaseService $databaseService, 
+        PassageReferenceRepository $passageReferenceRepository
+    )
     {
         $this->databaseService = $databaseService;
+        $this->passageReferenceRepository = $passageReferenceRepository;
     }
 
     /**
@@ -65,8 +71,11 @@ class BibleStudyReferenceFactory
         }
 
         $result = $this->expandPassageReferenceInfo($data);
-        print_r($result);
-        return (new DbsReferenceModel ())->populate($result);
+        $missing = $this->validatePassageData ($result);
+        if ($missing){
+            $result = $this->populateMissingValues($result);
+        }
+        return (new DbsReferenceModel())->populate($result);
     }
 
     /**
@@ -124,6 +133,9 @@ class BibleStudyReferenceFactory
         $json = json_decode($reference['passage_reference_info'] ?? '', true);
 
         if (is_array($json)) {
+            $reference['bookID'] = $json['bookID'] ?? null;
+            $reference['bookName'] = $json['bookName'] ?? null;
+            $reference['bookNumber'] = $json['bookNumber'] ?? 0;
             $reference['chapterStart'] = $json['chapterStart'] ?? null;
             $reference['chapterEnd'] = $json['chapterEnd'] ?? null;
             $reference['verseStart'] = $json['verseStart'] ?? null;
@@ -131,6 +143,9 @@ class BibleStudyReferenceFactory
             $reference['passageID'] = $json['passageID'] ?? null;
             $reference['uversionBookID'] = $json['uversionBookID'] ?? null;
         } else {
+            $reference['bookID'] = null;
+            $reference['bookName'] = null;
+            $reference['bookNumber'] =  0;
             $reference['chapterStart'] = null;
             $reference['chapterEnd'] = null;
             $reference['verseStart'] = null;
@@ -140,10 +155,45 @@ class BibleStudyReferenceFactory
 
             error_log(
                 'Failed to decode passage_reference_info: ' .
-                ($reference['passage_reference_info'] ?? '')
+                    ($reference['passage_reference_info'] ?? '')
             );
         }
 
         return $reference;
+    }
+
+    function validatePassageData($data) {
+        $requiredFields = [
+            'entry', 'bookName', 'bookID', 'uversionBookID', 
+            'bookNumber', 'testament', 'chapterStart', 'verseStart', 
+             'verseEnd', 'passageID'
+        ];
+        
+        $missingFields = [];
+        
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                $missingFields[] = $field;
+            }
+        }
+        
+        return $missingFields;
+    }
+
+    function populateMissingValues($data) {
+    
+        if ($data['bookID'] == null) {
+            $data['bookID'] = $this->passageReferenceRepository->findBookID($data['bookName']);
+        }
+        if ($data['bookNumber'] == 0) {
+            $data['bookNumber'] =  $this->passageReferenceRepository->findBookNumber($data['bookID']);
+        }
+        if ($data['uversionBookID'] == 0) {
+            $data['uversionBookID'] =  $this->passageReferenceRepository->findUversionBookID($data['bookID']);
+        }
+        
+        return $data;
+    }
+    function saveCorrectedData($data, $dbConnection) {
     }
 }

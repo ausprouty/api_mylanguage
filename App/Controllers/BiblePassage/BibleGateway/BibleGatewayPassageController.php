@@ -43,8 +43,8 @@ class BibleGatewayPassageController
 
         $passageUrl = '/passage/?search=' .
             $referenceShaped . '&version=' . $this->bible->getExternalId();
-        print_r($passageUrl);
-        print_r('<br><hr><br>');
+        //print_r($passageUrl);
+        //print_r('<br><hr><br>');
         flush();
         $webpage = new BibleGatewayConnectionService($passageUrl);
 

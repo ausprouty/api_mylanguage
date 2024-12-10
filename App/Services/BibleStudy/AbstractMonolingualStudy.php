@@ -2,25 +2,34 @@
 
 namespace App\Services\BibleStudy;
 
+use App\Models\Language\LanguageModel;
+use App\Models\Bible\BibleModel;
+
 abstract class AbstractMonoLingualStudy extends AbstractBibleStudy
 {
     protected $language;
 
-    public function getLanguageInfo(): void
+    public function getLanguageInfo(): LanguageModel
     {
-        $this->primaryLanguage = $this->languageRepository
+        return $this->languageRepository
             ->findOneLanguageByLanguageCodeHL(
                 $this->languageCodeHL1
             );
-
-        return;
     }
 
-    public function getBibleInfo(): void
+    public function getBibleInfo(): BibleModel
     {
-        $this->primaryBible = $this->bibleRepository
+       return $this->bibleRepository
             ->findBestBibleByLanguageCodeHL(
                 $this->languageCodeHL1
             );
+    }
+
+    public function getBibleText():void{
+        $this->primaryBiblePassage = 
+        $this->biblePassageService->getPassage
+            ($this->primaryBible, 
+            $this->studyReferenceInfo);
+       
     }
 }

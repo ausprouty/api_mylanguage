@@ -142,7 +142,6 @@ class LanguageRepository extends BaseRepository
 
         $query = 'SELECT name FROM hl_languages WHERE languageCodeHL = '
             . ':languageCodeHL';
-        print_r($languageCodeHL);
         $result =  $this->databaseService->fetchSingleValue(
             $query,
             [':languageCodeHL' => $languageCodeHL]

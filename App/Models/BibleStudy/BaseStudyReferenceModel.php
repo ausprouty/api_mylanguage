@@ -6,7 +6,7 @@ use ReflectionClass;
 
 abstract class BaseStudyReferenceModel
 {
-    protected int $lesson;
+    protected int    $lesson;
     protected string $description;
     protected string $description_twig_key;
     protected string $reference;
@@ -14,6 +14,7 @@ abstract class BaseStudyReferenceModel
     protected string $passage_reference_info;
     protected ?string $bookName = null;
     protected ?string $bookID = null;
+    protected int     $bookNumber;
     protected ?string $chapterStart = null;
     protected ?string $chapterEnd = null;
     protected ?string $verseStart = null;
@@ -27,6 +28,7 @@ abstract class BaseStudyReferenceModel
     public function __construct()
     {
         $this->lesson = 0; // Default value for an integer property
+        $this->bookNumber = 0;
         $this->description = ''; // Default value for a string property
         $this->description_twig_key = '';
         $this->reference = '';
@@ -35,82 +37,9 @@ abstract class BaseStudyReferenceModel
         // Nullable properties already have default null values
     }
 
-    /**
-     * Populates the model with data from an associative array.
-     *
-     * @param array $data Associative array with keys matching property names.
-     */
-    public function populate(array $data): self
+    public function getBookID(): ?string
     {
-        foreach ($data as $key => $value) {
-            if (property_exists($this, $key)) {
-                $this->$key = $value;
-            }
-        }
-        return $this;
-    }
-
-
-    // Explicit Getters and Setters
-
-    public function getLesson(): int
-    {
-        return $this->lesson;
-    }
-
-    public function setLesson(int $lesson): void
-    {
-        $this->lesson = $lesson;
-    }
-
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    public function setDescription(string $description): void
-    {
-        $this->description = $description;
-    }
-
-    public function getDescriptionTwigKey(): string
-    {
-        return $this->description_twig_key;
-    }
-
-    public function setDescriptionTwigKey(string $description_twig_key): void
-    {
-        $this->description_twig_key = $description_twig_key;
-    }
-
-    public function getReference(): string
-    {
-        return $this->reference;
-    }
-
-    public function setReference(string $reference): void
-    {
-        $this->reference = $reference;
-    }
-
-    public function getTestament(): string
-    {
-        return $this->testament;
-    }
-
-    public function setTestament(string $testament): void
-    {
-        $this->testament = $testament;
-    }
-
-    public function getPassageReferenceInfo(): string
-    {
-        return $this->passage_reference_info;
-    }
-
-    public function setPassageReferenceInfo(string $passage_reference_info): void
-    {
-        $this->passage_reference_info = $passage_reference_info;
+        return $this->bookID;
     }
 
     public function getBookName(): ?string
@@ -118,29 +47,9 @@ abstract class BaseStudyReferenceModel
         return $this->bookName;
     }
 
-    public function setBookName(?string $bookName): void
+    public function getBookNumber(): ?string
     {
-        $this->bookName = $bookName;
-    }
-
-    public function getBookID(): ?string
-    {
-        return $this->bookID;
-    }
-
-    public function setBookID(?string $bookID): void
-    {
-        $this->bookID = $bookID;
-    }
-
-    public function getChapterStart(): ?string
-    {
-        return $this->chapterStart;
-    }
-
-    public function setChapterStart(?string $chapterStart): void
-    {
-        $this->chapterStart = $chapterStart;
+        return $this->bookNumber;
     }
 
     public function getChapterEnd(): ?string
@@ -148,29 +57,24 @@ abstract class BaseStudyReferenceModel
         return $this->chapterEnd;
     }
 
-    public function setChapterEnd(?string $chapterEnd): void
+    public function getChapterStart(): ?string
     {
-        $this->chapterEnd = $chapterEnd;
+        return $this->chapterStart;
     }
 
-    public function getVerseStart(): ?string
+    public function getDescription(): string
     {
-        return $this->verseStart;
+        return $this->description;
     }
 
-    public function setVerseStart(?string $verseStart): void
+    public function getDescriptionTwigKey(): string
     {
-        $this->verseStart = $verseStart;
+        return $this->description_twig_key;
     }
 
-    public function getVerseEnd(): ?string
+    public function getLesson(): int
     {
-        return $this->verseEnd;
-    }
-
-    public function setVerseEnd(?string $verseEnd): void
-    {
-        $this->verseEnd = $verseEnd;
+        return $this->lesson;
     }
 
     public function getPassageID(): ?string
@@ -178,26 +82,11 @@ abstract class BaseStudyReferenceModel
         return $this->passageID;
     }
 
-    public function setPassageID(?string $passageID): void
+    public function getPassageReferenceInfo(): string
     {
-        $this->passageID = $passageID;
+        return $this->passage_reference_info;
     }
 
-    public function getUversionBookID(): ?string
-    {
-        return $this->uversionBookID;
-    }
-
-    public function setUversionBookID(?string $uversionBookID): void
-    {
-        $this->uversionBookID = $uversionBookID;
-    }
-
-    /**
-     * Returns all properties as an associative array.
-     *
-     * @return array Associative array of all property names and their values.
-     */
     public function getProperties(): array
     {
         $reflection = new ReflectionClass($this);
@@ -209,4 +98,113 @@ abstract class BaseStudyReferenceModel
         return $propsArray;
     }
 
+    public function getReference(): string
+    {
+        return $this->reference;
+    }
+
+    public function getTestament(): string
+    {
+        return $this->testament;
+    }
+
+    public function getUversionBookID(): ?string
+    {
+        return $this->uversionBookID;
+    }
+
+    public function getVerseEnd(): ?string
+    {
+        return $this->verseEnd;
+    }
+
+    public function getVerseStart(): ?string
+    {
+        return $this->verseStart;
+    }
+
+    public function populate(array $data): self
+    {
+        foreach ($data as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
+        return $this;
+    }
+
+    public function setBookID(?string $bookID): void
+    {
+        $this->bookID = $bookID;
+    }
+
+    public function setBookName(?string $bookName): void
+    {
+        $this->bookName = $bookName;
+    }
+
+    public function setBookNumber(?int $bookNumber): void
+    {
+        $this->bookNumber = $bookNumber;
+    }
+
+    public function setChapterEnd(?string $chapterEnd): void
+    {
+        $this->chapterEnd = $chapterEnd;
+    }
+
+    public function setChapterStart(?string $chapterStart): void
+    {
+        $this->chapterStart = $chapterStart;
+    }
+
+    public function setDescription(string $description): void
+    {
+        $this->description = $description;
+    }
+
+    public function setDescriptionTwigKey(string $description_twig_key): void
+    {
+        $this->description_twig_key = $description_twig_key;
+    }
+
+    public function setLesson(int $lesson): void
+    {
+        $this->lesson = $lesson;
+    }
+
+    public function setPassageID(?string $passageID): void
+    {
+        $this->passageID = $passageID;
+    }
+
+    public function setPassageReferenceInfo(string $passage_reference_info): void
+    {
+        $this->passage_reference_info = $passage_reference_info;
+    }
+
+    public function setReference(string $reference): void
+    {
+        $this->reference = $reference;
+    }
+
+    public function setTestament(string $testament): void
+    {
+        $this->testament = $testament;
+    }
+
+    public function setUversionBookID(?string $uversionBookID): void
+    {
+        $this->uversionBookID = $uversionBookID;
+    }
+
+    public function setVerseEnd(?string $verseEnd): void
+    {
+        $this->verseEnd = $verseEnd;
+    }
+
+    public function setVerseStart(?string $verseStart): void
+    {
+        $this->verseStart = $verseStart;
+    }
 }

@@ -10,8 +10,6 @@ use ReflectionClass;
 class PassageReferenceModel
 {
     private $entry;
-    private $languageCodeHL;
-    private $languageCodeIso;
     private $bookName;
     private $bookID;
     private $uversionBookID;

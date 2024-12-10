@@ -4,8 +4,12 @@ namespace App\Services\BibleStudy;
 
 use App\Repositories\LanguageRepository;
 use App\Repositories\BibleRepository;
+use App\Models\Bible\BibleModel;
 use App\Services\Database\DatabaseService;
 use App\Factories\BibleStudyReferenceFactory;
+use App\Models\Language\LanguageModel;
+use App\Services\BiblePassage\BiblePassageService;
+use App\Factories\PassageReferenceFactory;
 
 abstract class AbstractBibleStudy
 {
@@ -19,29 +23,37 @@ abstract class AbstractBibleStudy
 
     protected $primaryLanguage;
     protected $primaryBible;
+    protected $primaryBiblePassage;
 
     protected $studyReferenceInfo;
+    protected $passageReferenceInfo;
 
     protected $databaseService;
     protected $languageRepository;
     protected $bibleRepository;
+    protected $biblePassageService;
     protected $bibleStudyReferenceFactory;
+    protected $passageReferenceFactory;
     // get information about the study lesson including title and Bible reference
 
 
-    abstract function getLanguageInfo(): void;
-    abstract function getBibleInfo(): void;
+    abstract function getLanguageInfo(): LanguageModel;
+    abstract function getBibleInfo(): BibleModel;
 
     public function __construct(
         DatabaseService $databaseService,
         LanguageRepository $languageRepository,
         BibleRepository $bibleRepository,
-        BibleStudyReferenceFactory  $bibleStudyReferenceFactory
+        BibleStudyReferenceFactory  $bibleStudyReferenceFactory,
+        BiblePassageService   $biblePassageService,
+        PassageReferenceFactory $passageReferenceFactory,
     ) {
         $this->databaseService = $databaseService;
         $this->languageRepository = $languageRepository;
         $this->bibleRepository = $bibleRepository;
         $this->bibleStudyReferenceFactory = $bibleStudyReferenceFactory;
+        $this->biblePassageService = $biblePassageService;
+        $this->passageReferenceFactory = $passageReferenceFactory;
     }
 
     public function generate($study, $format, $lesson, $languageCodeHL1, $languageCodeHL2 = null): string
@@ -52,25 +64,37 @@ abstract class AbstractBibleStudy
         $this->languageCodeHL1 = $languageCodeHL1;
         $this->languageCodeHL2 = $languageCodeHL2;
 
-        $this->getLanguageInfo();
-        $this->getBibleInfo();
-        $this->getStudyReferenceInfo();
+        $this->primaryLanguage = $this->getLanguageInfo();
+        $this->primaryBible = $this->getBibleInfo();
+        $this->studyReferenceInfo = 
+             $this->getStudyReferenceInfo();
+        $this->passageReferenceInfo = 
+             $this->passageReferenceFactory->createFromStudy($this->studyReferenceInfo);
+        print_r($this->passageReferenceInfo->getProperties() );
+        //$this->getBibleText();
         return 'fred';
     }
 
+    /**
+     * Retrieves the study reference information.
+     *
+     * This method returns a model created by the BibleStudyReferenceFactory
+     * based on the study and lesson provided. The returned model can be 
+     * one of the following:
+     * - DbsReferenceModel
+     * - LeadershipReferenceModel
+     * - LifePrincipleReferenceModel
+     *
+     *  @return DbsReferenceModel | LeadershipReferenceModel |LifePrincipleReferenceModel
+     *  
+     */
     public function getStudyReferenceInfo()
     {
-        print_r($this->study);
-        print_r($this->lesson);
-        $this->studyReferenceInfo =
+        return 
             $this->bibleStudyReferenceFactory
             ->createModel($this->study, $this->lesson);
-        print_r($this->studyReferenceInfo->getProperties());
+       
     }
-
-
-
-
 
     public function getMetadata(): array
     {

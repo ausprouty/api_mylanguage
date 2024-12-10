@@ -4,6 +4,7 @@ namespace App\Factories;
 
 use App\Models\Bible\PassageReferenceModel;
 use App\Repositories\PassageReferenceRepository;
+use DASPRiD\Enum\NullValue;
 
 /**
  * Factory for creating and populating PassageReferenceModel instances.
@@ -13,8 +14,6 @@ class PassageReferenceFactory
     private $repository;
 
     private $entry;
-    private $languageCodeHL;
-    private $languageCodeIso;
     private $bookName;
     private $bookID;
     private $uversionBookID;
@@ -34,6 +33,40 @@ class PassageReferenceFactory
         $this->repository = $repository;
     }
 
+    // study objects may have all we need for PassageReferenceModel
+
+    public function createFromStudy($studyObject): PassageReferenceModel
+    {
+        if ($studyObject->getPassageID() === null) {
+            print_r("I am creating new entry");
+            return $this->createFromEntry($studyObject->getReference());
+        } else {
+            return $this->createFromStudyObject($studyObject);
+        }
+    }
+    /**
+     * Creates a model from an entry string and language code.
+     */
+    public function createFromStudyObject($studyObject): PassageReferenceModel
+    {
+        print_r($studyObject->getProperties());
+        $model = new PassageReferenceModel();
+        $model->populate([
+            'entry' => $studyObject->getReference(),
+            'bookName' => $studyObject->getBookName(),
+            'bookID' => $studyObject->getBookID(),
+            'uversionBookID' => $studyObject->getUversionBookID(),
+            'bookNumber' => $studyObject->getBookNumber(),
+            'testament' => $studyObject->getTestament(),
+            'chapterStart' => $studyObject->getChapterStart(),
+            'verseStart' => $studyObject->getVerseStart(),
+            'chapterEnd' => $studyObject->getChapterEnd(),
+            'verseEnd' => $studyObject->getVerseEnd(),
+            'passageID' => $studyObject->getPassageID(),
+        ]);
+        return $model;
+    }
+
     /**
      * Creates a model from an entry string and language code.
      */
@@ -47,8 +80,7 @@ class PassageReferenceFactory
         $this->bookName = $this->setBookName($entry);
         $this->setChapterAndVerses();
         $this->bookID = $this->repository->findBookID(
-            $languageCodeHL,
-            $this->bookName
+            $this->bookName,  $languageCodeHL
         );
         $this->bookNumber = $this->repository->findBookNumber($this->bookID);
         $this->testament = $this->repository->findTestament($this->bookID);
@@ -57,8 +89,6 @@ class PassageReferenceFactory
             '-' . $this->verseStart . '-' . $this->verseEnd;
         $model->populate([
             'entry' => $this->entry,
-            'languageCodeHL' => $languageCodeHL,
-            'languageCodeIso' => null,
             'bookName' => $this->bookName,
             'bookID' => $this->bookID,
             'uversionBookID' => $this->uversionBookID,
@@ -107,24 +137,26 @@ class PassageReferenceFactory
     }
 
     /**
-     * Creates a model from a DBT array.
+     * Creates a model from a PassageReferenceInfo array.
      */
-    public function createFromDbtArray(array $dbtArray): PassageReferenceModel
+    public function createFromPassageReferenceInfo(array $passageReferenceInfo): PassageReferenceModel
     {
         $model = new PassageReferenceModel();
         $model->populate([
-            'entry' => $this->checkEntrySpacing($dbtArray['entry']),
-            'bookName' => $this->setBookName($dbtArray['entry']),
-            'bookID' => $dbtArray['bookId'],
-            'testament' => $dbtArray['collection_code'],
-            'chapterStart' => $dbtArray['chapterId'],
-            'verseStart' => $dbtArray['verseStart'],
-            'chapterEnd' => null,
-            'verseEnd' => $dbtArray['verseEnd'],
+            'entry' => $this->checkEntrySpacing($passageReferenceInfo['entry'] ?? ''),
+            'bookName' => $passageReferenceInfo['bookName'] ?? null,
+            'bookID' => $passageReferenceInfo['bookId'] ?? null,
+            'bookNumber' => $passageReferenceInfo['bookNumber'] ?? null,
+            'uversionBookID' => $passageReferenceInfo['uversionBookID'] ?? null,
+            'testament' => $passageReferenceInfo['collection_code'] ?? '',
+            'chapterStart' => $passageReferenceInfo['chapterId'] ?? null,
+            'verseStart' => $passageReferenceInfo['verseStart'] ?? null,
+            'chapterEnd' => null, // Explicitly set to null
+            'verseEnd' => $passageReferenceInfo['verseEnd'] ?? null,
+            'passageID' => $passageReferenceInfo['passageID'] ?? null,
         ]);
         return $model;
     }
-
 
     /**
      * Determines the book name from an entry.

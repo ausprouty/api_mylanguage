@@ -32,7 +32,7 @@ class PassageReferenceRepository extends BaseRepository
      * @param string $bookName The name of the book.
      * @return mixed|null The book ID if found, otherwise null.
      */
-    public function findBookID($languageCodeHL, $bookName)
+    public function findBookID($bookName, $languageCodeHL= 'eng00')
     {
         $query = 'SELECT bookId FROM bible_book_names 
                   WHERE (languageCodeHL = :languageCodeHL OR languageCodeHL = :english) 
