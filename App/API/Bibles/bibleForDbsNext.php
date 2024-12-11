@@ -4,7 +4,7 @@ use App\Controller\ReturnDataController;
 use App\Configuration\Config;
 
 $previous = $languageCodeHL;
-$directory = Config::getDir('paths.resources.translations') . 'languages/';
+$directory = Config::getDir('resources.translations') . 'languages/';
 $scanned_directory = array_diff(scandir($directory), array('..', '.'));
 foreach ($scanned_directory as $dir) {
     if ($dir > $previous) {

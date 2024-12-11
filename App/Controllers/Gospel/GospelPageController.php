@@ -9,7 +9,7 @@ class GospelPageController
 
     public function getBilingualPage($page)
     {
-        $file = Config::getDir('paths.resources.tracts') . 'bilingualTracts/' . $page;
+        $file = Config::getDir('resources.tracts') . 'bilingualTracts/' . $page;
         $text = file_get_contents($file);
         return $text;
     }

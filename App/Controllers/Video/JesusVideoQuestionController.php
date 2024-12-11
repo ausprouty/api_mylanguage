@@ -15,6 +15,6 @@ class JesusVideoQuestionController
 
     public function getBilingualTemplate($languageCodeHL1, $languageCodeHL2)
     {
-        $template = file_get_contents(Config::getDir('paths.resources.template') . 'bilingualJesusVideoQuestions.twig');
+        $template = file_get_contents(Config::getDir('resources.template') . 'bilingualJesusVideoQuestions.twig');
     }
 }

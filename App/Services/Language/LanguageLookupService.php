@@ -34,7 +34,7 @@ class LanguageLookupService
      */
     public static function getNextLanguageForDbs(string $languageCodeHL): string
     {
-        $directory = Config::getDir('paths.resources.translations') . 'languages/';
+        $directory = Config::getDir('resources.translations') . 'languages/';
         $scanned_directory = array_diff(scandir($directory), ['..', '.']);
         sort($scanned_directory); // Ensure sorted order for comparison
 

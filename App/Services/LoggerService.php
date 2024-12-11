@@ -16,7 +16,7 @@ class LoggerService
     public static function init(): void
     {
         if (!self::$logFile) {
-            self::$logFile = Config::getDir('paths.logs') . 'application.log';
+            self::$logFile = Config::getDir('logs') . 'application.log';
         }
     }
 

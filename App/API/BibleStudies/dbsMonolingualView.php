@@ -22,7 +22,7 @@ $qrCodeGeneratorService = new QrCodeGeneratorService();
 $controller = new MonolingualDbsTemplateController($qrCodeGeneratorService, $lesson, $languageCodeHL);
 
 $fileName = $this->dbsFileNameingTrait->generateFileName($lesson, $languageCodeHL);
-$path = Config::getDir('paths.resources.root');
+$path = Config::getDir('resources.root');
 $filePath = $path . $fileName;
 
 //if (!file_exists($filePath)){

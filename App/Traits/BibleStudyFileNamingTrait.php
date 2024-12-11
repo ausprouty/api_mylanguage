@@ -87,11 +87,11 @@ trait BibleStudyFileNamingTrait
     public function getStoragePath(string $study, string $format): string
     {
         if ($format == 'pdf') {
-            $dir = Config::getDir('paths.resources.bible_studies_pdf');
+            $dir = Config::getDir('resources.bible_studies_pdf');
         } elseif ($format == 'view') {
-            $dir = Config::getDir('paths.resources.bible_studies_view');
+            $dir = Config::getDir('resources.bible_studies_view');
         } else {
-            $dir = Config::getDir('paths.resources.bible_studies_other');
+            $dir = Config::getDir('resources.bible_studies_other');
         }
         $dir .=  $study . '/';
         return $dir;

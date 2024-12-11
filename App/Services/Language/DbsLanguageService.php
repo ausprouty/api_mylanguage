@@ -16,7 +16,7 @@ class DbsLanguageService
 
     public function processLanguageFiles()
     {
-        $directory = Config::getDir('paths.resources.translations') .  'languages/';
+        $directory = Config::getDir('resources.translations') .  'languages/';
         $scannedDirectory = array_diff(scandir($directory), ['..', '.']);
         foreach ($scannedDirectory as $languageCodeHL) {
             $bible = $this->languageRepository->getBestBibleByLanguageCodeHL($languageCodeHL);

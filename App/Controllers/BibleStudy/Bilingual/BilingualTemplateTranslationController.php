@@ -36,7 +36,7 @@ class BilingualTemplateTranslationController
 
    private function setTemplate()
    {
-      $filename = Config::getDir('paths.resources.template') . $this->templateName . '.twig';
+      $filename = Config::getDir('resources.template') . $this->templateName . '.twig';
       if (!file_exists($filename)) {
          writeLogError('BilingualTemplateTranslationController-28', 'ERROR - no such template as ' . $filename);
          return null;

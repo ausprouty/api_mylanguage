@@ -47,7 +47,7 @@ class TranslationService
             return [];
         }
 
-        $rootTranslationsPath = Config::getDir('paths.resources.translations');
+        $rootTranslationsPath = Config::getDir('resources.translations');
 
         // Construct file paths for the requested language and fallback language.
         $file = $rootTranslationsPath . "languages/$languageCodeHL/$filename";

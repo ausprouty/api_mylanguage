@@ -15,7 +15,7 @@ class PdfController
 
     public function __construct($languageCodeHL1 = null, $languageCodeHL2 = null)
     {
-        require_once Config::getDir('paths.vendor') . 'autoload.php';
+        require_once Config::getDir('vendor') . 'autoload.php';
         $this->mpdf = new \Mpdf\Mpdf();
         // Set the default font configuration to use a Bengali Unicode font
         $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
@@ -30,7 +30,7 @@ class PdfController
 
         $this->mpdf = new \Mpdf\Mpdf([
             'fontDir' => array_merge($fontDirs, [
-                Config::getDir('paths.resources.fonts')
+                Config::getDir('resources.fonts')
             ]),
             'fontdata' => $fontDataToUse,
             'default_font' => 'arial',
@@ -65,7 +65,7 @@ class PdfController
 
     public function writeToBrowser($html, $stylesheet)
     {
-        $stylesheet = file_get_contents(Config::getDir('paths.resources.styles') . $stylesheet);
+        $stylesheet = file_get_contents(Config::getDir('resources.styles') . $stylesheet);
         $this->mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
         $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
         $this->mpdf->Output();
@@ -75,7 +75,7 @@ class PdfController
         if (strpos($filename, '.pdf') == FALSE) {
             $filename .= '.pdf';
         }
-        $stylesheet = file_get_contents(Config::getDir('paths.resources.styles') . $stylesheet);
+        $stylesheet = file_get_contents(Config::getDir('resources.styles') . $stylesheet);
         $this->mpdf->WriteHTML($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
         $this->mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
         $this->mpdf->Output($filename, 'F');

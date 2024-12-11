@@ -72,58 +72,82 @@ abstract class AbstractBibleStudy
     }
 
     public function generate(
-        $study, 
-        $format, $lesson, $languageCodeHL1, $languageCodeHL2 = null): array
-    {
+        $study,
+        $format,
+        $lesson,
+        $languageCodeHL1,
+        $languageCodeHL2 = null
+    ): array {
+        $this->initializeParameters($study, $format, $lesson, $languageCodeHL1, $languageCodeHL2);
+        $this->loadLanguageAndBibleInfo();
+        $this->prepareReferences();
+        $this->buildTemplateAndTranslation();
+    
+        return $this->assembleOutput();
+    }
+    
+    private function initializeParameters(
+        $study,
+        $format,
+        $lesson,
+        $languageCodeHL1,
+        $languageCodeHL2
+    ): void {
+        $this->validateParameters($study, $format, $lesson);
+    
         $this->study = $study;
         $this->format = $format;
-        $this->lesson =  $lesson;
+        $this->lesson = $lesson;
         $this->languageCodeHL1 = $languageCodeHL1;
         $this->languageCodeHL2 = $languageCodeHL2;
-
-        $this->primaryLanguage = $this->getLanguageInfo();
-        $this->primaryBible = $this->getBibleInfo();
-        $this->studyReferenceInfo = 
-             $this->getStudyReferenceInfo();
-        $this->passageReferenceInfo = 
-             $this->passageReferenceFactory->createFromStudy($this->studyReferenceInfo);
-        $this->primaryBiblePassage = $this->getBibleText();
-        $this->template = $this->getTemplate($format);
-        $this->twigTranslation1 = $this->getTwigTranslation();
-        print_r ($this->twigTranslation1);
-        $array = array(
-            'Bob'=> 'done'
-        );
-        return $array;
     }
-
-    /**
-     * Retrieves the study reference information.
-     *
-     * This method returns a model created by the BibleStudyReferenceFactory
-     * based on the study and lesson provided. The returned model can be 
-     * one of the following:
-     * - DbsReferenceModel
-     * - LeadershipReferenceModel
-     * - LifePrincipleReferenceModel
-     *
-     *  @return DbsReferenceModel | LeadershipReferenceModel |LifePrincipleReferenceModel
-     *  
-     */
-    public function getStudyReferenceInfo()
-    {
-        return 
-            $this->bibleStudyReferenceFactory
-            ->createModel($this->study, $this->lesson);
-       
+    
+    private function validateParameters($study, $format, $lesson): void {
+        if (empty($study) || empty($format) || empty($lesson)) {
+            throw new \InvalidArgumentException('Study, format, and lesson must all be provided.');
+        }
     }
-
-    public function getMetadata(): array
-    {
-        return [
-            'studyType' => $this->study,
-            'format' => $this->format,
-            'language' => $this->language,
-        ];
+    
+    private function loadLanguageAndBibleInfo(): void {
+        try {
+            $this->primaryLanguage = $this->getLanguageInfo();
+            $this->primaryBible = $this->getBibleInfo();
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Error loading language or Bible information: ' . $e->getMessage(), 0, $e);
+        }
     }
-}
+    
+    private function prepareReferences(): void {
+        try {
+            $this->studyReferenceInfo = $this->getStudyReferenceInfo();
+            $this->passageReferenceInfo = $this->passageReferenceFactory->createFromStudy($this->studyReferenceInfo);
+            $this->primaryBiblePassage = $this->getBibleText();
+        } catch (\Exception $e) {
+            error_log('Reference preparation failed: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+    
+    private function buildTemplateAndTranslation(): void {
+        try {
+            $this->template = $this->getTemplate($this->format);
+            $this->twigTranslation1 = $this->getTwigTranslation();
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Error building template or translation: ' . $e->getMessage(), 0, $e);
+        }
+    }
+    
+    private function assembleOutput(): array {
+       $output = array( 
+            'status' => 'success',
+            'data' => [
+                'template' => $this->template ?? 'No template available',
+                'translation' => $this->twigTranslation1 ?? 'No translation available',
+                'language' => $this->primaryLanguage->getCode() ?? 'Unknown language',
+                'bible' => $this->primaryBible->getName() ?? 'Unknown Bible',
+            ],
+       );
+       print_r ($output);
+       die;
+    }
+    

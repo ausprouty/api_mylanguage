@@ -8,7 +8,7 @@ class LoggerService
 {
     private static function ensureLogDirectoryExists()
     {
-        $logDirectory = Config::getDir('paths.logs');
+        $logDirectory = Config::getDir('logs');
         if (!file_exists($logDirectory)) {
             mkdir($logDirectory, 0755, true);
         }
@@ -18,7 +18,7 @@ class LoggerService
     {
         $logMode = Config::get('logging.mode');
         $timestamp = ($logMode === 'write_time_log') ? time() . '-' : '';
-        $logDirectory = Config::getDir('paths.logs');
+        $logDirectory = Config::getDir('logs');
 
         return $logDirectory . $prefix . $timestamp . $filename . '.txt';
     }
