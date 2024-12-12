@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Traits;
+use App\Configuration\Config;
 
 /**
  * Trait TemplatePathsTrait
@@ -24,7 +25,7 @@ trait DbsTemplatePathsTrait
      */
     public static function getPathPdf(): string
     {
-        return ROOT_RESOURCES . 'pdf/' . static::getPathPrefix() . '/';
+        return Config::getDir('paths.bible_studies_pdf') . static::getPathPrefix() . '/';
     }
 
     /**
@@ -34,7 +35,7 @@ trait DbsTemplatePathsTrait
      */
     public static function getUrlPdf(): string
     {
-        return Config::getDir('web.webaddress_resources') . 'pdf/' . static::getPathPrefix() . '/';
+        return Config::getUrl('paths.bible_studies_pdf') . static::getPathPrefix() . '/';
     }
 
     /**
@@ -44,7 +45,7 @@ trait DbsTemplatePathsTrait
      */
     public static function getPathView(): string
     {
-        return ROOT_RESOURCES . 'view/' . static::getPathPrefix() . '/';
+        return Config::getDir('paths.bible_studies_view') . static::getPathPrefix() . '/';
     }
 
     /**
@@ -54,7 +55,7 @@ trait DbsTemplatePathsTrait
      */
     public static function getUrlView(): string
     {
-        return Config::getDir('web.webaddress_resources') . 'view/' . static::getPathPrefix() . '/';
+        return Config::getUrl('paths.bible_studies_view') . 'view/' . static::getPathPrefix() . '/';
     }
 
     /**

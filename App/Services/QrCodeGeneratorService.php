@@ -16,7 +16,7 @@ class QrCodeGeneratorService
         $this->url = $url;
         $this->size = $size;
         $this->filePath = ROOT_RESOURCES . 'qrcodes/' . $fileName;
-        $this->qrCodeUrl = Config::getDir('web.webaddress_resources') . 'qrcodes/' . $fileName;
+        $this->qrCodeUrl = Config::get('web.webaddress_resources') . 'qrcodes/' . $fileName;
     }
 
     public function generateQrCode(): void

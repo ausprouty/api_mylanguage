@@ -80,7 +80,7 @@ class BibleBlockController
 
     private function setTemplate()
     {
-        $file = Config::getDir('resources.template') . 'bibleBlockTable.twig';
+        $file = Config::getDir('resources.templates') . 'bibleBlockTable.twig';
         if (!file_exists($file)) {
             $this->template = NULL;
         }

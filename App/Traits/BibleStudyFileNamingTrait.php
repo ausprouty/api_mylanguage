@@ -45,7 +45,7 @@ trait BibleStudyFileNamingTrait
         string $languageCodeHL1,
         string $languageCodeHL2 = null
     ): string {
-        $studyName = Config::getDir("bible_study_names.$study", 'Unknown Study');
+        $studyName = Config::get("bible_study_names.$study", 'Unknown Study');
         $lang1 = $this->languageRepository->getEnglishNameForLanguageCodeHL($languageCodeHL1);
 
         if ($languageCodeHL2) {
@@ -100,11 +100,11 @@ trait BibleStudyFileNamingTrait
     public function getUrl(string $study, string $format): string
     { {
             if ($format == 'pdf') {
-                $dir = Config::getUrl('bible_studies_pdf');
+                $dir = Config::getUrl('resources.bible_studies_pdf');
             } elseif ($format == 'view') {
-                $dir = Config::getUrl('bible_studies_view');
+                $dir = Config::getUrl('resources.bible_studies_view');
             } else {
-                $dir = Config::getUrl('bible_studies_other');
+                $dir = Config::getUrl('resources.bible_studies_other');
             }
             $dir .= '/' . $study . '/';
             return $dir;

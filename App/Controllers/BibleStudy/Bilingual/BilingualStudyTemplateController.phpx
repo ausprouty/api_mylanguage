@@ -154,7 +154,7 @@ abstract class BilingualStudyTemplateController
 
     private function showDivLink($biblePassage): string
     {
-        $templatePath = Config::getDir('resources.template') . 'bibleBlockDivLink.twig';
+        $templatePath = Config::getDir('resources.templates') . 'bibleBlockDivLink.twig';
         $template = file_get_contents($templatePath);
 
         $existing = ['{{dir_language}}', '{{url}}', '{{Bible Reference}}', '{{Bid}}'];
@@ -169,7 +169,7 @@ abstract class BilingualStudyTemplateController
 
     private function showDivText($biblePassage): string
     {
-        $templatePath = Config::getDir('resources.template') . 'bibleBlockDivText.twig';
+        $templatePath = Config::getDir('resources.templates') . 'bibleBlockDivText.twig';
         $template = file_get_contents($templatePath);
 
         $existing = ['{{dir_language}}', '{{url}}', '{{Bible Reference}}', '{{Bid}}', '{{passage_text}}'];

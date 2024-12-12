@@ -26,7 +26,7 @@ class BibleGatewayBibleController
 
     public function import()
     {
-        $filename = Config::getDir('import') . 'BibleGatewayBibles.txt';
+        $filename = Config::getDir('imports') . 'BibleGatewayBibles.txt';
         if (!file_exists($filename)) {
             // Log an error, display an error message, or provide instructions
             LoggerService::logError("File not found: {$filename}");

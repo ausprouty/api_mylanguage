@@ -147,7 +147,7 @@ abstract class AbstractBibleStudy
                 'bible' => $this->primaryBible->getName() ?? 'Unknown Bible',
             ],
        );
-       print_r ($output);
-       die;
+       return $output;
     }
     
+}
