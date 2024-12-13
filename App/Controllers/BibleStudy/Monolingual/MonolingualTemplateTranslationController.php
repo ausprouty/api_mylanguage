@@ -48,7 +48,7 @@ class MonolingualTemplateTranslationController
 
     private function loadTemplate(): void
     {
-        $filePath = Config::getDir('resources.root'); . $this->templateName . '.twig';
+        $filePath = Config::getDir('resources.root') . $this->templateName . '.twig';
 
         if (!file_exists($filePath)) {
             writeLogError('MonolingualTemplateTranslationController-28', 'ERROR - no such template as ' . $filePath);

@@ -1,13 +1,12 @@
 <?php
+
+use App\Renderers\RendererFactory;
+use App\Renderers\HtmlRenderer;
+use App\Renderers\PdfRenderer;
+
 $directory = __DIR__ . '/../'; // Adjust the path as needed
 $progressFile = __DIR__ . '/php-di-progress.json'; // File to save progress
-$outputFile = __DIR__ . '/../Configuration/di/di-all.php';
-// File to save the final definitions
-
-echo "Checking directory: $directory\n";
-if (!is_dir($directory)) {
-    die("Directory does not exist: $directory\n");
-}
+$outputFile = __DIR__ . '/../Configuration/di/di-all.php'; // File to save the final definitions
 
 require __DIR__ . '/../../Vendor/autoload.php';
 
@@ -30,7 +29,6 @@ foreach ($iterator as $file) {
     if (preg_match('/class\s+(\w+)/', $content, $matches)) {
         $class = $namespace ? $namespace . '\\' . $matches[1] : $matches[1];
 
-        // Check if the class exists before reflecting
         if (!class_exists($class)) {
             echo "Skipping: Class not found -> $class\n";
             continue;
@@ -38,25 +36,35 @@ foreach ($iterator as $file) {
 
         try {
             $reflector = new ReflectionClass($class);
-            if ($reflector->isInstantiable() || $reflector->isAbstract()) {
+            if ($reflector->isInstantiable()) {
                 $constructor = $reflector->getConstructor();
                 if ($constructor) {
-                    $dependencies = array_map(
-                        fn($param) => [
-                            'name' => $param->getName(),
-                            'type' => (string) $param->getType(),
-                        ],
-                        $constructor->getParameters()
-                    );
+                    $parameters = $constructor->getParameters();
+                    $dependencies = [];
 
-                    $definitions[$class] = array_map(fn($dep) => $dep['type'], $dependencies);
+                    foreach ($parameters as $param) {
+                        $type = $param->getType();
+                        if ($type && !$type->isBuiltin()) {
+                            $dependencies[$param->getName()] = (string) $type;
+                        } elseif ($param->getType() && (string)$param->getType() === 'array') {
+                            // Special handling for associative arrays like RendererFactory
+                            if ($reflector->getName() === RendererFactory::class) {
+                                $dependencies[$param->getName()] = [
+                                    'html' => HtmlRenderer::class,
+                                    'pdf' => PdfRenderer::class,
+                                ];
+                            }
+                        }
+                    }
+
+                    $definitions[$class] = $dependencies;
                 } else {
                     $definitions[$class] = [];
                 }
             }
         } catch (Exception $e) {
             echo "Error processing $class: " . $e->getMessage() . "\n";
-            $definitions[$class] = null; // Record the error for this class
+            $definitions[$class] = null;
         }
 
         echo "Processed: $class\n";
@@ -66,13 +74,26 @@ foreach ($iterator as $file) {
 // Write final PHP-DI configuration file for Factories
 $phpDiConfig = "<?php\nreturn [\n";
 foreach ($definitions as $class => $dependencies) {
-    $phpDiConfig .= "    '$class' => DI\\autowire()->constructor(\n";
-    if (!empty($dependencies)) {
-        $phpDiConfig .= implode(",\n", array_map(fn($dep) => "        DI\\get('$dep')", $dependencies));
+    if ($class === 'App\\Renderers\\RendererFactory') {
+        $phpDiConfig .= "    '$class' => DI\\create()\n        ->constructor([\n";
+        foreach ($dependencies as $key => $value) {
+            if (is_array($value)) {
+                foreach ($value as $format => $rendererClass) {
+                    $phpDiConfig .= "            '$format' => DI\\get('$rendererClass'),\n";
+                }
+            }
+        }
+        $phpDiConfig .= "        ]),\n";
+    } else {
+        $phpDiConfig .= "    '$class' => DI\\autowire()->constructor(\n";
+        if (!empty($dependencies)) {
+            $phpDiConfig .= implode(",\n", array_map(fn($dep) => "        DI\\get('$dep')", $dependencies));
+        }
+        $phpDiConfig .= "\n    ),\n";
     }
-    $phpDiConfig .= "\n    ),\n";
 }
 $phpDiConfig .= "];\n";
+
 
 file_put_contents($outputFile, $phpDiConfig);
 

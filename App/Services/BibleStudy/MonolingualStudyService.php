@@ -6,7 +6,7 @@ use App\Models\Language\LanguageModel;
 use App\Models\Bible\BibleModel;
 use App\Services\TranslationService;
 
-abstract class AbstractMonoLingualStudy extends AbstractBibleStudy
+class MonolingualStudyService extends AbstractBibleStudyService
 {
     protected $language;
 
@@ -34,9 +34,17 @@ abstract class AbstractMonoLingualStudy extends AbstractBibleStudy
         return $result;
        
     }
+    
 
-    public function getTwigTranslation(): string{
+    public function getTwigTranslationArray(): array{
         return $this->translationService->
-            loadTranslationFile($this->languageCodeHL1, $this->study);
+            loadTranslation($this->languageCodeHL1, $this->study);
+    }
+
+    public function getStudyTemplate(string $study, string $format): string
+    {
+        $template = $this->templateService->getStudyTemplate('monolingual',$study, $format);
+        
+        return $template;
     }
 }

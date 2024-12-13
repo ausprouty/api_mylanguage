@@ -8,6 +8,33 @@ use App\Configuration\Config;
 
 class TemplateService
 {
+    
+    public function getStudyTemplate($format, $study, $render): string {
+        $name = '';
+    
+        // Determine the study type
+        $studyNames = Config::get('bible_study_names');
+        $studyName = isset($studyNames[$study]) ? $studyNames[$study] : '';
+    
+        // Determine the format type
+        if ($format == 'monolingual') {
+            $name .= 'monolingual';
+        } else {
+            $name .= 'bilingual';
+        }
+    
+        // Add study name if it exists
+        if ($studyName) {
+            $name .= $studyName;
+        }
+    
+        // Capitalize the first letter of $render and append it
+        $name .= ucfirst($render) . '.twig';
+    
+        return $this->getTemplate($name);
+    }
+    
+    
     public function getTemplate(string $template): string
     {
         try {

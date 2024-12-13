@@ -4,34 +4,23 @@ namespace App\Services\Language;
 
 use App\Configuration\Config;
 
+/**
+ * Handles translations by loading and parsing JSON files for specific
+ * language codes and scopes. Provides utility functions for fetching
+ * translations and handling fallback mechanisms.
+ */
 class TranslationService
 {
-    /**
-     * @var array The translation data loaded from the file.
-     */
-    private $translation;
-
-    /**
-     * Constructor to initialize the translation service.
-     * 
-     * @param string $languageCodeHL The language code (e.g., "eng00").
-     * @param string $scope          The scope of the translation (e.g., "dbs").
-     */
-    public function __construct(string $languageCodeHL, string $scope)
-    {
-        $this->translation = $this->loadTranslationFile($languageCodeHL, $scope);
-    }
-
     /**
      * Loads a translation file based on the language code and scope.
      * Falls back to English if the specific language file is unavailable.
      * 
-     * @param string $languageCodeHL The language code.
-     * @param string $scope          The scope of the translation.
+     * @param string $languageCodeHL The language code (e.g., "eng00").
+     * @param string $scope          The scope of the translation (e.g., "dbs").
      * 
      * @return array The translation data as an associative array.
      */
-    private function loadTranslationFile(string $languageCodeHL, string $scope): array
+    public static function loadTranslation(string $languageCodeHL, string $scope): array
     {
         // Map the scope to the corresponding filename.
         $filename = match ($scope) {
@@ -43,7 +32,10 @@ class TranslationService
         };
 
         if ($filename === null) {
-            trigger_error("Invalid translation scope: $scope", E_USER_WARNING);
+            trigger_error(
+                "Invalid translation scope: $scope", 
+                E_USER_WARNING
+            );
             return [];
         }
 
@@ -55,15 +47,17 @@ class TranslationService
 
         // Attempt to load the translation file or fallback file.
         if (file_exists($file)) {
-            return $this->parseTranslationFile($file);
+            return self::parseTranslationFile($file);
         }
 
         if (file_exists($fallbackFile)) {
-            return $this->parseTranslationFile($fallbackFile);
+            return self::parseTranslationFile($fallbackFile);
         }
 
         // Log an error and return an empty array if neither file exists.
-        error_log("Translation files not found for scope '$scope' in $languageCodeHL.");
+        error_log(
+            "Translation files not found for scope '$scope' in $languageCodeHL."
+        );
         return [];
     }
 
@@ -74,13 +68,15 @@ class TranslationService
      * 
      * @return array The parsed translation data.
      */
-    private function parseTranslationFile(string $filePath): array
+    private static function parseTranslationFile(string $filePath): array
     {
         $contents = file_get_contents($filePath);
         $data = json_decode($contents, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("JSON error in file $filePath: " . json_last_error_msg());
+            error_log(
+                "JSON error in file $filePath: " . json_last_error_msg()
+            );
             return [];
         }
 
@@ -88,24 +84,17 @@ class TranslationService
     }
 
     /**
-     * Retrieves the loaded translation data.
+     * Retrieves a translation for a given key from a translation array.
      * 
-     * @return array The translation data as an associative array.
+     * @param array  $translations The loaded translation data.
+     * @param string $key          The key to translate.
+     * 
+     * @return string|null The translated value, or null if not found.
      */
-    public function getTranslationData(): array
-    {
-        return $this->translation;
-    }
-
-    /**
-     * Translates a key into its corresponding value.
-     * 
-     * @param string $key The key to translate.
-     * 
-     * @return string|null The translated value, or null if the key is not found.
-     */
-    public function translateTwigKey(string $key): ?string
-    {
-        return $this->translation[$key] ?? null;
+    public static function translateKey(
+        array $translations, 
+        string $key
+    ): ?string {
+        return $translations[$key] ?? null;
     }
 }

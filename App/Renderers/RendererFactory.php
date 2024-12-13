@@ -13,6 +13,11 @@ class RendererFactory {
      * @param array $renderers An associative array of renderers keyed by format.
      */
     public function __construct(array $renderers) {
+        foreach ($renderers as $key => $renderer) {
+            if (!$renderer instanceof RendererInterface) {
+                throw new InvalidArgumentException("Renderer for '$key' must implement RendererInterface.");
+            }
+        }
         $this->renderers = $renderers;
     }
 
@@ -24,10 +29,7 @@ class RendererFactory {
      * @throws InvalidArgumentException if the format is not supported.
      */
     public function getRenderer(string $format): RendererInterface {
-        if (!isset($this->renderers[$format])) {
-            throw new InvalidArgumentException("Unknown format: $format");
-        }
-
-        return $this->renderers[$format];
+        return $this->renderers[$format] 
+            ?? throw new InvalidArgumentException("Unknown format: $format");
     }
 }
