@@ -47,4 +47,14 @@ class MonolingualStudyService extends AbstractBibleStudyService
         
         return $template;
     }
+
+    public function assembleOutput(): string{
+        $translations = array();
+        $translations['language1'] = $this->twigTranslation1;
+        $text = $this->twigService->renderFromString($this->template,   ['translations' => $translations]);
+        print_r($text);
+        die;
+        return $text;
+
+    }
 }

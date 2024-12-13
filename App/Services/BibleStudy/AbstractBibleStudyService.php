@@ -17,6 +17,7 @@ use App\Services\BibleStudy\TemplateService;
 use App\Services\Database\DatabaseService;
 use App\Services\Language\TranslationService;
 use Symfony\Component\String\AbstractString;
+use App\Services\TwigService;
 
 /**
  * Abstract class for Bible Study services.
@@ -48,6 +49,14 @@ abstract class AbstractBibleStudyService
     protected $passageReferenceFactory;
     protected $templateService;
     protected $translationService;
+    protected $twigService;
+
+    /**
+     * Fillin Template with Twig
+     *
+     * @return String
+     */
+    abstract function assembleOutput():string;
 
     /**
      * Retrieve language information.
@@ -105,7 +114,8 @@ abstract class AbstractBibleStudyService
         BiblePassageService $biblePassageService,
         PassageReferenceFactory $passageReferenceFactory,
         TemplateService $templateService,
-        TranslationService $translationService
+        TranslationService $translationService,
+        TwigService  $twigService
     ) {
         $this->databaseService = $databaseService;
         $this->languageRepository = $languageRepository;
@@ -115,6 +125,7 @@ abstract class AbstractBibleStudyService
         $this->passageReferenceFactory = $passageReferenceFactory;
         $this->templateService = $templateService;
         $this->translationService = $translationService;
+        $this->twigService  = $twigService;
     }
 
     /**
@@ -134,13 +145,26 @@ abstract class AbstractBibleStudyService
         $languageCodeHL1,
         $languageCodeHL2 = null
     ): array {
-        $this->initializeParameters($study, $format, $lesson, $languageCodeHL1, $languageCodeHL2);
-        $this->loadLanguageAndBibleInfo();
-        $this->prepareReferences();
-        $this->buildTemplateAndTranslation();
-
-        return $this->assembleOutput();
+        try {
+            $this->initializeParameters($study, $format, $lesson, $languageCodeHL1, $languageCodeHL2);
+            $this->loadLanguageAndBibleInfo();
+            $this->prepareReferences();
+            $this->buildTemplateAndTranslation();
+            $this->checkProgress(); // This could throw an exception
+            $test = $this->assembleOutput();
+            print_r($test);
+            return 'hi';
+        } catch (\InvalidArgumentException $e) {
+            // Handle specific validation errors
+            error_log('Validation error: ' . $e->getMessage());
+            return ['status' => 'error', 'message' => $e->getMessage()];
+        } catch (\Exception $e) {
+            // Handle unexpected errors
+            error_log('Unexpected error: ' . $e->getMessage());
+            return ['status' => 'error', 'message' => 'An unexpected error occurred.'];
+        }
     }
+    
 
     /**
      * Initialize study parameters.
@@ -246,21 +270,33 @@ abstract class AbstractBibleStudyService
         }
     }
 
-    /**
-     * Assemble the final study output.
-     *
-     * @return array The assembled output.
-     */
-    private function assembleOutput(): array
-    {
-        return [
-            'status' => 'success',
-            'data' => [
-                'template' => $this->template ?? 'No template available',
-                'translation' => $this->twigTranslation1 ?? 'No translation available',
-                'language' => $this->primaryLanguage->getCode() ?? 'Unknown language',
-                'bible' => $this->primaryBible->getName() ?? 'Unknown Bible',
-            ],
-        ];
+   /**
+ * Assemble the final study output.
+ *
+ * @return array The assembled output.
+ * @throws \InvalidArgumentException If any parameter is missing or blank.
+ */
+private function checkProgress(): array
+{
+    $requiredFields = [
+        'template' => $this->template ?? null,
+        'translation' => $this->twigTranslation1 ?? null,
+        'language' => $this->primaryLanguage->getLanguageCodeHL() ?? null,
+        'bible' => $this->primaryBible->getVolumeName() ?? null,
+    ];
+
+    foreach ($requiredFields as $key => $value) {
+        if (empty($value)) {
+            throw new \InvalidArgumentException("Missing or blank parameter: $key");
+        }
     }
+
+    return [
+        'status' => 'success',
+        'data' => $requiredFields,
+    ];
+}
+
+
+
 }

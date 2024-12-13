@@ -57,6 +57,12 @@ foreach ($iterator as $file) {
                         }
                     }
 
+                    // Add TwigService explicitly if it's required and not detected
+                    if (!in_array('App\Services\TwigService', $dependencies, true)) {
+                        $dependencies['twigService'] = 'App\Services\TwigService';
+                    }
+
+
                     $definitions[$class] = $dependencies;
                 } else {
                     $definitions[$class] = [];

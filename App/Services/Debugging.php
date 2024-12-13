@@ -32,7 +32,7 @@ function writeLog($filename, $content)
     ensureLogDirectoryExists();
 
     // Construct the full file path
-    $filePath = Config::get('logs') . $filename . '.txt';
+    $filePath = Config::getDir('logs') . $filename . '.txt';
 
     // Write log content to the file, log to error log if writing fails
     if (file_put_contents($filePath, $text) === false) {
@@ -51,7 +51,7 @@ function writeLogAppend($filename, $content)
     $filename = validateFilename($filename);
     $text = var_dump_ret($content);
     ensureLogDirectoryExists();
-    $filePath = Config::get('logs')  . 'APPEND-' . $filename . '.txt';
+    $filePath = Config::getDir('logs')  . 'APPEND-' . $filename . '.txt';
 
     // Append content to the file and lock it to prevent concurrent writes
     if (file_put_contents($filePath, $text, FILE_APPEND | LOCK_EX) === false) {
@@ -70,7 +70,7 @@ function writeLogDebug($filename, $content)
     $filename = validateFilename($filename);
     $text = var_dump_ret($content);
     ensureLogDirectoryExists();
-    $filePath = Config::get('logs') . 'DEBUG-' . $filename . '.txt';
+    $filePath = Config::getDir('logs') . 'DEBUG-' . $filename . '.txt';
 
     // Write debug log content to the file, log to error log if writing fails
     if (file_put_contents($filePath, $text) === false) {
@@ -89,7 +89,7 @@ function writeLogError($filename, $content)
     $filename = validateFilename($filename);
     $text = var_dump_ret($content);
     ensureLogDirectoryExists();
-    $filePath = Config::get('logs')  . 'ERROR-' . $filename . '.txt';
+    $filePath = Config::getDir('logs')  . 'ERROR-' . $filename . '.txt';
 
     // Write error log content to the file, log to error log if writing fails
     if (file_put_contents($filePath, $text) === false) {
@@ -119,7 +119,7 @@ function var_dump_ret($mixed = null)
  */
 function ensureLogDirectoryExists()
 {
-    $dir = Config::get('logs');
+    $dir = Config::getDir('logs');
     if (!file_exists($dir)) {
         if (!mkdir($dir, 0755, true) && !is_dir($dir)) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $dir));

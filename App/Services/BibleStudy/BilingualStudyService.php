@@ -65,4 +65,12 @@ use App\Models\Language\LanguageModel;
         return $this->primaryBiblePassage;
        
     }
+
+    public function assembleOutput(): string{
+        $text = $this->twigService->render($this->template, $this->twigTranslation1);
+        print_r($text);
+        die();
+        //return $text;
+
+    }
 }
