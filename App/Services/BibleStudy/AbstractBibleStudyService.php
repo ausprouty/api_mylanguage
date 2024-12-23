@@ -10,6 +10,7 @@ use App\Models\Language\LanguageModel;
 use App\Models\BibleStudy\DbsReferenceModel;
 use App\Models\BibleStudy\LeadershipReferenceModel;
 use App\Models\BibleStudy\LifePrincipleReferenceModel;
+use App\Models\Bible\PassageModel;
 use App\Repositories\BibleRepository;
 use App\Repositories\LanguageRepository;
 use App\Services\BiblePassage\BiblePassageService;
@@ -58,7 +59,7 @@ abstract class AbstractBibleStudyService
      *
      * @return String
      */
-    abstract function assembleOutput():string;
+    abstract function assembleOutput(): string;
 
     /**
      * Retrieve language information.
@@ -79,7 +80,7 @@ abstract class AbstractBibleStudyService
      *
      * @return array
      */
-    abstract function getBibleText(): array;
+    abstract function getPassageModel(): PassageModel;
 
     /**
      * Retrieve the template for the study format.
@@ -157,7 +158,6 @@ abstract class AbstractBibleStudyService
             $this->checkProgress(); // This could throw an exception
             $test = $this->assembleOutput();
             return $test;
-    
         } catch (\InvalidArgumentException $e) {
             // Handle specific validation errors
             $this->loggerService->logError('Validation error', ['message' => $e->getMessage()]);
@@ -168,8 +168,8 @@ abstract class AbstractBibleStudyService
             return 'An unexpected error occurred in generating your study.';
         }
     }
-    
-    
+
+
 
     /**
      * Initialize study parameters.
@@ -226,7 +226,7 @@ abstract class AbstractBibleStudyService
         } catch (\Exception $e) {
             throw new \RuntimeException(
                 'Error loading language or Bible information: ' .
-                $e->getMessage(),
+                    $e->getMessage(),
                 0,
                 $e
             );
@@ -244,17 +244,17 @@ abstract class AbstractBibleStudyService
             $this->studyReferenceInfo = $this->getStudyReferenceInfo();
             $this->passageReferenceInfo = $this->passageReferenceFactory
                 ->createFromStudy($this->studyReferenceInfo);
-            $this->primaryBiblePassage = $this->getBibleText();
+            $this->primaryBiblePassage = $this->getPassageModel();
         } catch (\Exception $e) {
             error_log('Reference preparation failed: ' . $e->getMessage());
             throw $e;
         }
     }
 
-    public function getStudyReferenceInfo():DbsReferenceModel|LifePrincipleReferenceModel|LeadershipReferenceModel{
-        
-        return  $this->bibleStudyReferenceFactory->
-        createModel( $this->study, $this->lesson);
+    public function getStudyReferenceInfo(): DbsReferenceModel|LifePrincipleReferenceModel|LeadershipReferenceModel
+    {
+
+        return  $this->bibleStudyReferenceFactory->createModel($this->study, $this->lesson);
     }
 
     /**
@@ -276,33 +276,30 @@ abstract class AbstractBibleStudyService
         }
     }
 
-   /**
- * Assemble the final study output.
- *
- * @return array The assembled output.
- * @throws \InvalidArgumentException If any parameter is missing or blank.
- */
-private function checkProgress(): array
-{
-    $requiredFields = [
-        'template' => $this->template ?? null,
-        'translation' => $this->twigTranslation1 ?? null,
-        'language' => $this->primaryLanguage->getLanguageCodeHL() ?? null,
-        'bible' => $this->primaryBible->getVolumeName() ?? null,
-    ];
+    /**
+     * Assemble the final study output.
+     *
+     * @return array The assembled output.
+     * @throws \InvalidArgumentException If any parameter is missing or blank.
+     */
+    private function checkProgress(): array
+    {
+        $requiredFields = [
+            'template' => $this->template ?? null,
+            'translation' => $this->twigTranslation1 ?? null,
+            'language' => $this->primaryLanguage->getLanguageCodeHL() ?? null,
+            'bible' => $this->primaryBible->getVolumeName() ?? null,
+        ];
 
-    foreach ($requiredFields as $key => $value) {
-        if (empty($value)) {
-            throw new \InvalidArgumentException("Missing or blank parameter: $key");
+        foreach ($requiredFields as $key => $value) {
+            if (empty($value)) {
+                throw new \InvalidArgumentException("Missing or blank parameter: $key");
+            }
         }
+
+        return [
+            'status' => 'success',
+            'data' => $requiredFields,
+        ];
     }
-
-    return [
-        'status' => 'success',
-        'data' => $requiredFields,
-    ];
-}
-
-
-
 }

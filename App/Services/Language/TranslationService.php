@@ -23,21 +23,7 @@ class TranslationService
     public static function loadTranslation(string $languageCodeHL, string $scope): array
     {
         // Map the scope to the corresponding filename.
-        $filename = match ($scope) {
-            'dbs' => 'dbs.json',
-            'lead' => 'leadership.json',
-            'life' => 'life.json',
-            'video' => 'video.json',
-            default => null,
-        };
-
-        if ($filename === null) {
-            trigger_error(
-                "Invalid translation scope: $scope", 
-                E_USER_WARNING
-            );
-            return [];
-        }
+        $filename = $scope . '.json';
 
         $rootTranslationsPath = Config::getDir('resources.translations');
 

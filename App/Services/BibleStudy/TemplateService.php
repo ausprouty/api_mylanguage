@@ -23,7 +23,6 @@ class TemplateService
     
         // Capitalize the first letter of $render and append it
         $name .= ucfirst($render) . '.twig';
-        print_r($name);
     
         return $this->getTemplate($name);
     }

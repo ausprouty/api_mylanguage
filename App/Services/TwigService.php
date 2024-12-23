@@ -36,9 +36,6 @@ class TwigService
      */
     public function render(string $template, array $data = []): string
     {
-        print_r ($template);
-        print_r($data);
-        die;
         return $this->twig->render($template, $data);
     }
 

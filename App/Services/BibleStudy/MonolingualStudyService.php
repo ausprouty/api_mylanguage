@@ -20,42 +20,47 @@ class MonolingualStudyService extends AbstractBibleStudyService
 
     public function getBibleInfo(): BibleModel
     {
-       return $this->bibleRepository
+        return $this->bibleRepository
             ->findBestBibleByLanguageCodeHL(
                 $this->languageCodeHL1
             );
     }
 
-    public function getBibleText():array{
-        $result = 
-        $this->biblePassageService->getPassage
-            ($this->primaryBible, 
-            $this->passageReferenceInfo);
+    public function getPassageModel(): array
+    {
+        $result =
+            $this->biblePassageService->getPassage(
+                $this->primaryBible,
+                $this->passageReferenceInfo
+            );
         return $result;
-       
     }
-    
 
-    public function getTwigTranslationArray(): array{
-        return $this->translationService->
-            loadTranslation($this->languageCodeHL1, $this->study);
+
+    public function getTwigTranslationArray(): array
+    {
+        $data =  $this->translationService->loadTranslation($this->languageCodeHL1, $this->study);
+        $data['bible_reference'] = $this->primaryBiblePassage['referenceLocalLanguage'];
+        $data['Bible_Block'] = $this->primaryBiblePassage['passageText'];
+        $data['url'] = $this->primaryBiblePassage['passageUrl'];
+
+        return $data;
     }
 
     public function getStudyTemplate(string $study, string $format): string
     {
-        $template = $this->templateService->getStudyTemplate('monolingual',$study, $format);
-        
+        $template = $this->templateService->getStudyTemplate('monolingual', $study, $format);
+
         return $template;
     }
 
-    public function assembleOutput(): string{
+    public function assembleOutput(): string
+    {
         $translations = array();
         $translations['language1'] = $this->twigTranslation1;
-        print_r($this->template);
         $text = $this->twigService->renderFromString($this->template,   ['translations' => $translations]);
         print_r($text);
         die;
         return $text;
-
     }
 }
