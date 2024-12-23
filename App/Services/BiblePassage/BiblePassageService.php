@@ -72,6 +72,25 @@ class BiblePassageService
         return $passage->getProperties();
     }
 
+    public function getPassageModel(BibleModel $bible, PassageReferenceModel $passageReference) :PassageModel
+    {
+        $this->bible = $bible;
+        $this->passageReference = $passageReference;
+
+        // Generate the Bible Passage ID (BPID).
+        $this->bpid = $this->bible->getBid() . '-' . $this->passageReference->getPassageID();
+
+        // Check if the passage is in the database or fetch it externally.
+        if ($this->inDatabase()) {
+            $passageModel = $this->retrieveStoredData();
+        } else {
+            $passageModel = $this->retrieveExternalPassage();
+        }
+
+        // Return the passage properties.
+        return $passageModel;
+    }
+
     /**
      * Checks if the passage exists in the database.
      *

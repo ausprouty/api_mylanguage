@@ -4,6 +4,7 @@ namespace App\Services\BibleStudy;
 
 use App\Models\Language\LanguageModel;
 use App\Models\Bible\BibleModel;
+use App\Models\Bible\PassageModel;
 use App\Services\TranslationService;
 
 class MonolingualStudyService extends AbstractBibleStudyService
@@ -26,10 +27,10 @@ class MonolingualStudyService extends AbstractBibleStudyService
             );
     }
 
-    public function getPassageModel(): array
+    public function getPassageModel(): PassageModel
     {
         $result =
-            $this->biblePassageService->getPassage(
+            $this->biblePassageService->getPassageModel(
                 $this->primaryBible,
                 $this->passageReferenceInfo
             );
@@ -40,10 +41,12 @@ class MonolingualStudyService extends AbstractBibleStudyService
     public function getTwigTranslationArray(): array
     {
         $data =  $this->translationService->loadTranslation($this->languageCodeHL1, $this->study);
-        $data['bible_reference'] = $this->primaryBiblePassage['referenceLocalLanguage'];
-        $data['Bible_Block'] = $this->primaryBiblePassage['passageText'];
-        $data['url'] = $this->primaryBiblePassage['passageUrl'];
-
+        $data['bible_reference'] = $this->primaryBiblePassage->getReferenceLocalLanguage();
+        $data['Bible_Block'] = $this->primaryBiblePassage->getPassageText();
+        $data['url'] = $this->primaryBiblePassage->getPassageUrl();
+        $description_twig_key = $this->studyReferenceInfo->getDescriptionTwigKey();
+        $data['title'] = $data[$description_twig_key] ;
+        $data['language'] = $this->primaryLanguage->getName();
         return $data;
     }
 

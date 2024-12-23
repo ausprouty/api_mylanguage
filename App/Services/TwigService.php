@@ -23,7 +23,7 @@ class TwigService
             'cache' => Config::getDir('twig_cache'), // Optional: enable caching
             'debug' => true,             // Optional: enable debugging
         ]);
-        //writeLogDebug('TwigService-24', 'yes we were constructed');
+        $this->twig->addExtension(new \Twig\Extension\DebugExtension());
     }
 
     /**

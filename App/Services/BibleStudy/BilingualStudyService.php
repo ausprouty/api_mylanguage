@@ -3,6 +3,7 @@
 namespace App\Services\BibleStudy;
 
 use App\Models\Bible\BibleModel;
+use App\Models\Bible\PassageModel;
 use App\Models\Language\LanguageModel;
 
 class  BilingualStudyService extends AbstractBibleStudyService
@@ -53,15 +54,15 @@ class  BilingualStudyService extends AbstractBibleStudyService
         return $this->primaryBible;
     }
 
-    public function getPassageModel(): array
+    public function getPassageModel(): PassageModel
     {
         $this->primaryBiblePassage =
-            $this->biblePassageService->getPassage(
+            $this->biblePassageService->getPassageModel(
                 $this->primaryBible,
                 $this->passageReferenceInfo
             );
         $this->secondaryBiblePassage =
-            $this->biblePassageService->getPassage(
+            $this->biblePassageService->getPassageModel(
                 $this->secondaryBible,
                 $this->passageReferenceInfo
             );
