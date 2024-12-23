@@ -12,24 +12,18 @@ class TemplateService
     public function getStudyTemplate($format, $study, $render): string {
         $name = '';
     
-        // Determine the study type
-        $studyNames = Config::get('bible_study_names');
-        $studyName = isset($studyNames[$study]) ? $studyNames[$study] : '';
-    
         // Determine the format type
         if ($format == 'monolingual') {
             $name .= 'monolingual';
         } else {
             $name .= 'bilingual';
         }
-    
-        // Add study name if it exists
-        if ($studyName) {
-            $name .= $studyName;
-        }
+
+        $name .= ucfirst($study) .'Study';
     
         // Capitalize the first letter of $render and append it
         $name .= ucfirst($render) . '.twig';
+        print_r($name);
     
         return $this->getTemplate($name);
     }

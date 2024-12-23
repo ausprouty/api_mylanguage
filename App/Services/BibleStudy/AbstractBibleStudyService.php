@@ -18,6 +18,7 @@ use App\Services\Database\DatabaseService;
 use App\Services\Language\TranslationService;
 use Symfony\Component\String\AbstractString;
 use App\Services\TwigService;
+use App\Services\LoggerService;
 
 /**
  * Abstract class for Bible Study services.
@@ -50,6 +51,7 @@ abstract class AbstractBibleStudyService
     protected $templateService;
     protected $translationService;
     protected $twigService;
+    protected $loggerService;
 
     /**
      * Fillin Template with Twig
@@ -115,7 +117,8 @@ abstract class AbstractBibleStudyService
         PassageReferenceFactory $passageReferenceFactory,
         TemplateService $templateService,
         TranslationService $translationService,
-        TwigService  $twigService
+        TwigService  $twigService,
+        LoggerService  $loggerService,
     ) {
         $this->databaseService = $databaseService;
         $this->languageRepository = $languageRepository;
@@ -126,6 +129,7 @@ abstract class AbstractBibleStudyService
         $this->templateService = $templateService;
         $this->translationService = $translationService;
         $this->twigService  = $twigService;
+        $this->loggerService = $loggerService;
     }
 
     /**
@@ -144,7 +148,7 @@ abstract class AbstractBibleStudyService
         $lesson,
         $languageCodeHL1,
         $languageCodeHL2 = null
-    ): array {
+    ): string {
         try {
             $this->initializeParameters($study, $format, $lesson, $languageCodeHL1, $languageCodeHL2);
             $this->loadLanguageAndBibleInfo();
@@ -152,18 +156,19 @@ abstract class AbstractBibleStudyService
             $this->buildTemplateAndTranslation();
             $this->checkProgress(); // This could throw an exception
             $test = $this->assembleOutput();
-            print_r($test);
-            return 'hi';
+            return $test;
+    
         } catch (\InvalidArgumentException $e) {
             // Handle specific validation errors
-            error_log('Validation error: ' . $e->getMessage());
-            return ['status' => 'error', 'message' => $e->getMessage()];
+            $this->loggerService->logError('Validation error', ['message' => $e->getMessage()]);
+            return 'Validation error: ' . $e->getMessage();
         } catch (\Exception $e) {
             // Handle unexpected errors
-            error_log('Unexpected error: ' . $e->getMessage());
-            return ['status' => 'error', 'message' => 'An unexpected error occurred.'];
+            $this->loggerService->logError('Unexpected error', ['message' => $e->getMessage()]);
+            return 'An unexpected error occurred in generating your study.';
         }
     }
+    
     
 
     /**
@@ -247,6 +252,7 @@ abstract class AbstractBibleStudyService
     }
 
     public function getStudyReferenceInfo():DbsReferenceModel|LifePrincipleReferenceModel|LeadershipReferenceModel{
+        
         return  $this->bibleStudyReferenceFactory->
         createModel( $this->study, $this->lesson);
     }

@@ -65,8 +65,8 @@ class BibleStudyReferenceFactory
     {
         return match ($study) {
             'dbs' => $this->createDbsReferenceModel($lesson),
-            'principle' => $this->createLifePrincipleReferenceModel($lesson),
-            'leader' => $this->createLeadershipReferenceModel($lesson),
+            'life' => $this->createLifePrincipleReferenceModel($lesson),
+            'lead' => $this->createLeadershipReferenceModel($lesson),
             default => throw new Exception("Invalid study type: $study"),
         };
     }
@@ -131,25 +131,23 @@ class BibleStudyReferenceFactory
     {
         $json = json_decode($reference['passage_reference_info'] ?? '', true);
 
-        if (is_array($json)) {
-            return array_merge($reference, $json);
+        if (!$json) {
+            error_log('Failed to decode passage_reference_info: ' .
+                ($reference['passage_reference_info'] ?? 'NULL') .
+                '. Error: ' . json_last_error_msg());
+            $json = [];
         }
 
-        error_log(
-            'Failed to decode passage_reference_info: ' .
-            ($reference['passage_reference_info'] ?? '')
-        );
-
         return array_merge($reference, [
-            'bookID' => null,
-            'bookName' => null,
-            'bookNumber' => 0,
-            'chapterStart' => null,
-            'chapterEnd' => null,
-            'verseStart' => null,
-            'verseEnd' => null,
-            'passageID' => null,
-            'uversionBookID' => null,
+            'bookID' => $json['bookID'] ?? null,
+            'bookName' => $json['bookName'] ?? null,
+            'bookNumber' => $json['bookNumber'] ?? 0,
+            'chapterStart' => $json['chapterStart'] ?? null,
+            'chapterEnd' => $json['chapterEnd'] ?? null,
+            'verseStart' => $json['verseStart'] ?? null,
+            'verseEnd' => $json['verseEnd'] ?? null,
+            'passageID' => $json['passageID'] ?? null,
+            'uversionBookID' => $json['uversionBookID'] ?? null,
         ]);
     }
 
@@ -260,9 +258,16 @@ class BibleStudyReferenceFactory
     protected function validatePassageData(array $data): array
     {
         $requiredFields = [
-            'entry', 'bookName', 'bookID', 'uversionBookID',
-            'bookNumber', 'testament', 'chapterStart', 'verseStart',
-            'verseEnd', 'passageID',
+            'entry',
+            'bookName',
+            'bookID',
+            'uversionBookID',
+            'bookNumber',
+            'testament',
+            'chapterStart',
+            'verseStart',
+            'verseEnd',
+            'passageID',
         ];
 
         return array_filter($requiredFields, fn($field) => empty($data[$field]));
