@@ -23,7 +23,7 @@ class ResourceStorageService
     public function __construct(string $storagePath)
     {
         // Combine ROOT_RESOURCES with the provided storage subdirectory
-        $this->storagePath = Config::get('base_dir') . $storagePath;
+        $this->storagePath = Config::getDir('resources.root') . $storagePath;
     }
 
     /**

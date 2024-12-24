@@ -20,6 +20,7 @@ use App\Services\Language\TranslationService;
 use Symfony\Component\String\AbstractString;
 use App\Services\TwigService;
 use App\Services\LoggerService;
+use App\Services\QRCodeGeneratorService;
 
 /**
  * Abstract class for Bible Study services.
@@ -53,6 +54,7 @@ abstract class AbstractBibleStudyService
     protected $translationService;
     protected $twigService;
     protected $loggerService;
+    protected $qRCodeGeneratorService;
 
     /**
      * Fillin Template with Twig
@@ -120,6 +122,7 @@ abstract class AbstractBibleStudyService
         TranslationService $translationService,
         TwigService  $twigService,
         LoggerService  $loggerService,
+        QRCodeGeneratorService $qRCodeGeneratorService
     ) {
         $this->databaseService = $databaseService;
         $this->languageRepository = $languageRepository;
@@ -131,6 +134,7 @@ abstract class AbstractBibleStudyService
         $this->translationService = $translationService;
         $this->twigService  = $twigService;
         $this->loggerService = $loggerService;
+        $this->qRCodeGeneratorService = $qRCodeGeneratorService;
     }
 
     /**
@@ -267,6 +271,9 @@ abstract class AbstractBibleStudyService
         try {
             $this->template = $this->getStudyTemplate($this->study, $this->format);
             $this->twigTranslation1 = $this->getTwigTranslationArray();
+            if ($this->format == 'pdf'){
+                $this->getQrCode();
+            }
         } catch (\Exception $e) {
             throw new \RuntimeException(
                 'Error building template or translation: ' . $e->getMessage(),
@@ -274,6 +281,21 @@ abstract class AbstractBibleStudyService
                 $e
             );
         }
+    }
+    // QR code takes you to Bible passage
+    private function getQrCode(){
+        print_r('I am getting code');
+        $filename = ucFirst($this->study);
+        $filename .= $this->studyReferenceInfo->getLesson();
+        $filename .= '-'. $this->languageCodeHL1;
+        $filepath = Config::getDir('resources.qr_codes') . $filename;
+        if (file_exists($filepath) ){
+            print_r ($filename);
+        }
+        print_r ($filepath);
+        die;
+        //$this->qRCodeGeneratorService->returnQRCode();
+
     }
 
     /**

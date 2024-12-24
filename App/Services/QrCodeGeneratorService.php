@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Endroid\QrCode\QrCode;
+use App\Configuration\Config;
 
 class QrCodeGeneratorService
 {
@@ -11,12 +12,12 @@ class QrCodeGeneratorService
     private string $filePath;
     private string $qrCodeUrl;
 
-    public function initialize(string $url, int $size, string $fileName): void
+    public function initialize(string $url, string $fileName, int $size): void
     {
         $this->url = $url;
         $this->size = $size;
-        $this->filePath = ROOT_RESOURCES . 'qrcodes/' . $fileName;
-        $this->qrCodeUrl = Config::get('web.webaddress_resources') . 'qrcodes/' . $fileName;
+        $this->filePath = Config::getDir('resources.qr_codes')  . $fileName;
+        $this->qrCodeUrl = Config::getURL('resources.qr_codes')  . $fileName;
     }
 
     public function generateQrCode(): void
