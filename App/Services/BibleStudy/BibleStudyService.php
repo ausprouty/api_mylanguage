@@ -58,12 +58,38 @@ class BibleStudyService
         string $languageCodeHL1,
         ?string $languageCodeHL2 = null
     ): string {
-        $serviceClass = $languageCodeHL2
-            ? BilingualStudyService::class
-            : MonolingualStudyService::class;
+        // Map study types to their corresponding service classes
+        $serviceClassMap = [
+            'life' => [
+                'monolingual' => MonolingualLifeStudyService::class,
+                'bilingual' => BilingualLifeStudyService::class,
+            ],
+            'dbs' => [
+                'monolingual' => MonolingualDbsStudyService::class,
+                'bilingual' => BilingualDbsStudyService::class,
+            ],
+            'lead' => [
+                'monolingual' => MonolingualLeadStudyService::class,
+                'bilingual' => BilingualLeadStudyService::class,
+            ],
+        ];
+    
+        // Validate the study type
+        if (!isset($serviceClassMap[$study])) {
+            throw new InvalidArgumentException("Unsupported study type: $study");
+        }
+    
+        // Determine the appropriate service class based on language codes
+        $serviceType = $languageCodeHL2 ? 'bilingual' : 'monolingual';
+        $serviceClass = $serviceClassMap[$study][$serviceType];
+    
+        // Resolve the service class from the container
         $studyService = $this->container->get($serviceClass);
+    
+        // Call the service's generate method
         return $studyService->generate(
             $study, $format, $session, $languageCodeHL1, $languageCodeHL2
         );
     }
+    
 }

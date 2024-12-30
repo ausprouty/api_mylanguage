@@ -40,6 +40,7 @@ abstract class AbstractBibleStudyService
     protected $primaryBiblePassage;
     protected $template;
     protected $twigTranslation1;
+    protected $qrcode1;
 
     protected $studyReferenceInfo;
     protected $passageReferenceInfo;
@@ -269,11 +270,12 @@ abstract class AbstractBibleStudyService
     private function buildTemplateAndTranslation(): void
     {
         try {
-            $this->template = $this->getStudyTemplate($this->study, $this->format);
-            $this->twigTranslation1 = $this->getTwigTranslationArray();
             if ($this->format == 'pdf'){
                 $this->getQrCode();
             }
+            $this->template = $this->getStudyTemplate($this->study, $this->format);
+            $this->twigTranslation1 = $this->getTwigTranslationArray();
+            
         } catch (\Exception $e) {
             throw new \RuntimeException(
                 'Error building template or translation: ' . $e->getMessage(),
@@ -282,19 +284,14 @@ abstract class AbstractBibleStudyService
             );
         }
     }
-    // QR code takes you to Bible passage
+    // URL of QR code takes you to Bible passage
     private function getQrCode(){
-        print_r('I am getting code');
-        $filename = ucFirst($this->study);
-        $filename .= $this->studyReferenceInfo->getLesson();
-        $filename .= '-'. $this->languageCodeHL1;
-        $filepath = Config::getDir('resources.qr_codes') . $filename;
-        if (file_exists($filepath) ){
-            print_r ($filename);
-        }
-        print_r ($filepath);
-        die;
-        //$this->qRCodeGeneratorService->returnQRCode();
+        $url = $this->primaryBiblePassage->getPassageUrl();
+        $fileName = ucFirst($this->study);
+        $fileName .= $this->studyReferenceInfo->getLesson();
+        $fileName .= '-'. $this->languageCodeHL1 . '.png';
+        $this->qrcode1 = $fileName;
+        $this->qRCodeGeneratorService->confirmCodeExists($url, $fileName, $size = 320);
 
     }
 

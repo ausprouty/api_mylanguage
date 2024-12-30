@@ -6,6 +6,7 @@ use App\Models\Language\LanguageModel;
 use App\Models\Bible\BibleModel;
 use App\Models\Bible\PassageModel;
 use App\Services\TranslationService;
+use App\Configuration\Config;
 
 class MonolingualStudyService extends AbstractBibleStudyService
 {
@@ -47,6 +48,10 @@ class MonolingualStudyService extends AbstractBibleStudyService
         $description_twig_key = $this->studyReferenceInfo->getDescriptionTwigKey();
         $data['title'] = $data[$description_twig_key] ;
         $data['language'] = $this->primaryLanguage->getName();
+        if ($this->format == 'pdf'){
+            $data['qr_code1'] =   Config::getUrl('resources.qr_codes') . $this->qrcode1;
+        }
+        
         return $data;
     }
 

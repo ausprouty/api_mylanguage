@@ -12,12 +12,17 @@ class QrCodeGeneratorService
     private string $filePath;
     private string $qrCodeUrl;
 
-    public function initialize(string $url, string $fileName, int $size): void
+    public function confirmCodeExists(string $url, string $fileName, int $size): void
     {
         $this->url = $url;
         $this->size = $size;
         $this->filePath = Config::getDir('resources.qr_codes')  . $fileName;
         $this->qrCodeUrl = Config::getURL('resources.qr_codes')  . $fileName;
+        if (!file_exists($this->filePath)){
+            print_r('gernating QrCode');
+            $this->generateQrCode();
+        }
+        return;
     }
 
     public function generateQrCode(): void

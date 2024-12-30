@@ -38,7 +38,8 @@ class PassageRepository extends BaseRepository
         $query = 'SELECT bpid FROM bible_passages WHERE bpid = :bpid LIMIT 1';
         $params = [':bpid' => $bpid];
         $results = $this->databaseService->executeQuery($query, $params);
-        return (bool) $results->fetch(PDO::FETCH_OBJ);
+        $output =  (bool) $results->fetch(PDO::FETCH_OBJ);
+        return $output;
     }
 
     /**
