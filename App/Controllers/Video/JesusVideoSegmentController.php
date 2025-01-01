@@ -6,6 +6,8 @@ use App\Services\Database\DatabaseService;
 use App\Services\Language\TranslationService as TranslationService;
 use PDO as PDO;
 use stdClass as stdClass;
+use Exception as Exception;
+use App\Configuration\Config;
 
 
 
@@ -17,12 +19,11 @@ class JesusVideoSegmentController
     private $formatted;
     private $languageCodeJF;
 
-    public function __construct(DatabaseService $databaseService, $languageCodeJF)
+    public function __construct(DatabaseService $databaseService)
     {
         $this->databaseService = $databaseService;
         $this->data = null;
         $this->formatted = null;
-        $this->languageCodeJF = $languageCodeJF;
     }
 
     public function selectAllSegments()
@@ -31,7 +32,7 @@ class JesusVideoSegmentController
         $query = "SELECT * FROM jesus_video_segments
         ORDER BY id";
         try {
-            $results = $databaseService->executeQuery($query);
+            $results = $this->databaseService->executeQuery($query);
             $this->data = $results->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -39,14 +40,14 @@ class JesusVideoSegmentController
         }
     }
 
-    private function selectOneSegmentById($id)
+    public function selectOneSegmentById($id)
     {
 
         $query = "SELECT * FROM jesus_video_segments
         WHERE id= :id";
         $params = array(':id' => $id);
         try {
-            $results = $databaseService->executeQuery($query, $params);
+            $results = $this->databaseService->executeQuery($query, $params);
             $this->data = $results->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
@@ -91,7 +92,7 @@ class JesusVideoSegmentController
     //returns src="https://api.arclight.org/videoPlayerUrl?refId=6_529-GOJohn2211&amp;start=170&amp;end=229
     protected function formatVideoSource($segment)
     {
-        $url = JVIDEO_SOURCE . '1_' . $this->languageCodeJF . '-jf' . $segment['videoSegment'];
+        $url = Config::get('JVIDEO_SOURCE') . '1_' . $this->languageCodeJF . '-jf' . $segment['videoSegment'];
         $url .= '&start=0&end=' .  $segment['stopTime'];
         $url .= '&playerStyle=default"';
         return $url;

@@ -4,6 +4,13 @@ use App\Renderers\RendererFactory;
 use App\Renderers\HtmlRenderer;
 use App\Renderers\PdfRenderer;
 
+// Add classes that need TwigService    
+$requiresTwigService = [
+    'App\Services\VideoService',
+    'App\Services\BibleStudy\AbstractBibleStudyService',
+    'App\Services\BibleStudy\MonolingualStudyService',
+    'App\Services\BibleStudy\BilingualStudyService']; 
+
 $directory = __DIR__ . '/../'; // Adjust the path as needed
 $progressFile = __DIR__ . '/php-di-progress.json'; // File to save progress
 $outputFile = __DIR__ . '/../Configuration/di/di-all.php'; // File to save the final definitions
@@ -56,12 +63,11 @@ foreach ($iterator as $file) {
                             }
                         }
                     }
-
-                    // Add TwigService explicitly if it's required and not detected
-                    if (!in_array('App\Services\TwigService', $dependencies, true)) {
+                    //add Twig Service
+                    if (in_array($reflector->getName(), $requiresTwigService, true) 
+                        && !in_array('App\Services\TwigService', $dependencies, true)) {
                         $dependencies['twigService'] = 'App\Services\TwigService';
                     }
-
 
                     $definitions[$class] = $dependencies;
                 } else {

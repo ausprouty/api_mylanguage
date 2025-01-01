@@ -17,11 +17,12 @@ class VideoService {
     public function getVideoTwig(array $translation) {
         $videoInfo = [];
         $videoInfo['videoCode'] = $translation['videoCode'] ?? '';
+        $videoInfo['url'] =  $videoInfo['videoCode'];
         $videoInfo['startTime'] = $this->convertMinutesToSeconds($translation['startTime'] ?? '0:00');
         $videoInfo['endTime'] = $this->convertMinutesToSeconds($translation['endTime'] ?? '0:00');
         $template = 'videoLumo.twig';
         // Ensure TwigService has a render method
-        $output = $this->twigService->renderFromString($template, $videoInfo);
+        $output = $this->twigService->render($template, $videoInfo);
         print_r($output);
         die;
     }

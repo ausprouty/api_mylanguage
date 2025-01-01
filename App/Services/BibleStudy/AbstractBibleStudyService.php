@@ -304,8 +304,7 @@ abstract class AbstractBibleStudyService
         $translations['videoCode'] =$this->studyReferenceInfo->getVideoCode();
         $translations['startTime'] = $this->studyReferenceInfo->getStartTime();
         $translations['endTime'] =  $this->studyReferenceInfo->getEndTime();
-        //$output = $this->videoService->getVideoTwig($translations);
-        $output = 'this';
+        $output = $this->videoService->getVideoTwig($translations);
         return $output;
     }
 
