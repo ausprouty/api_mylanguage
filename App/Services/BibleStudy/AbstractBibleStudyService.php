@@ -21,6 +21,8 @@ use Symfony\Component\String\AbstractString;
 use App\Services\TwigService;
 use App\Services\LoggerService;
 use App\Services\QRCodeGeneratorService;
+use App\Services\VideoService;
+use Mpdf\Tag\TextArea;
 
 /**
  * Abstract class for Bible Study services.
@@ -56,6 +58,7 @@ abstract class AbstractBibleStudyService
     protected $twigService;
     protected $loggerService;
     protected $qRCodeGeneratorService;
+    protected $videoService;
 
     /**
      * Fillin Template with Twig
@@ -123,7 +126,8 @@ abstract class AbstractBibleStudyService
         TranslationService $translationService,
         TwigService  $twigService,
         LoggerService  $loggerService,
-        QRCodeGeneratorService $qRCodeGeneratorService
+        QRCodeGeneratorService $qRCodeGeneratorService,
+        VideoService $videoService
     ) {
         $this->databaseService = $databaseService;
         $this->languageRepository = $languageRepository;
@@ -136,6 +140,7 @@ abstract class AbstractBibleStudyService
         $this->twigService  = $twigService;
         $this->loggerService = $loggerService;
         $this->qRCodeGeneratorService = $qRCodeGeneratorService;
+        $this->videoService = $videoService;
     }
 
     /**
@@ -293,6 +298,15 @@ abstract class AbstractBibleStudyService
         $this->qrcode1 = $fileName;
         $this->qRCodeGeneratorService->confirmCodeExists($url, $fileName, $size = 320);
 
+    }
+    // brings in translations of terms
+    public function videoBlock($translations){
+        $translations['videoCode'] =$this->studyReferenceInfo->getVideoCode();
+        $translations['startTime'] = $this->studyReferenceInfo->getStartTime();
+        $translations['endTime'] =  $this->studyReferenceInfo->getEndTime();
+        //$output = $this->videoService->getVideoTwig($translations);
+        $output = 'this';
+        return $output;
     }
 
     /**

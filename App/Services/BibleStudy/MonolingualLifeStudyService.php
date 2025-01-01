@@ -3,6 +3,7 @@
 namespace App\Services\BibleStudy;
 
 use App\Services\BibleStudy\MonolingualStudyService;
+use App\Services\VideoService;
 
 class MonolingualLifeStudyService extends MonolingualStudyService{
 
@@ -10,6 +11,11 @@ class MonolingualLifeStudyService extends MonolingualStudyService{
         // Get the array from the parent class
         $parentTranslations = parent::getTwigTranslationArray();
         $data =  $this->translationService->loadTranslation($this->languageCodeHL1, $this->study);
+        
+        $data['videoBlock'] = $this->videoBlock($data );
+        print_r ('see video block');
+        print_r ( $data['videoBlock']);
+        die;
         // Add additional translations specific to MonolingualLifeStudyService
         $question_twig_key = $this->studyReferenceInfo->getQuestionTwigKey();
        
