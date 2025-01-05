@@ -45,13 +45,13 @@ class MonolingualStudyService extends AbstractBibleStudyService
         $data['bible_reference'] = $this->primaryBiblePassage->getReferenceLocalLanguage();
         $data['Bible_Block'] = $this->primaryBiblePassage->getPassageText();
         $data['url'] = $this->primaryBiblePassage->getPassageUrl();
-        $description_twig_key = $this->studyReferenceInfo->getDescriptionTwigKey();
-        $data['title'] = $data[$description_twig_key] ;
+        $descriptionTwigKey = $this->studyReferenceInfo->getDescriptionTwigKey();
+        $data['title'] = $data[$description_twig_key];
         $data['language'] = $this->primaryLanguage->getName();
-        if ($this->format == 'pdf'){
+        if ($this->format == 'pdf') {
             $data['qr_code1'] =   Config::getUrl('resources.qr_codes') . $this->qrcode1;
         }
-        
+
         return $data;
     }
 

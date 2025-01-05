@@ -11,7 +11,7 @@ abstract class BaseStudyReferenceModel
     protected string $description_twig_key;
     protected string $reference;
     protected string $testament;
-    protected string $passage_reference_info;
+    protected string $passageReferenceInfo;
     protected ?string $bookName = null;
     protected ?string $bookID = null;
     protected int     $bookNumber;
@@ -30,10 +30,10 @@ abstract class BaseStudyReferenceModel
         $this->lesson = 0; // Default value for an integer property
         $this->bookNumber = 0;
         $this->description = ''; // Default value for a string property
-        $this->description_twig_key = '';
+        $this->descriptionTwigKey = '';
         $this->reference = '';
         $this->testament = '';
-        $this->passage_reference_info = '';
+        $this->passageReferenceInfo = '';
         // Nullable properties already have default null values
     }
 
@@ -84,7 +84,7 @@ abstract class BaseStudyReferenceModel
 
     public function getPassageReferenceInfo(): string
     {
-        return $this->passage_reference_info;
+        return $this->passageReferenceInfo;
     }
 
     public function getProperties(): array
@@ -165,7 +165,7 @@ abstract class BaseStudyReferenceModel
 
     public function setDescriptionTwigKey(string $description_twig_key): void
     {
-        $this->description_twig_key = $description_twig_key;
+        $this->descriptionTwigKey = $description_twig_key;
     }
 
     public function setLesson(int $lesson): void
@@ -178,9 +178,9 @@ abstract class BaseStudyReferenceModel
         $this->passageID = $passageID;
     }
 
-    public function setPassageReferenceInfo(string $passage_reference_info): void
+    public function setPassageReferenceInfo(string $passageReferenceInfo): void
     {
-        $this->passage_reference_info = $passage_reference_info;
+        $this->passageReferenceInfo = $passageReferenceInfo;
     }
 
     public function setReference(string $reference): void

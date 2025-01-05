@@ -302,9 +302,10 @@ abstract class AbstractBibleStudyService
     // brings in translations of terms
     public function videoBlock($translations){
         $translations['videoCode'] =$this->studyReferenceInfo->getVideoCode();
+        $translations['videoSegment'] =  $this->studyReferenceInfo->getVideoSegment();
         $translations['startTime'] = $this->studyReferenceInfo->getStartTime();
         $translations['endTime'] =  $this->studyReferenceInfo->getEndTime();
-        $output = $this->videoService->getVideoTwig($translations);
+        $output = $this->videoService->getVideoBlockIframe($translations);
         return $output;
     }
 

@@ -33,7 +33,7 @@ class BibleStudyReferenceFactory
     }
 
     /**
-     * Builds a JSON string for passage_reference_info.
+     * Builds a JSON string for passageReferenceInfo.
      *
      * @param array $data The passage data.
      * @return string JSON representation.
@@ -122,18 +122,18 @@ class BibleStudyReferenceFactory
     }
 
     /**
-     * Expands the passage_reference_info field into detailed fields.
+     * Expands the passageReferenceInfo field into detailed fields.
      *
      * @param array $reference The reference data.
      * @return array The expanded reference data.
      */
     protected function expandPassageReferenceInfo(array $reference): array
     {
-        $json = json_decode($reference['passage_reference_info'] ?? '', true);
+        $json = json_decode($reference['passageReferenceInfo'] ?? '', true);
 
         if (!$json) {
-            error_log('Failed to decode passage_reference_info: ' .
-                ($reference['passage_reference_info'] ?? 'NULL') .
+            error_log('Failed to decode passageReferenceInfo: ' .
+                ($reference['passageReferenceInfo'] ?? 'NULL') .
                 '. Error: ' . json_last_error_msg());
             $json = [];
         }
@@ -224,10 +224,10 @@ class BibleStudyReferenceFactory
         }
 
         $query = "UPDATE $studyTable 
-                  SET passage_reference_info = :passage_reference_info
+                  SET passageReferenceInfo = :passageReferenceInfo
                   WHERE lesson = :lesson";
         $params = [
-            ':passage_reference_info' => $passageReferenceInfo,
+            ':passageReferenceInfo' => $passageReferenceInfo,
             ':lesson' => $lesson,
         ];
         $this->databaseService->executeQuery($query, $params);

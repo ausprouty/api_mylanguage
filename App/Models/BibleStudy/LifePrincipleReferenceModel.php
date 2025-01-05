@@ -5,7 +5,7 @@ namespace App\Models\BibleStudy;
 class LifePrincipleReferenceModel extends BaseStudyReferenceModel
 {
     protected string $question;
-    protected string $question_twig_key;
+    protected string $questionTwigKey;
     protected ?string $videoCode = null;
     protected int $videoSegment = 0;
     protected ?string $startTime = null;
@@ -22,13 +22,13 @@ class LifePrincipleReferenceModel extends BaseStudyReferenceModel
 
         // Initialize new properties for LifePrincipleReferenceModel
         $this->question = '';            // Default empty string
-        $this->question_twig_key = '';   // Default empty string
+        $this->questionTwigKey = '';   // Default empty string
         $this->videoCode = null;         // Default null
         $this->videoSegment = 0;         // Default integer value
         $this->startTime = null;         // Default null
         $this->endTime = null;           // Default null
     }
-    
+
 
     // Getters
     public function getQuestion(): string
@@ -38,7 +38,7 @@ class LifePrincipleReferenceModel extends BaseStudyReferenceModel
 
     public function getQuestionTwigKey(): string
     {
-        return $this->question_twig_key;
+        return $this->questionTwigKey;
     }
 
     public function getVideoCode(): ?string
@@ -67,9 +67,9 @@ class LifePrincipleReferenceModel extends BaseStudyReferenceModel
         $this->question = $question;
     }
 
-    public function setQuestionTwigKey(string $question_twig_key): void
+    public function setQuestionTwigKey(string $questionTwigKey): void
     {
-        $this->question_twig_key = $question_twig_key;
+        $this->questionTwigKey = $questionTwigKey;
     }
 
     public function setVideoCode(?string $videoCode): void

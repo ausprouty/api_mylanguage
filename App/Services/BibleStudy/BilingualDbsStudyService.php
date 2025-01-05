@@ -5,19 +5,21 @@ namespace App\Services\BibleStudy;
 use App\Services\BibleStudy\BilingualStudyService;
 
 
-class BilingualDbsStudyService extends BilingualStudyService{
+class BilingualDbsStudyService extends BilingualStudyService
+{
 
-    public function getTwigTranslationArray(): array {
+    public function getTwigTranslationArray(): array
+    {
         // Get the array from the parent class
         $parentTranslations = parent::getTwigTranslationArray();
         $data =  $this->translationService->loadTranslation($this->languageCodeHL1, $this->study);
         // Add additional translations specific to MonolingualLifeStudyService
-        $question_twig_key = $this->studyReferenceInfo->getQuestionTwigKey();
-       
-        
+        $questionTwigKey = $this->studyReferenceInfo->getQuestionTwigKey();
+
+
         $additionalTranslations = [
-            'topic_sentence' =>  $data[$question_twig_key] ,
-           
+            'topic_sentence' =>  $data[$questionTwigKey],
+
         ];
         // Merge the parent and additional translations
         return array_merge($parentTranslations, $additionalTranslations);

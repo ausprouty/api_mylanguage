@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Services\TwigService;
+use App\Configuration\Config;
 
 class VideoService {
 
@@ -14,17 +15,25 @@ class VideoService {
     }
 
     // Function to get video twig
-    public function getVideoTwig(array $translation) {
-        $videoInfo = [];
-        $videoInfo['videoCode'] = $translation['videoCode'] ?? '';
-        $videoInfo['url'] =  $videoInfo['videoCode'];
-        $videoInfo['startTime'] = $this->convertMinutesToSeconds($translation['startTime'] ?? '0:00');
-        $videoInfo['endTime'] = $this->convertMinutesToSeconds($translation['endTime'] ?? '0:00');
-        $template = 'videoLumo.twig';
-        // Ensure TwigService has a render method
+    public function getVideoBlockIframe(array $translation) {
+        $videoInfo = $this->computeParameters ($translation);
+        $videoInfo['url'] = Config::get('api.jvideo_player') . $translation['videoCode'];
+        $template = 'videoIframe.twig';
+
+        // Ensure TwigService s a render method
         $output = $this->twigService->render($template, $videoInfo);
         print_r($output);
         die;
+    }
+
+    private function computeParameters(array $translation){
+        $videoInfo = [];
+        $videoInfo['videoCode'] = $translation['videoCode'] ?? '';
+        $videoInfo['url'] =  $videoInfo['videoCode'];
+        $videoInfo['videoSegment'] =  $translation['videoSegment'];
+        $videoInfo['startTime'] = $this->convertMinutesToSeconds($translation['startTime'] ?? '0:00');
+        $videoInfo['endTime'] = $this->convertMinutesToSeconds($translation['endTime'] ?? '0:00');
+        return $videoInfo;
     }
 
     // Function to convert time to seconds
