@@ -15,9 +15,7 @@ class MonolingualLifeStudyService extends MonolingualStudyService
         $data =  $this->translationService->loadTranslation($this->languageCodeHL1, $this->study);
 
         $data['videoBlock'] = $this->videoBlock($data);
-        print_r('see video block');
-        print_r($data['videoBlock']);
-        die;
+       
         // Add additional translations specific to MonolingualLifeStudyService
         $questionTwigKey = $this->studyReferenceInfo->getQuestionTwigKey();
 

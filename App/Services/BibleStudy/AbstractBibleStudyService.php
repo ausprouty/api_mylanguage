@@ -11,6 +11,7 @@ use App\Models\BibleStudy\DbsReferenceModel;
 use App\Models\BibleStudy\LeadershipReferenceModel;
 use App\Models\BibleStudy\LifePrincipleReferenceModel;
 use App\Models\Bible\PassageModel;
+use App\Models\Video\VideoModel;
 use App\Repositories\BibleRepository;
 use App\Repositories\LanguageRepository;
 use App\Services\BiblePassage\BiblePassageService;
@@ -40,7 +41,10 @@ abstract class AbstractBibleStudyService
     protected $primaryLanguage;
     protected $primaryBible;
     protected $primaryBiblePassage;
-    protected $template;
+    protected $primaryVideoUrl;
+    protected $studyTemplateName;
+    protected $bibleTemplateName;
+    protected $videoTemplateName;
     protected $twigTranslation1;
     protected $qrcode1;
 
@@ -89,12 +93,20 @@ abstract class AbstractBibleStudyService
     abstract function getPassageModel(): PassageModel;
 
     /**
-     * Retrieve the template for the study format.
+     * Retrieve the name of template for the study format.
      *
      * @param string $format The desired format.
      * @return string
      */
-    abstract function getStudyTemplate(string $study, string $format): string;
+    abstract function getStudyTemplateName(string $study, string $format): void;
+    /**
+     * Retrieve the name of template for the VideoTemplate.
+     *
+     * @param string $format The desired format.
+     * @return string
+     */
+    abstract function getVideoTemplateName(?string $videoUrl, string $format): void;
+
 
     /**
      * Retrieve translation for Twig template.
@@ -164,18 +176,18 @@ abstract class AbstractBibleStudyService
             $this->initializeParameters($study, $format, $lesson, $languageCodeHL1, $languageCodeHL2);
             $this->loadLanguageAndBibleInfo();
             $this->prepareReferences();
-            $this->buildTemplateAndTranslation();
+            $this->selectTemplatesAndTranslation();
             $this->checkProgress(); // This could throw an exception
             $test = $this->assembleOutput();
             return $test;
         } catch (\InvalidArgumentException $e) {
             // Handle specific validation errors
-            $this->loggerService->logError('Validation error', ['message' => $e->getMessage()]);
+            $this->loggerService->logError('Validation error in class AbstractBibleStudyService', ['message' => $e->getMessage()]);
             return 'Validation error: ' . $e->getMessage();
         } catch (\Exception $e) {
             // Handle unexpected errors
             $this->loggerService->logError('Unexpected error', ['message' => $e->getMessage()]);
-            return 'An unexpected error occurred in generating your study.';
+            return 'An unexpected error occurred in AbstractBibleStudyService generating your study.';
         }
     }
 
@@ -255,10 +267,19 @@ abstract class AbstractBibleStudyService
             $this->passageReferenceInfo = $this->passageReferenceFactory
                 ->createFromStudy($this->studyReferenceInfo);
             $this->primaryBiblePassage = $this->getPassageModel();
+            $languageCodeJF = $this->primaryLanguage->getLanguageCodeJF();
+            $this->primaryVideoUrl = $this->getVideoUrl($this->passageReferenceInfo, $languageCodeJF);
         } catch (\Exception $e) {
             error_log('Reference preparation failed: ' . $e->getMessage());
             throw $e;
         }
+    }
+    public function getVideoUrl($passageReferenceInfo, $languageCodeJF){
+        if (!$passageReferenceInfo->getVideoCode()){
+            return null;
+        }
+        $videoInfo = videoModel::createFromStudyModel($passageReferenceInfo, $languageCodeJF);
+        $url = $videoInfo->getArclightUrl();
     }
 
     public function getStudyReferenceInfo(): DbsReferenceModel|LifePrincipleReferenceModel|LeadershipReferenceModel
@@ -272,13 +293,21 @@ abstract class AbstractBibleStudyService
      *
      * @throws \RuntimeException If template or translation fails.
      */
-    private function buildTemplateAndTranslation(): void
+    private function selectTemplatesAndTranslation(): void
     {
         try {
             if ($this->format == 'pdf'){
                 $this->getQrCode();
             }
-            $this->template = $this->getStudyTemplate($this->study, $this->format);
+            $this->getStudyTemplateName($this->study, $this->format);
+            $url = null;
+            $this->getVideoTemplateName($url, $this->format);
+            if ($this->format == 'pdf'){
+                $this->bibleTemplateName = 'bibleBlockNormalPdf.twig';
+            }
+            else {
+                $this->bibleTemplateName = 'bibleBlockNormalView.twig';
+            }
             $this->twigTranslation1 = $this->getTwigTranslationArray();
             
         } catch (\Exception $e) {
@@ -318,7 +347,7 @@ abstract class AbstractBibleStudyService
     private function checkProgress(): array
     {
         $requiredFields = [
-            'template' => $this->template ?? null,
+            'study_template' => $this->studyTemplateName ?? null,
             'translation' => $this->twigTranslation1 ?? null,
             'language' => $this->primaryLanguage->getLanguageCodeHL() ?? null,
             'bible' => $this->primaryBible->getVolumeName() ?? null,

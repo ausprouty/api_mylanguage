@@ -40,14 +40,29 @@ class TwigService
     }
 
     public function renderFromString(string $templateContent, array $data = []): string
-{
-    try {
-        $template = $this->twig->createTemplate($templateContent);
-        return $template->render($data);
-    } catch (\Twig\Error\Error $e) {
-        // Handle errors (e.g., log or rethrow)
-        throw new RuntimeException("Error rendering template: " . $e->getMessage(), 0, $e);
+    {
+        try {
+            $template = $this->twig->createTemplate($templateContent);
+            return $template->render($data);
+        } catch (\Twig\Error\Error $e) {
+            // Handle errors (e.g., log or rethrow)
+            throw new RuntimeException("Error rendering template: " . $e->getMessage(), 0, $e);
+        }
     }
-}
+    public function buildMonolingualTwig(
+        $studyTemplateName, 
+        $bibleTemplateName,
+        $videoTemplateName,
+        $translation
+        ){
+        print_r($translation['language1']);
+        return $this->twig->render('mainStudy.twig', [
+            'study_template' => $studyTemplateName, 
+            'bible_block' => $bibleTemplateName,
+            'video_block' => $videoTemplateName,
+            'translation' => $translation['language1'],
+            'dir_language1'=> 'ltr'
+        ]);
+    }
 
 }

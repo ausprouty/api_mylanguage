@@ -43,10 +43,10 @@ class MonolingualStudyService extends AbstractBibleStudyService
     {
         $data =  $this->translationService->loadTranslation($this->languageCodeHL1, $this->study);
         $data['bible_reference'] = $this->primaryBiblePassage->getReferenceLocalLanguage();
-        $data['Bible_Block'] = $this->primaryBiblePassage->getPassageText();
-        $data['url'] = $this->primaryBiblePassage->getPassageUrl();
+        $data['bible_text'] = $this->primaryBiblePassage->getPassageText();
+        $data['bible_url'] = $this->primaryBiblePassage->getPassageUrl();
         $descriptionTwigKey = $this->studyReferenceInfo->getDescriptionTwigKey();
-        $data['title'] = $data[$description_twig_key];
+        $data['title'] = $data[$descriptionTwigKey];
         $data['language'] = $this->primaryLanguage->getName();
         if ($this->format == 'pdf') {
             $data['qr_code1'] =   Config::getUrl('resources.qr_codes') . $this->qrcode1;
@@ -55,20 +55,35 @@ class MonolingualStudyService extends AbstractBibleStudyService
         return $data;
     }
 
-    public function getStudyTemplate(string $study, string $format): string
+    public function getStudyTemplateName(string $study, string $format): void
     {
-        $template = $this->templateService->getStudyTemplate('monolingual', $study, $format);
-
-        return $template;
+        $this->studyTemplateName = $this->templateService->
+            getStudyTemplateName('monolingual', $study, $format);
+    }
+    public function getVideoTemplateName(?string $videoUrl, string $format): void{
+        if (!$videoUrl){ 
+            $this->videoTemplateName =  'videoBlank.twig';
+        }
+        elseif ($format == 'pdf'){ 
+            $this->videoTemplateName =  'videoQrcode.twig';
+        }
+        elseif ($format == 'view'){ 
+            $this->videoTemplateName =  'videoIframe.twig';
+        }
+        else{
+            $this->videoTemplateName =  'videoBlank.twig'; 
+        }
     }
 
     public function assembleOutput(): string
     {
         $translations = array();
         $translations['language1'] = $this->twigTranslation1;
-        $text = $this->twigService->renderFromString($this->template,   ['translations' => $translations]);
-        print_r($text);
-        die;
+        $text = $this->twigService->buildMonolingualTwig(
+            $this->studyTemplateName, 
+            $this->bibleTemplateName,
+            $this->videoTemplateName,
+            $translations);
         return $text;
     }
 }

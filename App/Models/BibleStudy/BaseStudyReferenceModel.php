@@ -8,7 +8,7 @@ abstract class BaseStudyReferenceModel
 {
     protected int    $lesson;
     protected string $description;
-    protected string $description_twig_key;
+    protected string $descriptionTwigKey;
     protected string $reference;
     protected string $testament;
     protected string $passageReferenceInfo;
@@ -69,7 +69,7 @@ abstract class BaseStudyReferenceModel
 
     public function getDescriptionTwigKey(): string
     {
-        return $this->description_twig_key;
+        return $this->descriptionTwigKey;
     }
 
     public function getLesson(): int

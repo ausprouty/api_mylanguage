@@ -21,7 +21,12 @@ class PassageReferenceModel
     private $verseEnd;
     private $passageID;
 
-    
+    private $videoSource;
+    private $videoPrefix;
+    private $videoCode;
+    private $videoSegment;
+    private $startTime;
+    private $endTime;
 
     /**
      * Populates the model with data from an associative array.
@@ -38,55 +43,90 @@ class PassageReferenceModel
     }
 
     // Getters
-    public function getBookID()
-    {
-        return $this->bookID;
-    }
-    public function getBookName()
-    {
-        return $this->bookName;
-    }
-    public function getBookNumber()
-    {
-        return $this->bookNumber;
-    }
-    public function getChapterStart()
-    {
-        return $this->chapterStart;
-    }
     public function getEntry()
     {
         return $this->entry;
     }
-    public function getLanguageCodeHL()
+
+    public function getBookName()
     {
-        return $this->languageCodeHL;
+        return $this->bookName;
     }
-    public function getLanguageCodeIso()
+
+    public function getBookID()
     {
-        return $this->languageCodeIso;
+        return $this->bookID;
     }
-    public function getPassageID()
-    {
-        return $this->passageID;
-    }
-    public function getTestament()
-    {
-        return $this->testament;
-    }
+
     public function getUversionBookID()
     {
         return $this->uversionBookID;
     }
-    public function getVerseEnd()
+
+    public function getBookNumber()
     {
-        return $this->verseEnd;
+        return $this->bookNumber;
     }
+
+    public function getTestament()
+    {
+        return $this->testament;
+    }
+
+    public function getChapterStart()
+    {
+        return $this->chapterStart;
+    }
+
     public function getVerseStart()
     {
         return $this->verseStart;
     }
 
+    public function getChapterEnd()
+    {
+        return $this->chapterEnd;
+    }
+
+    public function getVerseEnd()
+    {
+        return $this->verseEnd;
+    }
+
+    public function getPassageID()
+    {
+        return $this->passageID;
+    }
+
+    public function getVideoSource()
+    {
+        return $this->videoSource;
+    }
+
+    public function getVideoPrefix()
+    {
+        return $this->videoPrefix;
+    }
+
+    public function getVideoCode()
+    {
+        return $this->videoCode;
+    }
+
+    public function getVideoSegment()
+    {
+        return $this->videoSegment;
+    }
+
+    public function getStartTime()
+    {
+        return $this->startTime;
+    }
+
+    public function getEndTime()
+    {
+        return $this->endTime;
+    }
 
     /**
      * Returns the properties as an associative array.

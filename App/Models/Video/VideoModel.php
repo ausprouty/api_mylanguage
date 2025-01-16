@@ -1,78 +1,127 @@
 <?php
-
 namespace App\Models\Video;
+
+Use App\Configuration\Config;
 
 class VideoModel
 {
+    private $videoSource;
+    private $videoPrefix;
     private $videoCode;
     private $videoSegment;
-    private $videoCodeString;
     private $startTime;
     private $endTime;
+    private $arclightUrl;
     private $languageCodeHL;
     private $languageCodeJF;
-    private $template;
 
-    public function __construct($videoCode, $videoSegment = null, $startTime = 0, $endTime = 0, $languageCodeHL = null)
+    public function __construct(array $data)
     {
-        $this->videoCode = $videoCode;
-        $this->videoSegment = $videoSegment;
-        $this->startTime = $this->getTimeToSeconds($startTime);
-        $this->endTime = $this->getTimeToSeconds($endTime);
-        $this->languageCodeHL = $languageCodeHL;
+        $this->videoSource = $data['videoSource'] ?? null;
+        $this->videoPrefix = $data['videoPrefix'] ?? null;
+        $this->videoCode = $data['videoCode'] ?? null;
+        $this->videoSegment = $data['videoSegment'] ?? null;
+        $this->startTime = $this->getTimeToSeconds($data['startTime'] ?? 0);
+        $this->endTime = $this->getTimeToSeconds($data['endTime'] ?? 0);
+        $this->languageCodeHL = $data['languageCodeHL'] ?? null;
+        $this->languageCodeJF = $data['languageCodeJF'] ?? null;
     }
 
-    public function getVideoCode()
+    public function getVideoCode(): ?string
     {
         return $this->videoCode;
     }
 
-    public function getLanguageCodeHL()
+    public function getLanguageCodeHL(): ?string
     {
         return $this->languageCodeHL;
     }
 
-    public function getLanguageCodeJF()
+    public function getLanguageCodeJF(): ?string
     {
         return $this->languageCodeJF;
     }
 
-    public function setLanguageCodeJF($languageCodeJF)
+    public function setLanguageCodeJF(string $languageCodeJF): void
     {
         $this->languageCodeJF = $languageCodeJF;
     }
 
-    public function getTimeToSeconds($time)
+    public function getTimeToSeconds($time): int
     {
-        list($minutes, $seconds) = explode(':', $time);
-        return ($minutes * 60) + $seconds;
+        if (is_int($time)) {
+            return $time;
+        }
+
+        if (strpos($time, ':') !== false) {
+            list($minutes, $seconds) = explode(':', $time);
+            return ($minutes * 60) + $seconds;
+        }
+        //will return 0 if time is set to 'start'
+
+        return 0;
     }
 
-    public function getVideoSegmentString()
+    public function getVideoSegmentString(): string
     {
         $segmentString = $this->videoSegment ?? '';
         if ($this->endTime) {
-            $segmentString .= '&start=' . $this->startTime;
-            $segmentString .= '&end=' . $this->endTime;
+            $segmentString .= "&start={$this->startTime}";
+            $segmentString .= "&end={$this->endTime}";
         }
         return $segmentString;
     }
 
-    public function setVideoCodeString()
+    public function setArclightUrl(): void
     {
-        $this->videoCodeString = $this->videoCode . $this->getVideoSegmentString();
-    }
-
-    public function getVideoCodeString()
-    {
-        return $this->videoCodeString;
-    }
-
-    public function loadArclightTemplate()
-    {
-        $templatePath = ROOT_TEMPLATES . 'videoArclight.twig';
-        if (file_exists($templatePath)) {
-            $this->template = file_get_contents($templatePath);
+        if (!$this->languageCodeJF){
+            $this->arclightUrl = null;
+            return;
         }
+        if ($this->videoSource !== 'arclight'){
+            $this->arclightUrl = null;
+            return;
+        }
+        $this->arclightUrl = Config::get('api.jvideo_player');
+        $this->arclightUrl .= $this->videoPrefix;
+        $this->arclightUrl .= $this->videoCode;
+        $this->arclightUrl .= $this->languageCodeHL;
+        $this->arclightUrl .= $this->videoSegment;
+        if ($this->endTime){
+            $this->arclightUrl .= '&start=' . $this->startTime;
+            $this->arclightUrl .= '&end=' . $this->endTime;
+        }
+    }
+
+    public function getArclightUrl(): ?string
+    {
+        return $this->arclightUrl;
+    }
+
+    public static function createFromStudyModel(array $studyModelData, string $languageCodeJF): self
+    {
+        return new self([
+            'videoSource' => $studyModelData['videoSource'] ?? null,
+            'videoPrefix' => $studyModelData['videoPrefix'] ?? null,
+            'videoCode' => $studyModelData['videoCode'] ?? null,
+            'videoSegment' => $studyModelData['videoSegment'] ?? null,
+            'startTime' => $studyModelData['startTime'] ?? 0,
+            'endTime' => $studyModelData['endTime'] ?? 0,
+            'languageCodeJF' => $languageCodeJF ?? null,
+        ]);
+    }
+
+    public static function createFromDatabase(array $dbData, string $languageCodeJF): self
+    {
+        return new self([
+            'videoSource' => $dbData['videoSource'] ?? null,
+            'videoPrefix' => $dbData['videoPrefix'] ?? null,
+            'videoCode' => $dbData['videoCode'] ?? null,
+            'videoSegment' => $dbData['segment'] ?? null,
+            'startTime' => $dbData['startTime'] ?? 0,
+            'endTime' => $dbData['endTime'] ?? 0,
+            
+            'languageCodeJF' => $languageCodeJF ?? null,
+        ]);
     }
 }

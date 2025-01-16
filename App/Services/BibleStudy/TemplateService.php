@@ -9,7 +9,7 @@ use App\Configuration\Config;
 class TemplateService
 {
     
-    public function getStudyTemplate($format, $study, $render): string {
+    public function getStudyTemplateName($format, $study, $render): string {
         $name = '';
     
         // Determine the format type
@@ -23,8 +23,7 @@ class TemplateService
     
         // Capitalize the first letter of $render and append it
         $name .= ucfirst($render) . '.twig';
-    
-        return $this->getTemplate($name);
+        return $name;
     }
     
     
