@@ -55,7 +55,6 @@ class TwigService
         $videoTemplateName,
         $translation
         ){
-        print_r($translation['language1']);
         return $this->twig->render('mainStudy.twig', [
             'study_template' => $studyTemplateName, 
             'bible_block' => $bibleTemplateName,

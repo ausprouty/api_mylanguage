@@ -21,6 +21,12 @@ abstract class BaseStudyReferenceModel
     protected ?string $verseEnd = null;
     protected ?string $passageID = null;
     protected ?string $uversionBookID = null;
+    protected ?string $videoSource = null;
+    protected ?string $videoPrefix = null;
+    protected ?string $videoCode = null;
+    protected int $videoSegment = 0;
+    protected ?string $startTime = null;
+    protected ?string $endTime = null;
 
     /**
      * Constructor to initialize default values.
@@ -122,6 +128,36 @@ abstract class BaseStudyReferenceModel
     {
         return $this->verseStart;
     }
+    public function getVideoSource(): ?string
+    {
+        return $this->videoSource;
+    }
+
+    public function getVideoPrefix(): ?string
+    {
+        return $this->videoPrefix;
+    }
+
+    public function getVideoCode(): ?string
+    {
+        return $this->videoCode;
+    }
+
+    public function getVideoSegment(): int
+    {
+        return $this->videoSegment;
+    }
+
+    public function getStartTime(): ?string
+    {
+        return $this->startTime;
+    }
+
+    public function getEndTime(): ?string
+    {
+        return $this->endTime;
+    }
+
 
     public function populate(array $data): self
     {
@@ -207,4 +243,34 @@ abstract class BaseStudyReferenceModel
     {
         $this->verseStart = $verseStart;
     }
+    public function setVideoSource(?string $videoSource): void
+    {
+        $this->videoSource = $videoSource;
+    }
+
+    public function setVideoPrefix(?string $videoPrefix): void
+    {
+        $this->videoPrefix = $videoPrefix;
+    }
+
+    public function setVideoCode(?string $videoCode): void
+    {
+        $this->videoCode = $videoCode;
+    }
+
+    public function setVideoSegment(int $videoSegment): void
+    {
+        $this->videoSegment = $videoSegment;
+    }
+
+    public function setStartTime(?string $startTime): void
+    {
+        $this->startTime = $startTime;
+    }
+
+    public function setEndTime(?string $endTime): void
+    {
+        $this->endTime = $endTime;
+    }
+
 }

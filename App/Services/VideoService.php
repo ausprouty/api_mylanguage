@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Services\TwigService;
 use App\Configuration\Config;
+use App\Models\Bible\PassageReferenceModel;
 
 class VideoService {
 
@@ -24,6 +25,44 @@ class VideoService {
         $output = $this->twigService->render($template, $videoInfo);
         print_r($output);
         die;
+    }
+
+    public function getUrl(
+        PassageReferenceModel $passageReferenceInfo, 
+        string $languageCodeJF){
+        
+        if ($passageReferenceInfo->getVideoSource() == 'arclight'){
+            return $this->getArclightUrl($passageReferenceInfo, $languageCodeJF);
+        }
+
+    }
+
+    private function getArclightUrl(
+        PassageReferenceModel $passageReferenceInfo, 
+        string $languageCodeJF): string {
+        if (!$languageCodeJF){
+            $url = null;
+            return $url;
+        }
+        if ($passageReferenceInfo->getVideoSource() !== 'arclight'){
+            $url = null;
+            return $url;
+        }
+        print_r ("LanguageCodeJF is $languageCodeJF");
+        $url = Config::get('api.jvideo_player');
+        $url .= $passageReferenceInfo->getVideoPrefix();
+        $url .= $languageCodeJF;
+        $url .= $passageReferenceInfo->getVideoCode();
+      
+        $url .= $passageReferenceInfo->getVideoSegment();
+        if ($passageReferenceInfo->getEndTime()){
+            $seconds = $this->convertMinutesToSeconds($passageReferenceInfo->getStartTime());
+            $url .= '&start=' . $seconds;
+            $seconds =  $this->convertMinutesToSeconds($passageReferenceInfo->getEndTime());
+            $url .= '&end=' . $seconds ;
+        }
+        $url .= '&playerStyle=default';
+        return $url;
     }
 
     private function computeParameters(array $translation){

@@ -267,19 +267,26 @@ abstract class AbstractBibleStudyService
             $this->passageReferenceInfo = $this->passageReferenceFactory
                 ->createFromStudy($this->studyReferenceInfo);
             $this->primaryBiblePassage = $this->getPassageModel();
+            // we need to get the language code for the video first
             $languageCodeJF = $this->primaryLanguage->getLanguageCodeJF();
+            // now set the Url for the primary Video
             $this->primaryVideoUrl = $this->getVideoUrl($this->passageReferenceInfo, $languageCodeJF);
+            print_r ('this is the primaryVideoUrl');
+            print_r($this->primaryVideoUrl);
         } catch (\Exception $e) {
             error_log('Reference preparation failed: ' . $e->getMessage());
             throw $e;
         }
     }
     public function getVideoUrl($passageReferenceInfo, $languageCodeJF){
+        print_r('I am thinking about getting url for '.  $languageCodeJF );
         if (!$passageReferenceInfo->getVideoCode()){
             return null;
         }
-        $videoInfo = videoModel::createFromStudyModel($passageReferenceInfo, $languageCodeJF);
-        $url = $videoInfo->getArclightUrl();
+        $videoUrl = $this->videoService->getUrl($passageReferenceInfo, $languageCodeJF);
+        print_r ('videoUrl');
+        print_r ($videoUrl );
+        return $videoUrl;
     }
 
     public function getStudyReferenceInfo(): DbsReferenceModel|LifePrincipleReferenceModel|LeadershipReferenceModel

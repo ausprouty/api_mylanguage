@@ -24,6 +24,13 @@ class PassageReferenceFactory
     private $chapterEnd;
     private $verseEnd;
     private $passageID;
+    private $videoSource;
+    private $videoPrefix;
+    private $videoCode;
+    private $videoSegment;
+    private $startTime;
+    private $endTime;
+
 
     /**
      * Constructor to initialize the repository dependency.
@@ -61,6 +68,12 @@ class PassageReferenceFactory
             'chapterEnd' => $studyObject->getChapterEnd(),
             'verseEnd' => $studyObject->getVerseEnd(),
             'passageID' => $studyObject->getPassageID(),
+            'videoSource' => $studyObject->getVideoSource(),
+            'videoPrefix' => $studyObject->getVideoPrefix(),
+            'videoCode' => $studyObject->getVideoCode(),
+            'videoSegment' => $studyObject->getVideoSegment(),
+            'startTime' => $studyObject->getStartTime(),
+            'endTime' => $studyObject->getEndTime(),
         ]);
         return $model;
     }
@@ -152,6 +165,12 @@ class PassageReferenceFactory
             'chapterEnd' => null, // Explicitly set to null
             'verseEnd' => $passageReferenceInfo['verseEnd'] ?? null,
             'passageID' => $passageReferenceInfo['passageID'] ?? null,
+            'videoSource' => $passageReferenceInfo['videoSource'] ?? null,
+            'videoPrefix' => $passageReferenceInfo['videoPrefix'] ?? null,
+            'videoCode' => $passageReferenceInfo['videoCode'] ?? null,
+            'videoSegment' => (int) ($passageReferenceInfo['videoSegment'] ?? 0),
+            'startTime' => $passageReferenceInfo['startTime'] ?? null,
+            'endTime' => $passageReferenceInfo['endTime'] ?? null,
         ]);
         return $model;
     }

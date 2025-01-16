@@ -2,6 +2,8 @@
 namespace App\Models\Video;
 
 Use App\Configuration\Config;
+Use App\Models\Bible\PassageReferenceModel;
+use ReflectionClass;
 
 class VideoModel
 {
@@ -41,6 +43,26 @@ class VideoModel
     {
         return $this->languageCodeJF;
     }
+     /**
+     * Returns the video properties as an associative array.
+     *
+     * @return array
+     */
+    public function getProperties(): array
+    {
+        $reflection = new ReflectionClass($this);
+        $properties = $reflection->getProperties();
+        $propsArray = [];
+
+        foreach ($properties as $property) {
+            $property->setAccessible(true); // Allows access to private property
+            $propsArray[$property->getName()] = $property->getValue($this);
+        }
+
+        return $propsArray;
+    }
+
+
 
     public function setLanguageCodeJF(string $languageCodeJF): void
     {
@@ -72,15 +94,16 @@ class VideoModel
         return $segmentString;
     }
 
-    public function setArclightUrl(): void
+    public function setArclightUrl(): ?string
     {
+        print_r('$this->arclightUrl');
         if (!$this->languageCodeJF){
             $this->arclightUrl = null;
-            return;
+            return $this->arclightUrl;
         }
         if ($this->videoSource !== 'arclight'){
             $this->arclightUrl = null;
-            return;
+            return $this->arclightUrl;
         }
         $this->arclightUrl = Config::get('api.jvideo_player');
         $this->arclightUrl .= $this->videoPrefix;
@@ -91,6 +114,9 @@ class VideoModel
             $this->arclightUrl .= '&start=' . $this->startTime;
             $this->arclightUrl .= '&end=' . $this->endTime;
         }
+       
+        print_r($this->arclightUrl);
+        return $this->arclightUrl;
     }
 
     public function getArclightUrl(): ?string
@@ -110,6 +136,20 @@ class VideoModel
             'languageCodeJF' => $languageCodeJF ?? null,
         ]);
     }
+    public static function createFromPassageReferenceModel(
+        PassageReferenceModel $studyModelData, string $languageCodeJF): self
+    {
+        return new self([
+            'videoSource' => $studyModelData->getVideoSource() ?? null,
+            'videoPrefix' => $studyModelData->getVideoPrefix() ?? null,
+            'videoCode' => $studyModelData->getVideoCode() ?? null,
+            'videoSegment' => $studyModelData->getVideoSegment() ?? null,
+            'startTime' => $studyModelData-> getStartTime() ?? 0,
+            'endTime' => $studyModelData->getEndTime() ?? 0,
+            'languageCodeJF' => $languageCodeJF ?? null,
+        ]);
+    }
+    
 
     public static function createFromDatabase(array $dbData, string $languageCodeJF): self
     {
