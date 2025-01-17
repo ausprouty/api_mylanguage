@@ -53,14 +53,16 @@ class TwigService
         $studyTemplateName, 
         $bibleTemplateName,
         $videoTemplateName,
-        $translation
+        $translation,
+        $biblePassageDetails
         ){
         return $this->twig->render('mainStudy.twig', [
             'study_template' => $studyTemplateName, 
             'bible_block' => $bibleTemplateName,
             'video_block' => $videoTemplateName,
             'translation' => $translation['language1'],
-            'dir_language1'=> 'ltr'
+            'dir_language1'=> 'ltr',
+            'bible_passage'=>$biblePassageDetails
         ]);
     }
 

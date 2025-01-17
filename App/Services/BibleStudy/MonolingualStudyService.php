@@ -42,16 +42,21 @@ class MonolingualStudyService extends AbstractBibleStudyService
     public function getTwigTranslationArray(): array
     {
         $data =  $this->translationService->loadTranslation($this->languageCodeHL1, $this->study);
-        $data['bible_reference'] = $this->primaryBiblePassage->getReferenceLocalLanguage();
-        $data['bible_text'] = $this->primaryBiblePassage->getPassageText();
-        $data['bible_url'] = $this->primaryBiblePassage->getPassageUrl();
         $descriptionTwigKey = $this->studyReferenceInfo->getDescriptionTwigKey();
         $data['title'] = $data[$descriptionTwigKey];
         $data['language'] = $this->primaryLanguage->getName();
         if ($this->format == 'pdf') {
             $data['qr_code1'] =   Config::getUrl('resources.qr_codes') . $this->qrcode1;
         }
-
+        return $data;
+    }
+    public function getBiblePassageDetailsArray(): array
+    { 
+        $data = [];
+        $data['bible_reference'] = $this->primaryBiblePassage->getReferenceLocalLanguage();
+        $data['bible_text'] = $this->primaryBiblePassage->getPassageText();
+        $data['bible_url'] = $this->primaryBiblePassage->getPassageUrl();
+        $data['video_url'] = $this->primaryVideoUrl;
         return $data;
     }
 
@@ -83,7 +88,9 @@ class MonolingualStudyService extends AbstractBibleStudyService
             $this->studyTemplateName, 
             $this->bibleTemplateName,
             $this->videoTemplateName,
-            $translations);
+            $translations,
+            $this->getBiblePassageDetailsArray()
+        );
         return $text;
     }
 }

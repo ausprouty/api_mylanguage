@@ -63,6 +63,7 @@ abstract class AbstractBibleStudyService
     protected $loggerService;
     protected $qRCodeGeneratorService;
     protected $videoService;
+    protected $bibleStudyDetails;
 
     /**
      * Fillin Template with Twig
@@ -271,7 +272,7 @@ abstract class AbstractBibleStudyService
             $languageCodeJF = $this->primaryLanguage->getLanguageCodeJF();
             // now set the Url for the primary Video
             $this->primaryVideoUrl = $this->getVideoUrl($this->passageReferenceInfo, $languageCodeJF);
-            print_r ('this is the primaryVideoUrl');
+            print_r ('this is the primaryVideoUrl<br>');
             print_r($this->primaryVideoUrl);
         } catch (\Exception $e) {
             error_log('Reference preparation failed: ' . $e->getMessage());
@@ -279,13 +280,10 @@ abstract class AbstractBibleStudyService
         }
     }
     public function getVideoUrl($passageReferenceInfo, $languageCodeJF){
-        print_r('I am thinking about getting url for '.  $languageCodeJF );
         if (!$passageReferenceInfo->getVideoCode()){
             return null;
         }
         $videoUrl = $this->videoService->getUrl($passageReferenceInfo, $languageCodeJF);
-        print_r ('videoUrl');
-        print_r ($videoUrl );
         return $videoUrl;
     }
 
@@ -307,8 +305,7 @@ abstract class AbstractBibleStudyService
                 $this->getQrCode();
             }
             $this->getStudyTemplateName($this->study, $this->format);
-            $url = null;
-            $this->getVideoTemplateName($url, $this->format);
+            $this->getVideoTemplateName($this->primaryVideoUrl, $this->format);
             if ($this->format == 'pdf'){
                 $this->bibleTemplateName = 'bibleBlockNormalPdf.twig';
             }
@@ -335,15 +332,7 @@ abstract class AbstractBibleStudyService
         $this->qRCodeGeneratorService->confirmCodeExists($url, $fileName, $size = 320);
 
     }
-    // brings in translations of terms
-    public function videoBlock($translations){
-        $translations['videoCode'] =$this->studyReferenceInfo->getVideoCode();
-        $translations['videoSegment'] =  $this->studyReferenceInfo->getVideoSegment();
-        $translations['startTime'] = $this->studyReferenceInfo->getStartTime();
-        $translations['endTime'] =  $this->studyReferenceInfo->getEndTime();
-        $output = $this->videoService->getVideoBlockIframe($translations);
-        return $output;
-    }
+    
 
     /**
      * Assemble the final study output.

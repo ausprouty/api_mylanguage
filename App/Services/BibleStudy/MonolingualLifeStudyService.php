@@ -13,9 +13,6 @@ class MonolingualLifeStudyService extends MonolingualStudyService
         // Get the array from the parent class
         $parentTranslations = parent::getTwigTranslationArray();
         $data =  $this->translationService->loadTranslation($this->languageCodeHL1, $this->study);
-
-        $data['videoBlock'] = $this->videoBlock($data);
-       
         // Add additional translations specific to MonolingualLifeStudyService
         $questionTwigKey = $this->studyReferenceInfo->getQuestionTwigKey();
 

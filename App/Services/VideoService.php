@@ -48,7 +48,6 @@ class VideoService {
             $url = null;
             return $url;
         }
-        print_r ("LanguageCodeJF is $languageCodeJF");
         $url = Config::get('api.jvideo_player');
         $url .= $passageReferenceInfo->getVideoPrefix();
         $url .= $languageCodeJF;
