@@ -56,6 +56,17 @@ class TwigService
         $translation,
         $biblePassageDetails
         ){
+        print_r ('<br>entered buildMonolingualTwig<br>');
+        print_r( $studyTemplateName);
+        print_r ('<br><br>');
+        print_r( $bibleTemplateName);
+        print_r ('<br><br>');
+        print_r($videoTemplateName);
+        print_r ('<br><br>');
+        print_r( $biblePassageDetails);
+        print_r ('<br><br>');
+        print_r ($translation['language1']);
+        print_r ('<br><br>');
         return $this->twig->render('mainStudy.twig', [
             'study_template' => $studyTemplateName, 
             'bible_block' => $bibleTemplateName,

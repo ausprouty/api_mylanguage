@@ -56,7 +56,10 @@ class MonolingualStudyService extends AbstractBibleStudyService
         $data['bible_reference'] = $this->primaryBiblePassage->getReferenceLocalLanguage();
         $data['bible_text'] = $this->primaryBiblePassage->getPassageText();
         $data['bible_url'] = $this->primaryBiblePassage->getPassageUrl();
-        $data['video_url'] = $this->primaryVideoUrl;
+        if ($this->primaryVideoUrl){
+            $data['video_url'] = $this->primaryVideoUrl;
+        }
+        
         return $data;
     }
 
@@ -84,12 +87,15 @@ class MonolingualStudyService extends AbstractBibleStudyService
     {
         $translations = array();
         $translations['language1'] = $this->twigTranslation1;
+        print_r ('starting assembleOutput<br><br> ');
+        $biblePassageDetailsArray = $this->getBiblePassageDetailsArray();
+        //print_r ($biblePassageDetailsArray);
         $text = $this->twigService->buildMonolingualTwig(
             $this->studyTemplateName, 
             $this->bibleTemplateName,
             $this->videoTemplateName,
             $translations,
-            $this->getBiblePassageDetailsArray()
+            $biblePassageDetailsArray
         );
         return $text;
     }

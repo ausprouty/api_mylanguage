@@ -177,9 +177,13 @@ abstract class AbstractBibleStudyService
             $this->initializeParameters($study, $format, $lesson, $languageCodeHL1, $languageCodeHL2);
             $this->loadLanguageAndBibleInfo();
             $this->prepareReferences();
+            print_r('finished prepReferences, ');
             $this->selectTemplatesAndTranslation();
+            print_r('selectTemplatesAndTranslation, ');
             $this->checkProgress(); // This could throw an exception
+            print_r('checkProgress, ');
             $test = $this->assembleOutput();
+            print_r('and assembleOutput ');
             return $test;
         } catch (\InvalidArgumentException $e) {
             // Handle specific validation errors
@@ -188,7 +192,7 @@ abstract class AbstractBibleStudyService
         } catch (\Exception $e) {
             // Handle unexpected errors
             $this->loggerService->logError('Unexpected error', ['message' => $e->getMessage()]);
-            return 'An unexpected error occurred in AbstractBibleStudyService generating your study.';
+            return 'An unexpected error occurred in AbstractBibleStudyService generating your study.'.  $e->getMessage();
         }
     }
 
