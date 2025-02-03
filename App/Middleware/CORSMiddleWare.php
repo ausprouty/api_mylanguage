@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Middleware;
+use App\Configuration\Config;
+use App\Services\LoggerService;
 
 /**
  * CORSMiddleware
@@ -39,26 +41,24 @@ class CORSMiddleware
     public function handle($request, $next)
     {
         // Fetch accepted origins from the environment configuration
-        $acceptedOrigins = explode(',', accepted_origins);
-
+        $acceptedOrigins = Config::get('accepted_origins');
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        LoggerService::logInfo('CORSMiddleware-46',   $origin);
         // Check if the request contains an Origin header
-        if (isset($_SERVER['HTTP_ORIGIN'])) {
-            $origin = $_SERVER['HTTP_ORIGIN'];
-
-            // Check if the request origin is in the list of accepted origins
-            if (in_array($origin, $acceptedOrigins)) {
-                // Set the CORS headers for allowed origins
-                header('Access-Control-Allow-Origin: ' . $origin);
-                header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-                header("Access-Control-Allow-Headers: Content-Type, Authorization");
-                header("Access-Control-Allow-Credentials: true");
-            } else {
-                // Log the denied origin
-                writeLogError('CORSMiddleware-58', 'Origin not allowed: ' . $origin);
+        if ($origin && in_array($origin, $acceptedOrigins)) { 
+            // Set the CORS headers for allowed origins
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+            header("Access-Control-Allow-Headers: Content-Type, Authorization");
+            header("Access-Control-Allow-Credentials: true");
+            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+                header("HTTP/1.1 204 No Content");
+                exit();
             }
+    
         } else {
             // Log the absence of an Origin header (non-CORS requests)
-            writeLogError('CORSMiddleware-12', 'No Origin header present in the request.');
+            LoggerService::logError('CORSMiddleware-61', 'No Origin header present in the request.');
         }
         // Proceed to the next middleware or application logic
         return $next($request);

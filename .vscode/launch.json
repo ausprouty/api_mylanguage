@@ -7,7 +7,7 @@
             "request": "launch",
             "port": 9003,
             "pathMappings": {
-                "/path/on/server": "${workspaceFolder}"
+                "c:/ampp82/htdocs/api_mylanguage": "${workspaceFolder}"
             }
         },
         {

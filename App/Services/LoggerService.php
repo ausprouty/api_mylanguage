@@ -10,67 +10,71 @@ class LoggerService
     private static $logFile;
 
     /**
-     * Initializes the log file path.
-     * This method should be called once before using the logger, or ensure a default configuration is set.
-     */
-    public static function init(): void
-    {
-        if (!self::$logFile) {
-            self::$logFile = Config::getDir('logs') . 'application.log';
-        }
-    }
-
-    /**
      * Logs an error message.
      *
+     * @param string $context Context or location of the error.
      * @param string $message The error message to log.
      */
-    public static function logError(string $message): void
+    public static function logError(string $context, string $message): void
     {
-        self::log('ERROR', $message);
+        self::log('ERROR', $context, $message);
     }
 
     /**
      * Logs a warning message.
      *
+     * @param string $context Context or location of the warning.
      * @param string $message The warning message to log.
      */
-    public static function logWarning(string $message): void
+    public static function logWarning(string $context, string $message): void
     {
-        self::log('WARNING', $message);
+        self::log('WARNING', $context, $message);
     }
 
     /**
      * Logs an informational message.
      *
+     * @param string $context Context or location of the info log.
      * @param string $message The informational message to log.
      */
-    public static function logInfo(string $message): void
+    public static function logInfo(string $context, string $message): void
     {
-        self::log('INFO', $message);
+        self::log('INFO', $context, $message);
     }
 
     /**
      * Logs a message with a specified level.
      *
      * @param string $level The log level (e.g., ERROR, WARNING, INFO).
+     * @param string $context Context or location where the log is triggered.
      * @param string $message The message to log.
      */
-    private static function log(string $level, string $message): void
+    private static function log(string $level, string $context, string $message): void
     {
-        // Ensure log file path is initialized
+        // Lazy initialization of log file path
         if (!self::$logFile) {
-            throw new Exception("Log file path is not initialized. Call LoggerService::init() first.");
+            self::init();
         }
 
         $timestamp = date('Y-m-d H:i:s');
-        $formattedMessage = "[{$timestamp}] [{$level}] {$message}" . PHP_EOL;
+        $formattedMessage = "[{$timestamp}] [{$level}] [{$context}] {$message}" . PHP_EOL;
 
         try {
             file_put_contents(self::$logFile, $formattedMessage, FILE_APPEND);
         } catch (Exception $e) {
-            // If logging fails, handle it (e.g., output to console or error log)
+            // If logging fails, output to PHP error log
             error_log("Logging failed: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Initializes the log file path.
+     * This is called automatically if not set.
+     */
+    private static function init(): void
+    {
+        if (!self::$logFile) {
+            self::$logFile = Config::getDir('logs') . 'application.log';
         }
     }
 

@@ -48,7 +48,6 @@ class PreflightMiddleware
 
         // Check if the request is an OPTIONS (preflight) request
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-
             // Check if the origin is allowed
             if (isset($_SERVER['HTTP_ORIGIN'])) {
                 if (in_array($_SERVER['HTTP_ORIGIN'], $acceptedOrigins)) {
@@ -77,10 +76,8 @@ class PreflightMiddleware
                 // Log that the request is not a preflight (OPTIONS) request
                 writeLog('PreflightMiddleware-32', 'No OPTIONS request');
             }
-
-
-            // Proceed to the next middleware or application logic
-            return $next($request);
         }
+         // Proceed to the next middleware or application logic
+         return $next($request);
     }
 }

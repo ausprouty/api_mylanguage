@@ -6,6 +6,7 @@ use App\Services\Language\TranslationService;
 use App\Models\Language\LanguageModel;
 use App\Repositories\LanguageRepository;
 use App\Configuration\Config;
+use App\Services\LoggerService;
 
 class MonolingualTemplateTranslationController
 {
@@ -51,7 +52,7 @@ class MonolingualTemplateTranslationController
         $filePath = Config::getDir('resources.root') . $this->templateName . '.twig';
 
         if (!file_exists($filePath)) {
-            writeLogError('MonolingualTemplateTranslationController-28', 'ERROR - no such template as ' . $filePath);
+            LoggerService::writeLogError('MonolingualTemplateTranslationController-28', 'ERROR - no such template as ' . $filePath);
             return;
         }
 

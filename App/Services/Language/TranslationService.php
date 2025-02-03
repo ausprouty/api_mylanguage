@@ -22,6 +22,7 @@ class TranslationService
      */
     public static function loadTranslation(string $languageCodeHL, string $scope): array
     {
+       
         // Map the scope to the corresponding filename.
         $filename = $scope . '.json';
 

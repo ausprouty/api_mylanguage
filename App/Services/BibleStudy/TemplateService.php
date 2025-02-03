@@ -10,6 +10,9 @@ class TemplateService
 {
     
     public function getStudyTemplateName($format, $study, $render): string {
+        if ($format == 'json'){
+            return 'blank.twig';
+        }
         $name = '';
     
         // Determine the format type
