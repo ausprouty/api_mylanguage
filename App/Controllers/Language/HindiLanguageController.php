@@ -3,9 +3,9 @@
 namespace App\Controllers\Language;
 
 use App\Services\Database\DatabaseService;
-use App\Models\Video\VideoModel as VideoModel;
+use App\Utilities\JsonResponse;
 use PDO as PDO;
-use stdClass as stdClass;
+use Exception;
 
 
 class HindiLanguageController{
@@ -17,35 +17,22 @@ class HindiLanguageController{
         $this->databaseService = $databaseService;
     }
 
-    public function getLanguageOptions(){
-        $result = $this->getLanguageData();
-        $output = $this->addLanguageCodeJF($result);
-        return $output;
+    public function webGetLanguageOptions(){
+        $output = $this->getLanguageOptions();
+        JsonResponse::success($output);
     }
 
-    public function getLanguageData(){
-        
+    public function getLanguageOptions(){
         $query = "SELECT *
                   FROM hl_languages
                   WHERE isHindu  = 'Y'
                   ORDER BY name";
         try {
-            $results = $databaseService->executeQuery($query);
-            $result = $results->fetchAll(PDO::FETCH_ASSOC);
-            return $result;
+            $results = $this->databaseService->executeQuery($query);
+            $output = $results->fetchAll(PDO::FETCH_ASSOC);
+            return $output;
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
-        }
-    }
-    private function addLanguageCodeJF($result){
-        $data = [];
-        foreach ($result as $language){
-            $obj = new stdClass;
-            $obj = $language;
-            $obj['languageCodeJF'] = VideoModel::getLanguageCodeJF($language['languageCodeHL']);
-            $data[] = $obj;
-        }
-        return $data;
-    }
+    
 }

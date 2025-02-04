@@ -64,4 +64,5 @@ class BibleStudyController {
             $languageCodeHL2
         );
     }
+    
 }

@@ -3,6 +3,7 @@ namespace App\Controllers\Language;
 
 use App\Services\Database\DatabaseService;
 use PDO as PDO;
+use Exception;
 
 
 class GospelLanguageController{

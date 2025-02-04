@@ -3,6 +3,7 @@
 namespace App\Controllers\Language;
 
 use App\Services\Language\DbsLanguageService;
+use App\Utilities\JsonResponse;
 use Exception;
 
 class DbsLanguageController {
@@ -23,5 +24,10 @@ class DbsLanguageController {
 
     public function getLanguageOptions() {
         return $this->languageService->fetchLanguageOptions();
+    }
+
+    public function webGetLanguageOptions() {
+        $output = $this->getLanguageOptions();
+        JsonResponse::success($output);
     }
 }

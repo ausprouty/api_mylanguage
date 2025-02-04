@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Controllers\Language;
+use App\Configuration\Config;
 
 class TranslationController {
 
     public static function TranslateText($text, $destinationLanguage, $sourceLanguage = 'eng'){
 
-        $subscriptionKey = YOUR_AZURE_SUBSCRIPTION_KEY;
+        $subscriptionKey = Config::get('YOUR_AZURE_SUBSCRIPTION_KEY');
         writeLogDebug('translation-10', $subscriptionKey);
         $endpoint = "https://api.cognitive.microsofttranslator.com";
         $path = "/translate?api-version=3.0";

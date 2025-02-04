@@ -3,9 +3,14 @@
 namespace App\Utilities;
 
 class JsonResponse {
-    public static function success(array $data): void {
+    public static function success(array|object $data): void {
+        // Convert object to array if needed
+        if (is_object($data)) {
+            $data = (array) $data;
+        }
+
         header('Content-Type: application/json');
-        $output =  json_encode(['status' => 'success', 'data' => $data]);
+        $output = json_encode(['status' => 'success', 'data' => $data]);
         echo ($output);
         exit;
     }

@@ -2,7 +2,7 @@
 
 namespace App\Services\BibleStudy;
 
-use Exception;
+
 use App\Services\LoggerService;
 use App\Configuration\Config;
 
