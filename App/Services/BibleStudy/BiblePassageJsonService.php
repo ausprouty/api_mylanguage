@@ -24,7 +24,7 @@ class BiblePassageJsonService
     protected $languageCodeHL;
     protected $primaryLanguage;
     protected $primaryBible;
-    protected $primaryBiblePassage;
+    public $primaryBiblePassage;
     protected $studyReferenceInfo;
     public $passageReferenceInfo;
     protected $translation;
@@ -74,14 +74,14 @@ class BiblePassageJsonService
         $study,
         $lesson,
         $languageCodeHL,
-    ): string {
+    ): array {
         try {
             $this->initializeParameters($study, $lesson, $languageCodeHL);
             $this->loadLanguageAndBibleInfo();
             $this->loadBibleText();
             $this->loadTemplatesAndTranslation();
             $block = $this->generateBlock();
-            return json_encode($block, JSON_PRETTY_PRINT);
+            return $block;
         } catch (\Exception $e) {
             $this->loggerService->logError('Error generating JSON blocks', $e->getMessage());
             return json_encode(['error' => 'Failed to generate blocks: ' . $e->getMessage()]);
@@ -113,14 +113,14 @@ class BiblePassageJsonService
 
     private function loadTemplatesAndTranslation(): void
     {
-        $this->translation = $this->translationService->loadTranslation($this->primaryLanguage, 'bibleStructured');
+        $this->translation = $this->translationService->loadTranslation($this->languageCodeHL, 'bibleStructured');
     }
 
     private function generateBlock(): array
     {
         return [
             'bibleBlock' => [
-                'passage' => $this->primaryBiblePassage->getText() ?? 'No passage available',
+                'passage' => $this->primaryBiblePassage,
                 'template' => $this->bibleTemplateName ?? 'No template specified',
                 'translation' => $this->translation ?? 'No translation available',
             ],

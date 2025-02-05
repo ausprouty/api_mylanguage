@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Utilities;
+use App\Services\LoggerService;
 
 class JsonResponse {
     public static function success(array|object $data): void {
@@ -10,7 +11,13 @@ class JsonResponse {
         }
 
         header('Content-Type: application/json');
+        // Encode JSON with pretty print and unescaped Unicode
+        //$output = json_encode(
+        //    ['status' => 'success', 'data' => $data],
+        //    JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+        //);
         $output = json_encode(['status' => 'success', 'data' => $data]);
+        LoggerService::logInfo('jsonresponse', $output);
         echo ($output);
         exit;
     }

@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Services\BibleStudy\BiblePassageJsonService;
+use App\Utilities\JsonResponse;
 
 class BibleStudyJsonController {
     /**
@@ -19,22 +20,31 @@ class BibleStudyJsonController {
         $this->studyService = $studyService;
     }
 
+    public function lessonContent($study, $lesson, $languageCodeHL ): array{
+        $output = $this->studyService->generateBiblePassageJsonBlock( $study,
+        $lesson,
+        $languageCodeHL);
+        return $output;
+
+    }
+
     /**
      * Entry point for web requests. Extracts arguments from the route and delegates to `handleFetch`.
      *
      * @param array $args The route arguments.
      * @return string The fetched study content.
      */
-    public function webRequestToFetchBiblePassage(array $args): string {
+    public function webLessonContent(array $args): array {
         // Extract variables from the route arguments
         $study = $args['study'];
         $lesson = (int) $args['lesson'];
-        $languageCodeHL = $args['language'];
-        $output = $this->studyService->generateBiblePassageJsonBlock( $study,
-        $lesson,
-        $languageCodeHL);
+        $languageCodeHL = $args['languageCodeHL'];
+        $output = $this->lessonContent( $study, $lesson, $languageCodeHL);
+        JsonResponse::success($output);
+        
 
     }
+
 
     
     

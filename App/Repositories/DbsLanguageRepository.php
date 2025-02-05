@@ -76,4 +76,14 @@ class DbsLanguageRepository extends BaseRepository
         ];
         $this->databaseService->executeQuery($query, $params);
     }
+
+    public function getLanguagesWithCompleteBible(){
+        $query = "SELECT * FROM dbs_languages  as d
+            INNER JOIN hl_languages as h
+            ON d.languageCodeHL = h.languageCodeHL
+            WHERE d.collectionCode = :collectionCode";
+        $params = [':collectionCode' =>'C'];
+        $result = $this->databaseService->fetchAll($query,$params);
+        return $result;
+    }
 }
