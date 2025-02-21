@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Services\TwigService;
 use App\Configuration\Config;
 use App\Models\Bible\PassageReferenceModel;
+use App\Interfaces\ArclightVideoInterface;
+use App\Helpers\TimeHelper;
 
 class VideoService {
 
@@ -23,11 +25,10 @@ class VideoService {
 
         // Ensure TwigService s a render method
         $output = $this->twigService->render($template, $videoInfo);
-        print_r($output);
-        die;
+      
     }
 
-    public function getUrl(
+    public function getUrlFromPassageReference(
         PassageReferenceModel $passageReferenceInfo, 
         string $languageCodeJF){
         
@@ -37,59 +38,41 @@ class VideoService {
 
     }
 
-    private function getArclightUrl(
-        PassageReferenceModel $passageReferenceInfo, 
-        string $languageCodeJF): string {
-        if (!$languageCodeJF){
-            $url = null;
-            return $url;
+    public static function getArclightUrl(
+        ArclightVideoInterface $videoInfo, 
+        string $languageCodeJF
+    ): ?string {
+     
+        if (!$languageCodeJF || $videoInfo->getVideoSource() !== 'arclight') {
+            return null;
         }
-        if ($passageReferenceInfo->getVideoSource() !== 'arclight'){
-            $url = null;
-            return $url;
-        }
+
         $url = Config::get('api.jvideo_player');
-        $url .= $passageReferenceInfo->getVideoPrefix();
+        $url .= $videoInfo->getVideoPrefix();
         $url .= $languageCodeJF;
-        $url .= $passageReferenceInfo->getVideoCode();
-      
-        $url .= $passageReferenceInfo->getVideoSegment();
-        if ($passageReferenceInfo->getEndTime()){
-            $seconds = $this->convertMinutesToSeconds($passageReferenceInfo->getStartTime());
-            $url .= '&start=' . $seconds;
-            $seconds =  $this->convertMinutesToSeconds($passageReferenceInfo->getEndTime());
-            $url .= '&end=' . $seconds ;
+        $url .= $videoInfo->getVideoCode();
+        $url .= $videoInfo->getVideoSegment();
+
+        if ($videoInfo->getEndTime()) {
+            $startSeconds = TimeHelper::convertMinutesToSeconds($videoInfo->getStartTime());
+            $url .= '&start=' . $startSeconds;
+            $endSeconds = TimeHelper::convertMinutesToSeconds($videoInfo->getEndTime());
+            $url .= '&end=' . $endSeconds;
         }
+
         $url .= '&playerStyle=default';
         return $url;
     }
 
-    private function computeParameters(array $translation){
+
+    protected function computeParameters(array $translation){
         $videoInfo = [];
         $videoInfo['videoCode'] = $translation['videoCode'] ?? '';
         $videoInfo['url'] =  $videoInfo['videoCode'];
         $videoInfo['videoSegment'] =  $translation['videoSegment'];
-        $videoInfo['startTime'] = $this->convertMinutesToSeconds($translation['startTime'] ?? '0:00');
-        $videoInfo['endTime'] = $this->convertMinutesToSeconds($translation['endTime'] ?? '0:00');
+        $videoInfo['startTime'] = TimeHelper::convertMinutesToSeconds($translation['startTime'] ?? '0:00');
+        $videoInfo['endTime'] = TimeHelper::convertMinutesToSeconds($translation['endTime'] ?? '0:00');
         return $videoInfo;
     }
 
-    // Function to convert time to seconds
-    public function convertMinutesToSeconds(string $time): int {
-        // Handle invalid input gracefully
-        // Some videos use 'start' which should be replaced with 0
-        if (!str_contains($time, ':')) {
-            return 0;
-        }
-
-        // Split the input string into minutes and seconds
-        list($minutes, $seconds) = explode(':', $time);
-
-        // Convert minutes and seconds to integers
-        $minutes = (int) $minutes;
-        $seconds = (int) $seconds;
-
-        // Calculate total seconds
-        return ($minutes * 60) + $seconds;
-    }
-}
+}    
