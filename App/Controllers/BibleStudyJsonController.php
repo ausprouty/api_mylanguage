@@ -34,7 +34,7 @@ class BibleStudyJsonController {
      * @param array $args The route arguments.
      * @return string The fetched study content.
      */
-    public function webLessonContent(array $args): array {
+    public function webFetchLessonContent(array $args): array {
         // Extract variables from the route arguments
         $study = $args['study'];
         $lesson = (int) $args['lesson'];
