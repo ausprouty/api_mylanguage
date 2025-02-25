@@ -9,7 +9,7 @@ use Exception;
 
 class TranslationController {
    
-    function webRequestToFetchCommonContent(array $args): void {
+    function webFetchCommonContent(array $args): void {
         try {
             // Validate required arguments
             if (!isset($args['study'], $args['languageCodeHL'])) {

@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Services\BibleStudy\BiblePassageJsonService;
 use App\Utilities\JsonResponse;
+use Exception;
 
 class BibleStudyJsonController {
     /**
@@ -34,16 +35,30 @@ class BibleStudyJsonController {
      * @param array $args The route arguments.
      * @return string The fetched study content.
      */
-    public function webFetchLessonContent(array $args): array {
-        // Extract variables from the route arguments
-        $study = $args['study'];
-        $lesson = (int) $args['lesson'];
-        $languageCodeHL = $args['languageCodeHL'];
-        $output = $this->lessonContent( $study, $lesson, $languageCodeHL);
-        JsonResponse::success($output);
-        
-
+    public function webFetchLessonContent(array $args): void {
+        try {
+            // Validate required arguments
+            if (!isset($args['study'], $args['lesson'], $args['languageCodeHL'])) {
+                JsonResponse::error('Missing required arguments: study, lesson, or languageCodeHL');
+                return;
+            }
+    
+            // Extract variables from the route arguments
+            $study = $args['study'];
+            $lesson = (int) $args['lesson'];
+            $languageCodeHL = $args['languageCodeHL'];
+    
+            // Fetch lesson content
+            $output = $this->lessonContent($study, $lesson, $languageCodeHL);
+    
+            // Return success response
+            JsonResponse::success($output);
+        } catch (Exception $e) {
+            // Handle any unexpected errors
+            JsonResponse::error($e->getMessage());
+        }
     }
+    
 
 
     

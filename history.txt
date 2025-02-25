@@ -26,3 +26,6 @@ cd c://ampp82/htdocs/api_mylanguage
 git add .
 git commit -m "Updated new Bible()"
 git push origin main
+
+for missing files
+git checkout 2b4b5e4 -- App/Controllers/BibleStudyJsonController.php
