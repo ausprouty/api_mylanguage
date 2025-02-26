@@ -31,7 +31,7 @@ class DatabaseService
         $databaseConfig = Config::get("databases.$configType", null);
 
         if ($databaseConfig === null) {
-            LoggerService::logError("Database configuration type '$configType' not found.");
+            LoggerService::logError("Database configuration", " type '$configType' not found.");
             throw new InvalidArgumentException("Configuration type '$configType' not found.");
         }
 
@@ -53,7 +53,7 @@ class DatabaseService
             $this->dbConnection = new PDO($dsn, $this->username, $this->password);
             $this->dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            LoggerService::logError("Failed to connect to the database: " . $e->getMessage());
+            LoggerService::logError('Database Connect',"Failed to connect to the database: " . $e->getMessage());
             throw new Exception("Database connection error.");
         }
     }
@@ -76,7 +76,7 @@ class DatabaseService
             $stmt->execute();
             return $stmt;
         } catch (PDOException $e) {
-            LoggerService::logError("Error executing query: " . $e->getMessage());
+            LoggerService::logError('executeQuery', "Error executing query: " . $e->getMessage());
             return null;
         }
     }

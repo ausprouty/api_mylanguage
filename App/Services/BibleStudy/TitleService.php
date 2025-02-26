@@ -13,8 +13,6 @@ class TitleService{
     }
 
     public function getTitleAndLessonNumber($study, $languageCodeHL){
-
-        $query = select 
-
+         return ('finish this code');
     }
 }

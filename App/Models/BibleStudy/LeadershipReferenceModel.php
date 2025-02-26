@@ -5,10 +5,10 @@ namespace App\Models\BibleStudy;
 class LeadershipReferenceModel extends BaseStudyReferenceModel
 {
     // Shared properties
-    protected string $video_code;
-    protected int $video_segment;
-    protected string $start_time;
-    protected string $end_time;
+    protected string $videoCode;
+    protected int $videoSegment;
+    protected string $startTime;
+    protected string $endTime;
 
     public function __construct()
     {
@@ -16,50 +16,50 @@ class LeadershipReferenceModel extends BaseStudyReferenceModel
         parent::__construct();
 
         // Initialize new properties for LeadershipReferenceModel
-        $this->video_code = '';        // Default empty string
-        $this->video_segment = 0;      // Default integer value
-        $this->start_time = '';        // Default empty string
-        $this->end_time = '';          // Default empty string
+        $this->videoCode = '';        // Default empty string
+        $this->videoSegment = 0;      // Default integer value
+        $this->startTime = '';        // Default empty string
+        $this->endTime = '';          // Default empty string
     }
 
     // Shared getters and setters for video-related properties
     public function getVideoCode(): string
     {
-        return $this->video_code;
+        return $this->videoCode;
     }
 
-    public function setVideoCode(string $video_code): void
+    public function setVideoCode(?string $videoCode): void
     {
-        $this->video_code = $video_code;
+        $this->videoCode = $videoCode;
     }
 
     public function getVideoSegment(): int
     {
-        return $this->video_segment;
+        return $this->videoSegment;
     }
 
-    public function setVideoSegment(int $video_segment): void
+    public function setVideoSegment(int $videoSegment): void
     {
-        $this->video_segment = $video_segment;
+        $this->videoSegment = $videoSegment;
     }
 
     public function getStartTime(): string
     {
-        return $this->start_time;
+        return $this->startTime;
     }
 
-    public function setStartTime(string $start_time): void
+    public function setStartTime(?string $startTime): void
     {
-        $this->start_time = $start_time;
+        $this->startTime = $startTime;
     }
 
     public function getEndTime(): string
     {
-        return $this->end_time;
+        return $this->endTime;
     }
 
-    public function setEndTime(string $end_time): void
+    public function setEndTime(?string $endTime): void
     {
-        $this->end_time = $end_time;
+        $this->endTime = $endTime;
     }
 }

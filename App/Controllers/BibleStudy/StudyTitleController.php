@@ -3,6 +3,7 @@
 namespace App\Controllers\BibleStudy;
 
 use App\Services\BibleStudy\TitleService;
+use App\Utilities\JsonResponse;
 
 class StudyTitleController
 {
@@ -13,17 +14,15 @@ class StudyTitleController
         $this->titleService = $titleService;
     }
 
-    public function webGetTitleForStudy(ServerRequestInterface $request): ResponseInterface
+    public function webGetTitleForStudy($args):void
     {
-        $params = $request->getAttribute('routeInfo')[2];
-        $study = $params['study'];
-        $languageCodeHL = $params['languageCodeHL'];
-
+        $study = $args['study'];
+        $languageCodeHL = $args['languageCodeHL'];
         $titleData = $this->titleService->getTitleAndLessonNumber($study, $languageCodeHL);
-
-        return new \Laminas\Diactoros\Response\JsonResponse([
+        $output = [
             'title' => $titleData['title'],
             'lessonNumber' => $titleData['lessonNumber']
-        ]);
+        ];
+        JsonResponse::success($output);
     }
 }

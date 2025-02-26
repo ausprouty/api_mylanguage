@@ -3,6 +3,7 @@
 namespace App\Services\Language;
 
 use App\Configuration\Config;
+use App\Services\LoggerService;
 
 /**
  * Handles translations by loading and parsing JSON files for specific
@@ -22,9 +23,10 @@ class TranslationService
      */
     public static function loadTranslation(string $languageCodeHL, string $scope): array
     {
-       
+
         // Map the scope to the corresponding filename.
         $filename = $scope . '.json';
+   
 
         $rootTranslationsPath = Config::getDir('resources.translations');
 
@@ -42,7 +44,8 @@ class TranslationService
         }
 
         // Log an error and return an empty array if neither file exists.
-        error_log(
+        LoggerService::logError(
+            'translation Service',
             "Translation files not found for scope '$scope' in $languageCodeHL."
         );
         return [];
@@ -61,7 +64,8 @@ class TranslationService
         $data = json_decode($contents, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log(
+            LoggerService::logError(
+                'translation Service',
                 "JSON error in file $filePath: " . json_last_error_msg()
             );
             return [];
@@ -79,7 +83,7 @@ class TranslationService
      * @return string|null The translated value, or null if not found.
      */
     public static function translateKey(
-        array $translations, 
+        array $translations,
         string $key
     ): ?string {
         return $translations[$key] ?? null;

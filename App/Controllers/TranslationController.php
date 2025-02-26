@@ -11,6 +11,7 @@ class TranslationController {
    
     function webFetchCommonContent(array $args): void {
         try {
+           
             // Validate required arguments
             if (!isset($args['study'], $args['languageCodeHL'])) {
                 JsonResponse::error('Missing required arguments: study or languageCodeHL');

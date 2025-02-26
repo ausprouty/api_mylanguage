@@ -43,7 +43,7 @@ function csvToStructuredJson($filePath, $outputDir)
         }
 
         if (!empty($hlCode)) {
-            $outputFile = rtrim($outputDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $hlCode . DIRECTORY_SEPARATOR . 'dbsStructured.json';
+            $outputFile = rtrim($outputDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $hlCode .  '.json';
 
             // Ensure the directory exists
             if (!is_dir(dirname($outputFile))) {
@@ -59,7 +59,7 @@ function csvToStructuredJson($filePath, $outputDir)
 }
 
 // Replace this path with your uploaded file path
-$filePath = 'data/NewDbsStructureData.txt';
+$filePath = 'data/DBSi18n.txt';
 
 // Replace this with your desired output directory
 $outputDir = 'c:/ampp82/htdocs/api_mylanguage/resources/translations/new';
