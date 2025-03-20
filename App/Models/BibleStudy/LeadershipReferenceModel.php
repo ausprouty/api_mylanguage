@@ -5,10 +5,10 @@ namespace App\Models\BibleStudy;
 class LeadershipReferenceModel extends BaseStudyReferenceModel
 {
     // Shared properties
-    protected string $videoCode;
+    protected ?string $videoCode;
     protected int $videoSegment;
-    protected string $startTime;
-    protected string $endTime;
+    protected ?string $startTime;
+    protected ?string $endTime;
 
     public function __construct()
     {

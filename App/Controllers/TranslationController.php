@@ -19,12 +19,17 @@ class TranslationController {
     
             // Extract variables from the route arguments
             $study = $args['study'];
-            $scope = $study . 'Structured';
+            if ($args['logic']){
+                $logic = $args['logic'];
+            }
+            else{
+                $logic = null;
+            }
             $languageCodeHL = $args['languageCodeHL'];
     
-            // Load translation
+            // Load translation from Resources/tranlations/languages
             $translation = new TranslationService();
-            $output = $translation::loadTranslation($languageCodeHL, $scope);
+            $output = $translation::loadTranslation($languageCodeHL, $study, $logic);
             // Return success response
             JsonResponse::success($output);
         } catch (Exception $e) {
