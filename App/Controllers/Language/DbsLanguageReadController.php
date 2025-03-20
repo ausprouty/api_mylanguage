@@ -26,6 +26,11 @@ class DbsLanguageReadController {
         $output = $this->dbsLanguageRepository->getSummaryOfLanguagesWithCompleteBible();
         JsonResponse::success($output);
     }
+
+    public function webGetSummaryOfLanguagesWithCompleteBibleAndJVideo(){
+        $output = $this->dbsLanguageRepository->getSummaryOfLanguagesForDBSAndJVideo();
+        JsonResponse::success($output);
+    }
 }
 
 

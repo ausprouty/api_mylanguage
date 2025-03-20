@@ -21,36 +21,41 @@ class TranslationService
      * 
      * @return array The translation data as an associative array.
      */
-    public static function loadTranslation(string $languageCodeHL, string $scope): array
+  
+    public static function loadTranslation(string $languageCodeHL, string $scope, ?string $logic = null): array
     {
-
         // Map the scope to the corresponding filename.
-        $filename = $scope . '.json';
-   
-
+        $logic_file = $logic ? "{$scope}-{$logic}.json" : "{$scope}.json";
+        $default_file = "{$scope}.json";
+    
+        // Get the root translations directory.
         $rootTranslationsPath = Config::getDir('resources.translations');
-
+    
         // Construct file paths for the requested language and fallback language.
-        $file = $rootTranslationsPath . "languages/$languageCodeHL/$filename";
-        $fallbackFile = $rootTranslationsPath . "languages/eng00/$filename";
-
-        // Attempt to load the translation file or fallback file.
-        if (file_exists($file)) {
-            return self::parseTranslationFile($file);
+        $primaryFile = "{$rootTranslationsPath}languages/{$languageCodeHL}/{$logic_file}";
+        $fallbackFile1 = "{$rootTranslationsPath}languages/eng00/{$logic_file}";
+        $secondaryFile = "{$rootTranslationsPath}languages/{$languageCodeHL}/{$default_file}";
+        $fallbackFile2 = "{$rootTranslationsPath}languages/eng00/{$default_file}";
+        $lastoptionFile = "{$rootTranslationsPath}languages/eng00/dbs";
+    
+        // Check each file in order and return the first found.
+        $filesToCheck = [$primaryFile, $fallbackFile1, $secondaryFile, $fallbackFile2, $lastoptionFile];
+    
+        foreach ($filesToCheck as $file) {
+            if (file_exists($file)) {
+                return self::parseTranslationFile($file);
+            }
         }
-
-        if (file_exists($fallbackFile)) {
-            return self::parseTranslationFile($fallbackFile);
-        }
-
-        // Log an error and return an empty array if neither file exists.
+    
+        // Log an error if no file was found.
         LoggerService::logError(
-            'translation Service',
-            "Translation files not found for scope '$scope' in $languageCodeHL."
+            'TranslationService',
+            "Translation files not found for scope '$scope' in language '$languageCodeHL'."
         );
+    
         return [];
     }
-
+        
     /**
      * Parses a JSON translation file into an associative array.
      * 

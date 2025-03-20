@@ -99,7 +99,7 @@ class DbsLanguageRepository extends BaseRepository
         $result = $this->databaseService->fetchAll($query, $params);
 
         $output = [];
-        $translation_dir = Config::getDir('resources.translations') . 'language/';
+        $translation_dir = Config::getDir('resources.translations') . 'languages/';
 
         foreach ($result as $language) {
             if ($language['isChinese'] == 1){
@@ -112,5 +112,39 @@ class DbsLanguageRepository extends BaseRepository
 
         return $output;
     }
+    function getSummaryOfLanguagesForDBSAndJVideo(){
+        $query = "SELECT h.id, h.name, h.ethnicName,
+            h.languageCodeIso, h.languageCodeHL, h.languageCodeJF, h.isChinese
+        FROM hl_languages AS h
+        INNER JOIN dbs_languages AS d
+        ON d.languageCodeHL = h.languageCodeHL
+        WHERE d.collectionCode = :collectionCode
+        AND TRIM(h.languageCodeJF) != ''  -- Fix for empty strings
+        ORDER BY h.name";
+    
+        $params = [':collectionCode' => 'C'];
+        $result = $this->databaseService->fetchAll($query, $params);
+    
+        error_log("Records found: " . count($result));
+       
+    
+        $output = [];
+        $translation_dir = Config::getDir('resources.translations') . 'languages/';
+    
+        foreach ($result as $language) {
+            if ($language['isChinese'] == 1){
+                $language['languageCodeHL'] = 'chn-s';
+            }
+            error_log("Checking: " . $translation_dir . $language['languageCodeHL']);
+            if (file_exists($translation_dir . $language['languageCodeHL'])) {
+                error_log("File exists for: " . $language['languageCodeHL']);
+                $output[] = $language;
+            } else {
+                error_log("Missing file: " . $language['languageCodeHL']);
+            }
+        }
+        return $output;
+    }
+    
 
 }
