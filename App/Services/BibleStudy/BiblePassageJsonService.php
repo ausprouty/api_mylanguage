@@ -84,7 +84,7 @@ class BiblePassageJsonService
             return $block;
         } catch (\Exception $e) {
             $this->loggerService->logError('Error generating JSON blocks', $e->getMessage());
-            return json_encode(['error' => 'Failed to generate blocks: ' . $e->getMessage()]);
+            return ['error' => 'Failed to generate blocks: ' . $e->getMessage()];
         }
     }
 
@@ -113,7 +113,7 @@ class BiblePassageJsonService
 
     private function loadTemplatesAndTranslation(): void
     {
-        $this->translation = $this->translationService->loadTranslation($this->languageCodeHL, 'bibleStructured');
+        $this->translation = $this->translationService->loadTranslation($this->languageCodeHL, 'bible');
     }
 
     private function generateBlock(): array

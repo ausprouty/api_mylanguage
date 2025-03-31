@@ -9,13 +9,14 @@ you can make qr codes with https://phpqrcode.sourceforge.net/index.php#demo
 
 composer require mpdf/mpdf
 use nvm list to change versions of node  This was created with 16.18.1
+check with nvm current
+
+USE XAMPP ON RIGHT
 
 Translation at https://github.com/MicrosoftTranslator/Text-Translation-API-V3-PHP/blob/master/Languages.php
 
-
-Added Middleware;
-Cut out custom composer
-
+Translation File for DBS:(login as bob.prouty@powertochange.org.au)
+https://docs.google.com/spreadsheets/d/1iwF-fKNK7s2DKkNUKbngzviW4_MGIwoTarlUlVVMGr8/edit?gid=0#gid=0
 
 USE phpmyadmin;
 REPAIR TABLE pma__users;
