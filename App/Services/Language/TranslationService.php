@@ -40,8 +40,12 @@ class TranslationService
     
         // Check each file in order and return the first found.
         $filesToCheck = [$primaryFile, $fallbackFile1, $secondaryFile, $fallbackFile2, $lastoptionFile];
-    
+   
         foreach ($filesToCheck as $file) {
+            LoggerService::logInfo(
+                'TranslationService',
+                "$file being sought."
+            );
             if (file_exists($file)) {
                 return self::parseTranslationFile($file);
             }
