@@ -59,7 +59,7 @@ function csvToStructuredJson($filePath, $outputDir)
 }
 
 // Replace this path with your uploaded file path
-$filePath = 'c:/ampp82/htdocs/api_mylanguage/Resources/translations/LeadershipBeta.txt';
+$filePath = 'c:/ampp82/htdocs/api_mylanguage/Resources/translations/Leader.txt';
 
 // Replace this with your desired output directory
 $outputDir = 'c:/ampp82/htdocs/api_mylanguage/Resources/translations/new';
