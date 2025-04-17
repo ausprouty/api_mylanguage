@@ -19,7 +19,7 @@ class TranslationController {
     
             // Extract variables from the route arguments
             $study = $args['study'];
-            if ($args['logic']){
+            if (isset($args['logic'])){
                 $logic = $args['logic'];
             }
             else{
