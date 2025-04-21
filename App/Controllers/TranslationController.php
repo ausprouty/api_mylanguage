@@ -11,7 +11,7 @@ class TranslationController {
    
     function webFetchCommonContent(array $args): void {
         try {
-           
+           writeLogDebug('TranslationController-14', 'entered webFetchCommonContent');
             // Validate required arguments
             if (!isset($args['study'], $args['languageCodeHL'])) {
                 JsonResponse::error('Missing required arguments: study or languageCodeHL');
@@ -29,8 +29,9 @@ class TranslationController {
     
             // Load translation from Resources/tranlations/languages
             $translation = new TranslationService();
+            writeLogDebug('TranslationController-32',"$languageCodeHL, $study, $logic");
             $output = $translation::loadTranslation($languageCodeHL, $study, $logic);
-            // Return success response
+            writeLogDebug('TranslationController-34',$output);// Return success response
             JsonResponse::success($output);
         } catch (Exception $e) {
             // Handle any unexpected errors
