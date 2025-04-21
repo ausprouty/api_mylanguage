@@ -37,8 +37,11 @@ class BibleStudyJsonController {
      */
     public function webFetchLessonContent(array $args): void {
         try {
+            writeLogDebug('BibleStudyJsonController-40', 'entered');
+            writeLogDebug('BibleStudyJsonController-41', $args);
             // Validate required arguments
             if (!isset($args['study'], $args['lesson'], $args['languageCodeHL'])) {
+                writeLogDebug('BibleStudyJsonController-44', $args);
                 JsonResponse::error('Missing required arguments: study, lesson, or languageCodeHL');
                 return;
             }
@@ -50,7 +53,7 @@ class BibleStudyJsonController {
     
             // Fetch lesson content
             $output = $this->lessonContent($study, $lesson, $languageCodeHL);
-    
+            writeLogDebug('BibleStudyJsonController-56', $output);
             // Return success response
             JsonResponse::success($output);
         } catch (Exception $e) {
