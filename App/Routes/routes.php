@@ -9,7 +9,7 @@ return function (RouteCollector $r) {
     // Base path from your $basePath
     $basePath = Config::get('base_path');
     
-    $container = require __DIR__ . '/container.php';
+    $container = require __DIR__ . '/../Configuration/container.php';
 
     // New Routes
     $r->addGroup($basePath . 'api/bible', function (RouteCollector $group) use ($container) {
@@ -44,32 +44,34 @@ return function (RouteCollector $r) {
     });
     // translate
     $r->addGroup($basePath . 'api/translate', function (RouteCollector $group) use ($container) {
-		$group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}', function ($args) use ($container) {
-            $controller = $container->get(App\Controllers\TranslationController::class);
-                // Call the method with the route arguments
-            return $controller->webFetchCommonContent($args);;
-        });
-        $group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}/{logic}', function ($args) use ($container) {
-            $controller = $container->get(App\Controllers\TranslationController::class);
-                // Call the method with the route arguments
-            return $controller->webFetchCommonContent($args);;
-        });
         $group->addRoute('GET', '/lessonContent/{languageCodeHL}/{study}/{lesson}', function ($args) use ($container) {
             $controller = $container->get(App\Controllers\BibleStudyJsonController::class);
-                // Call the method with the route arguments
-            return $controller->webFetchLessonContent($args);;
+            return $controller->webFetchLessonContent($args);
         });
+        
+        $group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}', function ($args) use ($container) {
+            $controller = $container->get(App\Controllers\TranslationController::class);
+            return $controller->webFetchCommonContent($args);
+        });
+    
+        $group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}/{logic}', function ($args) use ($container) {
+            $controller = $container->get(App\Controllers\TranslationController::class);
+            return $controller->webFetchCommonContent($args);
+        });
+    
+        
+
         $group->addRoute('GET', '/lessonContent/ping', function () {
             error_log("🔔 lessonContent/ping route hit!");
-            return new JsonResponse(['ping' => 'pong']);
+            return new \App\Utilities\JsonResponse(['ping' => 'pong']);
         });
+    
         $group->addRoute('GET', '/videoUrls/jvideo/{languageCodeJF}', function ($args) use ($container) {
             $controller = $container->get(App\Controllers\Video\JesusVideoUrlController::class);
-                // Call the method with the route arguments
-            return $controller->webFetchJesusVideoUrls($args);;
+            return $controller->webFetchJesusVideoUrls($args);
         });
     });
-   
+    
     // DBS Group
     $r->addGroup($basePath . 'api/dbsx', function (RouteCollector $group) {
         $group->addRoute('GET', '/pdf/{lesson}/{languageCodeHL1}', 'App/API/BibleStudies/dbsMonolingualPdf.php');

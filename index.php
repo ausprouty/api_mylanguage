@@ -55,11 +55,11 @@ $postData = PostAuthorizationMiddleware::getDataSet();
 
 // Main application logic or routing
 if ($mode == 'tests'){
-    require_once  __DIR__ . '/App/Configuration/TestLoader.php'; 
+    require_once  __DIR__ . '/App/Routes/TestLoader.php'; 
 }
 elseif ($mode == 'scripts'){
-    require_once  __DIR__ . '/App/Configuration/ImportLoader.php'; 
+    require_once  __DIR__ . '/App/Routes/ImportLoader.php'; 
 } 
 
-require_once __DIR__ . '/App/Configuration/router.php';
+require_once __DIR__ . '/App/Routes/router.php';
 
