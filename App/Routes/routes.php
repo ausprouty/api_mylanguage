@@ -44,23 +44,26 @@ return function (RouteCollector $r) {
     });
     // translate
     $r->addGroup($basePath . 'api/translate', function (RouteCollector $group) use ($container) {
+        
+        $group->addRoute('GET', '/interface/{app}/{languageCodeHL}', function ($args) use ($container) {
+            $controller = $container->get(App\Controllers\TranslationFetchController::class);
+            return $controller->webFetchInterface($args);
+        });
+        $group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}', function ($args) use ($container) {
+            $controller = $container->get(App\Controllers\TranslationFetchController::class);
+            return $controller->webFetchCommonContent($args);
+        });
+    
+        $group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}/{logic}', function ($args) use ($container) {
+            $controller = $container->get(App\Controllers\TranslationFetchController::class);
+            return $controller->webFetchCommonContent($args);
+        });
+
         $group->addRoute('GET', '/lessonContent/{languageCodeHL}/{study}/{lesson}', function ($args) use ($container) {
             $controller = $container->get(App\Controllers\BibleStudyJsonController::class);
             return $controller->webFetchLessonContent($args);
         });
         
-        $group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}', function ($args) use ($container) {
-            $controller = $container->get(App\Controllers\TranslationController::class);
-            return $controller->webFetchCommonContent($args);
-        });
-    
-        $group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}/{logic}', function ($args) use ($container) {
-            $controller = $container->get(App\Controllers\TranslationController::class);
-            return $controller->webFetchCommonContent($args);
-        });
-    
-        
-
         $group->addRoute('GET', '/lessonContent/ping', function () {
             error_log("🔔 lessonContent/ping route hit!");
             return new \App\Utilities\JsonResponse(['ping' => 'pong']);

@@ -114,10 +114,18 @@ class DatabaseService
      * @param array $params Optional parameters for prepared statement.
      * @return mixed|null The single value or null if no result.
      */
-    public function fetchSingleValue(string $query, array $params = [])
+    public function fetchSingleValue(string $query, array $params = []): mixed
     {
         $stmt = $this->executeQuery($query, $params);
-        return $stmt ? $stmt->fetchColumn() : null;
+
+        if (!$stmt) {
+            return null;
+        }
+
+        $value = $stmt->fetchColumn();
+
+        // Ensure false is treated as null for consistency
+        return $value === false ? null : $value;
     }
 
     /**

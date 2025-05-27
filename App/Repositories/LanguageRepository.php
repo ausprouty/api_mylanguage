@@ -106,13 +106,25 @@ class LanguageRepository extends BaseRepository
      * Retrieves ISO language code from HL language code.
      */
     public function getCodeIsoFromCodeHL(string $languageCodeHL): ?string
-    {
-        $query = 'SELECT languageCodeIso FROM hl_languages WHERE '
-            . 'languageCodeHL = :languageCodeHL LIMIT 1';
-        return $this->databaseService->fetchColumn($query, [
-            ':languageCodeHL' => $languageCodeHL
-        ]);
-    }
+{
+    $query = 'SELECT languageCodeIso FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1';
+    return $this->databaseService->fetchSingleValue($query, [
+        ':languageCodeHL' => $languageCodeHL
+    ]);
+}
+
+
+    /**
+     * Retrieves Google language code from HL language code.
+     */
+    public function getCodeGoogleFromCodeHL(string $languageCodeHL): ?string
+{
+    $query = 'SELECT languageCodeGoogle FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1';
+    return $this->databaseService->fetchSingleValue($query, [
+        ':languageCodeHL' => $languageCodeHL
+    ]);
+}
+
 
     /**
      * Retrieves English name for a language by ISO code.
@@ -122,15 +134,11 @@ class LanguageRepository extends BaseRepository
     ): ?string {
         $query = 'SELECT name FROM hl_languages WHERE languageCodeIso = '
             . ':languageCodeIso';
-        $result =  $this->databaseService->fetchColumn(
+        return  $this->databaseService->fetchSingleValue(
             $query,
             [':languageCodeIso' => $languageCodeIso]
         );
-        if (is_array($result) && isset($result[0])) {
-            return $result[0];
-        }
-        // Return null if $result[0] is not accessible
-        return null;
+
     }
 
     /**
@@ -142,43 +150,39 @@ class LanguageRepository extends BaseRepository
 
         $query = 'SELECT name FROM hl_languages WHERE languageCodeHL = '
             . ':languageCodeHL';
-        $result =  $this->databaseService->fetchSingleValue(
+        return  $this->databaseService->fetchSingleValue(
             $query,
             [':languageCodeHL' => $languageCodeHL]
         );
-        if (is_array($result) && isset($result[0])) {
-            return $result[0];
-        }
-        // Return null if $result[0] is not accessible
-        return null;
     }
 
     /**
      * Retrieves ethnic name for a language by ISO code.
      */
-    public function getEthnicNameForLanguageCodeIso(
-        string $languageCodeIso
-    ): ?string {
-        $query = 'SELECT ethnicName FROM hl_languages WHERE languageCodeIso = '
-            . ':languageCodeIso';
-        return $this->databaseService->fetchColumn(
-            $query,
-            [':languageCodeIso' => $languageCodeIso]
-        );
-    }
+    public function getEthnicNameForLanguageCodeIso(string $languageCodeIso): ?string
+{
+    $query = 'SELECT ethnicName FROM hl_languages WHERE languageCodeIso = :languageCodeIso LIMIT 1';
+
+    return $this->databaseService->fetchSingleValue($query, [
+        ':languageCodeIso' => $languageCodeIso
+    ]);
+
+}
+
 
     /**
      * Retrieves font data for a language by HL code.
      */
     public function getFontDataFromLanguageCodeHL(string $languageCodeHL): ?string
-    {
-        $query = 'SELECT fontData FROM hl_languages WHERE languageCodeHL = '
-            . ':languageCodeHL LIMIT 1';
-        return $this->databaseService->fetchColumn(
-            $query,
-            [':languageCodeHL' => $languageCodeHL]
-        );
-    }
+{
+    $query = 'SELECT fontData FROM hl_languages WHERE languageCodeHL = :languageCodeHL LIMIT 1';
+
+    return $this->databaseService->fetchSingleValue($query, [
+        ':languageCodeHL' => $languageCodeHL
+    ]);
+
+}
+
 
     /**
      * Retrieves language codes for a given ISO code.
