@@ -7,16 +7,15 @@ use Exception;
 
 
 
-class TranslationController {
+class TranslationFetchController {
    
     function webFetchCommonContent(array $args): void {
         try {
-           writeLogDebug('TranslationController-14', 'entered webFetchCommonContent');
+  
             // Validate required arguments
             if (!isset($args['study'], $args['languageCodeHL'])) {
                 JsonResponse::error('Missing required arguments: study or languageCodeHL');
             }
-    
             // Extract variables from the route arguments
             $study = $args['study'];
             if (isset($args['logic'])){
@@ -26,18 +25,30 @@ class TranslationController {
                 $logic = null;
             }
             $languageCodeHL = $args['languageCodeHL'];
-    
-            // Load translation from Resources/tranlations/languages
             $translation = new TranslationService();
-            writeLogDebug('TranslationController-32',"$languageCodeHL, $study, $logic");
-            $output = $translation::loadTranslation($languageCodeHL, $study, $logic);
-            writeLogDebug('TranslationController-34',$output);// Return success response
+            $output = $translation::loadCommonContentTranslation($languageCodeHL, $study, $logic);
             JsonResponse::success($output);
         } catch (Exception $e) {
             // Handle any unexpected errors
             JsonResponse::error($e->getMessage());
         }
     }
+    function webFetchInterface(array $args): void {
+        try {
+         // Validate required arguments
+        if (!isset($args['app'], $args['languageCodeHL']) || empty($args['app']) || empty($args['languageCodeHL'])) {
+            return JsonResponse::error('Missing required arguments: app or languageCodeHL');
+        }
+        // Extract variables from the route arguments
+        $app = $args['app'];
+        $languageCodeHL = $args['languageCodeHL'];
+        $translation = new TranslationService();
+        $output = $translation::loadInterfaceTranslation( $app, $languageCodeHL);
+        JsonResponse::success($output);
+        } catch (Exception $e) {
+            // Handle any unexpected errors
+            JsonResponse::error($e->getMessage());
+        }
     
 
 }
