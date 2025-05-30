@@ -6,6 +6,7 @@ use App\Services\Language\TranslationService;
 use App\Repositories\LanguageRepository;
 use App\Services\Database\DatabaseService;
 use App\Factories\LanguageFactory;
+use App\Services\LoggerService;
 
 
 // Setup: create services manually or using your container
@@ -18,8 +19,9 @@ $translationService = new TranslationService($databaseService, $languageRepo);
 $app = 'dbs';
 $languageCodeHL = 'frn00'; // French
 
-echo "Translating interface file for {$app} into {$languageCodeHL}...\n";
-
+$message = "Translating interface file for {$app} into {$languageCodeHL}...\n";
+LoggerService::logInfo('TranslationTest', "$message");
+ echo $message;
 $result = $translationService->loadInterfaceTranslation($app, $languageCodeHL);
 
 echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
