@@ -5,18 +5,18 @@ use App\Services\Database\DatabaseService;
 
 class TranslationMemoryService
 {
-    private $db;
+    private $database;
 
-    public function __construct(DatabaseService $db)
+    public function __construct(DatabaseService $database)
     {
-        $this->db = $db;
+        $this->database = $database;
     }
 
     public function get(string $source, string $targetLang): ?string
     {
         $query = "SELECT translated_text FROM translation_memory
                   WHERE source_text = :source AND target_lang = :target";
-        return $this->db->fetchColumn($query, [
+        return $this->database->fetchSingleValue($query, [
             ':source' => $source,
             ':target' => $targetLang
         ]);
@@ -27,7 +27,7 @@ class TranslationMemoryService
         $query = "INSERT INTO translation_memory (source_text, target_lang, translated_text)
                   VALUES (:source, :target, :translated)
                   ON DUPLICATE KEY UPDATE translated_text = :translated";
-        $this->db->executeQuery($query, [
+        $this->database->executeQuery($query, [
             ':source'     => $source,
             ':target'     => $targetLang,
             ':translated' => $translated

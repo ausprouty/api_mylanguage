@@ -45,7 +45,7 @@ return function (RouteCollector $r) {
     // translate
     $r->addGroup($basePath . 'api/translate', function (RouteCollector $group) use ($container) {
         
-        $group->addRoute('GET', '/interface/{app}/{languageCodeHL}', function ($args) use ($container) {
+        $group->addRoute('GET', '/interface/{languageCodeHL}/{app}', function ($args) use ($container) {
             $controller = $container->get(App\Controllers\TranslationFetchController::class);
             return $controller->webFetchInterface($args);
         });
