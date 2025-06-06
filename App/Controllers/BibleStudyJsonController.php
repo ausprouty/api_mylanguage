@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Services\BibleStudy\BiblePassageJsonService;
 use App\Utilities\JsonResponse;
+use App\Services\LoggerService;
 use Exception;
 
 class BibleStudyJsonController {
@@ -37,11 +38,11 @@ class BibleStudyJsonController {
      */
     public function webFetchLessonContent(array $args): void {
         try {
-            writeLogDebug('BibleStudyJsonController-40', 'entered');
-            writeLogDebug('BibleStudyJsonController-41', $args);
+            LoggerService::logInfo('BibleStudyJsonController-40', 'entered');
+            LoggerService::logInfo('BibleStudyJsonController-41', print_r($args,true));
             // Validate required arguments
             if (!isset($args['study'], $args['lesson'], $args['languageCodeHL'])) {
-                writeLogDebug('BibleStudyJsonController-44', $args);
+                LoggerService::logInfo('BibleStudyJsonController-44', print_r($args,true));
                 JsonResponse::error('Missing required arguments: study, lesson, or languageCodeHL');
                 return;
             }
@@ -52,8 +53,9 @@ class BibleStudyJsonController {
             $languageCodeHL = $args['languageCodeHL'];
     
             // Fetch lesson content
+             LoggerService::logInfo('BibleStudyJsonController-56', "study");
             $output = $this->lessonContent($study, $lesson, $languageCodeHL);
-            writeLogDebug('BibleStudyJsonController-56', $output);
+            LoggerService::logInfo('BibleStudyJsonController-58', print_r($output, true));
             // Return success response
             JsonResponse::success($output);
         } catch (Exception $e) {

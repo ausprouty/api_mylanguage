@@ -1,54 +1,92 @@
 <?php
 
 namespace App\Controllers;
+
 use App\Services\Language\TranslationService;
 use App\Utilities\JsonResponse;
 use Exception;
 
+/**
+ * Controller to handle fetching of translation data for interface and common content.
+ */
+class TranslationFetchController
+{
+    /**
+     * @var TranslationService Service used to fetch translation data.
+     */
+    private TranslationService $translationService;
 
+    /**
+     * TranslationFetchController constructor.
+     *
+     * @param TranslationService $translationService The service handling translation logic.
+     */
+    public function __construct(TranslationService $translationService)
+    {
+        $this->translationService = $translationService;
+    }
 
-class TranslationFetchController {
-   
-    function webFetchCommonContent(array $args): void {
+    /**
+     * Fetches common content translation for a given study and language.
+     *
+     * Expected keys in $args:
+     * - 'study' (string): The identifier for the study (required)
+     * - 'languageCodeHL' (string): The language code in HL format (required)
+     * - 'logic' (string|null): Optional logic variant to apply
+     *
+     * Responds with:
+     * - JSON success response with translation data
+     * - JSON error response if required parameters are missing or an exception is thrown
+     *
+     * @param array $args Associative array of request parameters.
+     * @return void
+     */
+    public function webFetchCommonContent(array $args): void
+    {
         try {
-  
-            // Validate required arguments
             if (!isset($args['study'], $args['languageCodeHL'])) {
                 JsonResponse::error('Missing required arguments: study or languageCodeHL');
             }
-            // Extract variables from the route arguments
+
             $study = $args['study'];
-            if (isset($args['logic'])){
-                $logic = $args['logic'];
-            }
-            else{
-                $logic = null;
-            }
+            $logic = $args['logic'] ?? null;
             $languageCodeHL = $args['languageCodeHL'];
-            $translation = new TranslationService();
-            $output = $translation::loadCommonContentTranslation($languageCodeHL, $study, $logic);
+
+            $output = $this->translationService->loadStaticContentTranslation($languageCodeHL, $study, $logic);
             JsonResponse::success($output);
         } catch (Exception $e) {
-            // Handle any unexpected errors
             JsonResponse::error($e->getMessage());
         }
     }
-    function webFetchInterface(array $args): void {
+
+    /**
+     * Fetches interface translation data for a specific app and language.
+     *
+     * Expected keys in $args:
+     * - 'app' (string): The application identifier (required)
+     * - 'languageCodeHL' (string): The language code in HL format (required)
+     *
+     * Responds with:
+     * - JSON success response with translation data
+     * - JSON error response if required parameters are missing or an exception is thrown
+     *
+     * @param array $args Associative array of request parameters.
+     * @return void
+     */
+    public function webFetchInterface(array $args): void
+    {
         try {
-         // Validate required arguments
-        if (!isset($args['app'], $args['languageCodeHL']) || empty($args['app']) || empty($args['languageCodeHL'])) {
-            return JsonResponse::error('Missing required arguments: app or languageCodeHL');
-        }
-        // Extract variables from the route arguments
-        $app = $args['app'];
-        $languageCodeHL = $args['languageCodeHL'];
-        $translation = new TranslationService();
-        $output = $translation::loadInterfaceTranslation( $app, $languageCodeHL);
-        JsonResponse::success($output);
+            if (!isset($args['app'], $args['languageCodeHL']) || empty($args['app']) || empty($args['languageCodeHL'])) {
+                JsonResponse::error('Missing required arguments: app or languageCodeHL');
+            }
+
+            $app = $args['app'];
+            $languageCodeHL = $args['languageCodeHL'];
+
+            $output = $this->translationService->loadInterfaceTranslation($app, $languageCodeHL);
+            JsonResponse::success($output);
         } catch (Exception $e) {
-            // Handle any unexpected errors
             JsonResponse::error($e->getMessage());
         }
-    
-
+    }
 }

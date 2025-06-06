@@ -1,3 +1,9 @@
+Check ip address for google translate:
+Google says it should be 124.149.189.154
+It is set at https://console.cloud.google.com/welcome?inv=1&invt=AbzMjA&project=mylanguage-translate
+
+
+
 Router is from from https://github.com/phprouter/main
 
 Look for autoloader for classes in configuration

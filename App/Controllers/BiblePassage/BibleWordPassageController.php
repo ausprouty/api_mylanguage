@@ -13,7 +13,6 @@ use App\Services\Web\BibleWordConnectionService;
 class BibleWordPassageController
 {
     private $bible;
-    private $biblePassageRepository;
     private $bibleReference;
 
     /**
@@ -21,14 +20,14 @@ class BibleWordPassageController
      *
      * @param PassageReferenceModel $bibleReference
      * @param BibleModel $bible
-     * @param BiblePassageRepository $biblePassageRepository
+
      */
     public function __construct(
         PassageReferenceModel $bibleReference,
         BibleModel $bible,
-        BiblePassageRepository $biblePassageRepository
+  
     ) {
-        $this->biblePassageRepository = $biblePassageRepository;
+       
         $this->bibleReference = $bibleReference;
         $this->bible = $bible;
     }
@@ -137,12 +136,12 @@ class BibleWordPassageController
         $webpage = new BibleWordConnectionService($endpoint);
 
         if (!$webpage->response) {
-            LoggerService::logError('Failed to fetch Bible passage from WordProject.');
+            LoggerService::logError('BibleWordPassageController-140', 'Failed to fetch Bible passage from WordProject.');
             return $passageModel;
         }
         $text = $this->trimToVerses($webpage->response);
         if (!$text) {
-            LoggerService::logError('Unable to extract Bible Word Text.');
+            LoggerService::logError('BibleWordPassageController-145', 'Unable to extract Bible Word Text.');
             return $passageModel;
         }
         $passageModel->setPassageText($text);

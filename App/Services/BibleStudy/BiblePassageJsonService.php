@@ -113,7 +113,7 @@ class BiblePassageJsonService
 
     private function loadTemplatesAndTranslation(): void
     {
-        $this->translation = $this->translationService->loadTranslation($this->languageCodeHL, 'bible');
+        $this->translation = $this->translationService->loadStaticContentTranslation($this->languageCodeHL, 'bible');
     }
 
     private function generateBlock(): array
