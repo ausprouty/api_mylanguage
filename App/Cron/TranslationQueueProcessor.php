@@ -57,9 +57,14 @@ class TranslationQueueProcessor
     protected function storeTranslation(string $langCode, string $original, string $translated): void
     {
         $this->db->executeQuery(
-            "INSERT IGNORE INTO translation_memory (source_text, source_lang, target_lang, translated_text)
-             VALUES (?, 'en', ?, ?)",
-            [$original, $langCode, $translated]
+            "INSERT IGNORE INTO translation_memory 
+            (source_text, source_lang, target_lang, translated_text)
+            VALUES (:source_text, 'en', :target_lang, :translated_text)",
+            [
+                ':source_text' => $original,
+                ':target_lang' => $langCode,
+                ':translated_text' => $translated
+            ]
         );
     }
 

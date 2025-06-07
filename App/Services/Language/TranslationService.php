@@ -176,7 +176,7 @@ class TranslationService
      */
     private function createInterfaceTranslation(string $app, string $languageCodeHL, array $masterData): array
     {
-        LoggerService::logInfo('createInterfaceTranslation-178', print_r($masterData, true));
+        //LoggerService::logInfo('createInterfaceTranslation-178', print_r($masterData, true));
         $translatedFile  = "{$this->rootTranslationsPath}i18n/{$app}/interface/{$languageCodeHL}.json";
         $googleLangCode  = $this->languageRepository->getCodeGoogleFromCodeHL($languageCodeHL);
 
@@ -184,32 +184,28 @@ class TranslationService
             LoggerService::logError('TranslationService-183', "No Google code for $languageCodeHL");
             return $masterData;
         }
-
-        $languageBlock = $masterData['language'] ?? [];
-        unset($masterData['language']);
-        LoggerService::logInfo('createInterfaceTranslation-190', print_r($languageBlock, true));
-        $translated = $this->translateArrayRecursive($masterData, $googleLangCode);
-        LoggerService::logInfo('createInterfaceTranslation-191', print_r($translated, true));
-        if (!$this->isTranslationValid($translated)) {
-            LoggerService::logError('TranslationService-192', "Empty or failed translation for $languageCodeHL");
-            return $masterData;
-        }
-
+        [$translatedCore, $isComplete]  = $this->translateArrayRecursive($masterData, $googleLangCode);
+        $translated = $translatedCore;
+       
         $translated['language'] = [
-            'EnglishName'     => $this->languageRepository->getEnglishNameForLanguageCodeHL($languageCodeHL),
-            'hlCode'          => $languageCodeHL,
-            'google'          => $googleLangCode,
-            'translatedFrom'  => 'eng00',
-            'translatedDate'  => date('c'),
-            'lastUpdated'     => $languageBlock['lastUpdated'] ?? date('c'),
+            'EnglishName'        => $this->languageRepository->getEnglishNameForLanguageCodeHL($languageCodeHL),
+            'hlCode'             => $languageCodeHL,
+            'google'             => $googleLangCode,
+            'translatedFrom'     => 'eng00',
+            'translatedDate'     => date('c'),
+            'translationComplete'=> $isComplete,
+            'lastUpdated'        => $languageBlock['lastUpdated'] ?? date('c'),
         ];
-        LoggerService::logInfo('TranslationService-204', "Writing  $translatedFile");
-
-        file_put_contents(
-            $translatedFile,
-            json_encode($translated, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-        );
-
+        if ($isComplete){
+            LoggerService::logInfo('TranslationService-200', "Writing  $translatedFile");
+            file_put_contents(
+                $translatedFile,
+                json_encode($translated, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+            );
+        }
+        else{
+            LoggerService::logInfo('TranslationService-207', print_r($translated, true));
+        }
         return $translated;
     }
 
@@ -220,50 +216,31 @@ class TranslationService
      * @param string $targetLang
      * @return array
      */
-    private function translateArrayRecursive(array $data, string $targetLang): array
+    private function translateArrayRecursive(array $data, string $googleLangCode): array
     {
-        LoggerService::logInfo('translateArrayRecursive-225', print_r($data, true));
-        LoggerService::logInfo('translateArrayRecursive-226', "$targetLang");
+        $translated = [];
+        $complete = true;
+
         foreach ($data as $key => $value) {
             if (is_array($value)) {
-                LoggerService::logInfo('translateArrayRecursive-229', print_r($value,true));
-                $data[$key] = $this->translateArrayRecursive($value, $targetLang);
+                [$translatedValue, $isSubComplete] = $this->translateArrayRecursive($value, $googleLangCode);
+                $translated[$key] = $translatedValue;
+                if (!$isSubComplete) $complete = false;
             } elseif (is_string($value) && trim($value) !== '') {
-                LoggerService::logInfo('translateArrayRecursive-232', "$key -- $value");
-                $cachedTranslation = $this->translationMemoryService->get($value, $targetLang);
-                LoggerService::logInfo('translateArrayRecursive-234', "$cachedTranslation");
-                if ($cachedTranslation !== null) {
-                    $data[$key] = $cachedTranslation;
+                $cached = $this->translationMemoryService->get($value, $googleLangCode);
+                if ($cached !== null) {
+                    $translated[$key] = $cached;
                 } else {
-                    LoggerService::logInfo('translateArrayRecursive-233', "print_r($value)");
-                    $translated = $this->googleTranslate($value, $targetLang);
-                    if ($translated) {
-                        $this->translationMemoryService->save($value, $targetLang, $translated);
-                    }
-                    $data[$key] = $translated;
-                    usleep(100000);
+                    $complete = false;
+                    $this->addToTranslationQueue($googleLangCode, $value);
+                    $translated[$key] = $value; // fallback
                 }
+            } else {
+                $translated[$key] = $value;
             }
         }
 
-        return $data;
-    }
-
-    /**
-     * Validates if translated data contains any non-empty strings.
-     *
-     * @param array $translatedData
-     * @return bool
-     */
-    private function isTranslationValid(array $translatedData): bool
-    {
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($translatedData));
-        foreach ($iterator as $value) {
-            if (is_string($value) && trim($value) !== '') {
-                return true;
-            }
-        }
-        return false;
+        return [$translated, $complete];
     }
 
     /**
@@ -352,4 +329,21 @@ class TranslationService
     {
         return $translations[$key] ?? null;
     }
+
+    private function addToTranslationQueue(string $targetLang, string $sourceText): void
+{
+    $query = "INSERT INTO translation_queue (target_lang, source_text)
+              SELECT :target_lang, :source_text
+              WHERE NOT EXISTS (
+                  SELECT 1 FROM translation_queue
+                  WHERE target_lang = :target_lang AND source_text = :source_text
+              )";
+
+    $params = [
+        ':target_lang' => $targetLang,
+        ':source_text' => $sourceText,
+    ];
+
+    $this->databaseService->executeQuery($query, $params);
+}
 }
