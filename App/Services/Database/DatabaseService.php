@@ -53,7 +53,7 @@ class DatabaseService
             $this->dbConnection = new PDO($dsn, $this->username, $this->password);
             $this->dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            LoggerService::logError('Database Connect',"Failed to connect to the database: " . $e->getMessage());
+            LoggerService::logError('Database Connect', "Failed to connect to the database: " . $e->getMessage());
             throw new Exception("Database connection error.");
         }
     }
@@ -69,17 +69,33 @@ class DatabaseService
     {
         try {
             $stmt = $this->dbConnection->prepare($query);
+
             foreach ($params as $key => $value) {
                 $paramType = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
-                $stmt->bindValue($key, $value, $paramType);
+
+                // Handle positional parameters (0-based array index for ?, requires 1-based binding)
+                if (is_int($key)) {
+                    $stmt->bindValue($key + 1, $value, $paramType);
+                } else {
+                    // Handle named parameters like :name
+                    $stmt->bindValue($key, $value, $paramType);
+                }
             }
+
             $stmt->execute();
             return $stmt;
         } catch (PDOException $e) {
-            LoggerService::logError('executeQuery', "Error executing query: " . $e->getMessage());
+            $logMessage = print_r([
+                'query' => $query,
+                'params' => $params,
+                'error' => $e->getMessage()
+            ], true);
+
+            LoggerService::logError('executeQuery', $logMessage);
             return null;
         }
     }
+
 
     /**
      * Fetches all rows from a query as an associative array.

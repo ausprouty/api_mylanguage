@@ -44,7 +44,11 @@ return function (RouteCollector $r) {
     });
     // translate
     $r->addGroup($basePath . 'api/translate', function (RouteCollector $group) use ($container) {
-        
+        $group->addRoute('GET', '/cron', function () use ($container) {
+            $processor = $container->get(\App\Cron\TranslationQueueProcessor::class);
+            $processor->run();
+            echo json_encode(['status' => 'queue processed']);
+        });
         $group->addRoute('GET', '/interface/{languageCodeHL}/{app}', function ($args) use ($container) {
             $controller = $container->get(App\Controllers\TranslationFetchController::class);
             return $controller->webFetchInterface($args);
