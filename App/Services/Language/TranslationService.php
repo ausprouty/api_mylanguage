@@ -121,7 +121,7 @@ class TranslationService
     {
         LoggerService::logInfo('loadInterfaceTranslation-122', "line started");
 
-        $masterFile = "{$this->rootTranslationsPath}i18n/{$app}/interface/eng00.json";
+        $masterFile = "{$this->rootTranslationsPath}interface/{$app}/eng00.json";
         LoggerService::logInfo('loadInterfaceTranslation-125', "master file: $masterFile");
 
         if (!file_exists($masterFile)) {
@@ -133,7 +133,7 @@ class TranslationService
             return self::parseTranslationFile($masterFile);
         }
 
-        $translatedFile = "{$this->rootTranslationsPath}i18n/{$app}/interface/{$languageCodeHL}.json";
+        $translatedFile = "{$this->rootTranslationsPath}interface/{$app}/{$languageCodeHL}.json";
         LoggerService::logInfo('loadInterfaceTranslation-137', "translated file: $translatedFile");
 
         if (file_exists($translatedFile)) {
@@ -177,7 +177,7 @@ class TranslationService
     private function createInterfaceTranslation(string $app, string $languageCodeHL, array $masterData): array
     {
         //LoggerService::logInfo('createInterfaceTranslation-178', print_r($masterData, true));
-        $translatedFile  = "{$this->rootTranslationsPath}i18n/{$app}/interface/{$languageCodeHL}.json";
+        $translatedFile  = "{$this->rootTranslationsPath}interface/{$app}/{$languageCodeHL}.json";
         $googleLangCode  = $this->languageRepository->getCodeGoogleFromCodeHL($languageCodeHL);
 
         if (!$googleLangCode) {
@@ -243,56 +243,7 @@ class TranslationService
         return [$translated, $complete];
     }
 
-    /**
-     * Translates a single string using Google Translate API.
-     *
-     * @param string $text
-     * @param string $targetLanguage
-     * @param string $sourceLanguage
-     * @return string
-     */
-    private function googleTranslate(string $text, string $targetLanguage, string $sourceLanguage = 'en'): string
-    {
-        $apiKey = Config::get('api.google_api_key');
-
-        if (!$apiKey) {
-            LoggerService::logError('TranslationService', 'Missing Google API key.');
-            return '';
-        }
-
-        $url = 'https://translation.googleapis.com/language/translate/v2?key=' . $apiKey;
-
-        $postData = [
-            'q' => $text,
-            'source' => $sourceLanguage,
-            'target' => $targetLanguage,
-            'format' => 'text'
-        ];
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'User-Agent: MyLanguageApp/1.0'
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-
-        LoggerService::logInfo('TranslationService', "HTTP Code: $httpCode");
-        LoggerService::logInfo('TranslationService', "Result: $response");
-
-        if ($response === false || $httpCode !== 200) {
-            LoggerService::logError('TranslationService', "cURL error: $error");
-            return '';
-        }
-
-        $data = json_decode($response, true);
-        return $data['data']['translations'][0]['translatedText'] ?? '';
-    }
+    
 
     /**
      * Parses a JSON file from disk into an associative array.
