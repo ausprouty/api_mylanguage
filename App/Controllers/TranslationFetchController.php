@@ -49,10 +49,9 @@ class TranslationFetchController
             }
 
             $study = $args['study'];
-            $logic = $args['logic'] ?? null;
             $languageCodeHL = $args['languageCodeHL'];
 
-            $output = $this->translationService->loadStaticContentTranslation($languageCodeHL, $study, $logic);
+            $output = $this->translationService->getTranslatedContent('commonContent', $study,$languageCodeHL);
             JsonResponse::success($output);
         } catch (Exception $e) {
             JsonResponse::error($e->getMessage());
@@ -83,7 +82,7 @@ class TranslationFetchController
             $app = $args['app'];
             $languageCodeHL = $args['languageCodeHL'];
 
-            $output = $this->translationService->loadInterfaceTranslation($app, $languageCodeHL);
+            $output = $this->translationService->getTranslatedContent('interface', $app,$languageCodeHL);
             JsonResponse::success($output);
         } catch (Exception $e) {
             JsonResponse::error($e->getMessage());

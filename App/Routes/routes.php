@@ -44,21 +44,15 @@ return function (RouteCollector $r) {
     });
     // translate
     $r->addGroup($basePath . 'api/translate', function (RouteCollector $group) use ($container) {
-        $group->addRoute('GET', '/cron', function () use ($container) {
+        $group->addRoute('GET', '/cron/{token}', function ($args) use ($container) {
             $processor = $container->get(\App\Cron\TranslationQueueProcessor::class);
-            $processor->run();
-            echo json_encode(['status' => 'queue processed']);
+            $processor->runIfAuthorized($args['token']);
         });
         $group->addRoute('GET', '/interface/{languageCodeHL}/{app}', function ($args) use ($container) {
             $controller = $container->get(App\Controllers\TranslationFetchController::class);
             return $controller->webFetchInterface($args);
         });
         $group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}', function ($args) use ($container) {
-            $controller = $container->get(App\Controllers\TranslationFetchController::class);
-            return $controller->webFetchCommonContent($args);
-        });
-    
-        $group->addRoute('GET', '/commonContent/{languageCodeHL}/{study}/{logic}', function ($args) use ($container) {
             $controller = $container->get(App\Controllers\TranslationFetchController::class);
             return $controller->webFetchCommonContent($args);
         });
@@ -96,7 +90,8 @@ return function (RouteCollector $r) {
         return new JsonResponse(['message' => 'Welcome to the API!']);
     });
     $r->addRoute('GET', '/{any:.*}', function () {
-        error_log("❌ Route not matched!");
+        $uri = $_SERVER['REQUEST_URI'] ?? 'unknown';
+        error_log("❌ Route not matched: $uri");
         return new JsonResponse(['error' => 'No matching route']);
     });
     /*   // Legacy Routes

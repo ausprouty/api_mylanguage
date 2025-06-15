@@ -17,7 +17,7 @@ class JsonResponse {
         //    JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
         //);
         $output = json_encode(['status' => 'success', 'data' => $data]);
-        LoggerService::logInfo('jsonresponse', $output);
+        //LoggerService::logInfo('jsonResponse-20', $output);
         echo ($output);
         exit;
     }

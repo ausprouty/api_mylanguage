@@ -81,7 +81,7 @@ class BibleWordPassageService extends AbstractBiblePassageService
         $webpage = new BibleWordConnectionService($endpoint);
 
         if (!$webpage) {
-            LoggerService::logError('Failed to fetch Bible passage from WordProject.');
+            LoggerService::logError('BibleWordPassageService-84','Failed to fetch Bible passage from WordProject.');
             return null;
         }
 
