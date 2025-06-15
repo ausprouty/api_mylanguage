@@ -27,7 +27,7 @@ class BiblePassageJsonService
     public $primaryBiblePassage;
     protected $studyReferenceInfo;
     public $passageReferenceInfo;
-    protected $translation;
+    protected $commonContent;
 
     protected $biblePassageService;
     protected $bibleRepository;
@@ -113,17 +113,15 @@ class BiblePassageJsonService
 
     private function loadTemplatesAndTranslation(): void
     {
-        $this->translation = $this->translationService->loadStaticContentTranslation($this->languageCodeHL, 'bible');
+        $this->commonContent =
+            $this->translationService->getTranslatedContent('commonContent', 'bible', $this->languageCodeHL);
     }
 
     private function generateBlock(): array
     {
-        return [
-            'bibleBlock' => [
-                'passage' => $this->primaryBiblePassage,
-                'template' => $this->bibleTemplateName ?? 'No template specified',
-                'translation' => $this->translation ?? 'No translation available',
-            ],
-        ];
+        $result = $this->commonContent ?? [];
+        $result ['passage'] = $this->primaryBiblePassage ?? ['message' => 'No passage available'];
+        $result ['template'] = $this->bibleTemplateName ?? 'No template specified';
+        return $result;
     }
 }

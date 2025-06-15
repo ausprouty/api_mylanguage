@@ -38,8 +38,8 @@ class BibleStudyJsonController {
      */
     public function webFetchLessonContent(array $args): void {
         try {
-            LoggerService::logInfo('BibleStudyJsonController-40', 'entered');
-            LoggerService::logInfo('BibleStudyJsonController-41', print_r($args,true));
+            //LoggerService::logInfo('BibleStudyJsonController-40', 'entered');
+           // LoggerService::logInfo('BibleStudyJsonController-41', print_r($args,true));
             // Validate required arguments
             if (!isset($args['study'], $args['lesson'], $args['languageCodeHL'])) {
                 LoggerService::logInfo('BibleStudyJsonController-44', print_r($args,true));
@@ -53,9 +53,9 @@ class BibleStudyJsonController {
             $languageCodeHL = $args['languageCodeHL'];
     
             // Fetch lesson content
-             LoggerService::logInfo('BibleStudyJsonController-56', "study");
+            // LoggerService::logInfo('BibleStudyJsonController-56', "study");
             $output = $this->lessonContent($study, $lesson, $languageCodeHL);
-            LoggerService::logInfo('BibleStudyJsonController-58', print_r($output, true));
+            //LoggerService::logInfo('BibleStudyJsonController-58', print_r($output, true));
             // Return success response
             JsonResponse::success($output);
         } catch (Exception $e) {
