@@ -3,7 +3,7 @@
 namespace App\Controllers\Language;
 
 use App\Services\Database\DatabaseService;
-use App\Utilities\JsonResponse;
+use App\Responses\JsonResponse;
 use PDO as PDO;
 use Exception;
 

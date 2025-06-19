@@ -2,13 +2,13 @@
 
 use FastRoute\RouteCollector;
 use App\Configuration\Config;
-use App\Utilities\JsonResponse;
-use App\Utilities\Logger;   
+use App\Responses\JsonResponse;
+use App\Utilities\Logger;
 
 return function (RouteCollector $r) {
     // Base path from your $basePath
     $basePath = Config::get('base_path');
-    
+
     $container = require __DIR__ . '/../Configuration/container.php';
 
     // New Routes
@@ -56,23 +56,27 @@ return function (RouteCollector $r) {
             $controller = $container->get(App\Controllers\TranslationFetchController::class);
             return $controller->webFetchCommonContent($args);
         });
+        $group->addRoute('GET', '/lessonContent/{languageCodeHL}/{languageCodeJF}/{study}/{lesson}', function ($args) use ($container) {
+            $controller = $container->get(App\Controllers\BibleStudyJsonController::class);
+            return $controller->webFetchLessonContent($args);
+        });
 
         $group->addRoute('GET', '/lessonContent/{languageCodeHL}/{study}/{lesson}', function ($args) use ($container) {
             $controller = $container->get(App\Controllers\BibleStudyJsonController::class);
             return $controller->webFetchLessonContent($args);
         });
-        
+
         $group->addRoute('GET', '/lessonContent/ping', function () {
             error_log("🔔 lessonContent/ping route hit!");
-            return new \App\Utilities\JsonResponse(['ping' => 'pong']);
+            return new \App\Responses\JsonResponse(['ping' => 'pong']);
         });
-    
+
         $group->addRoute('GET', '/videoUrls/jvideo/{languageCodeJF}', function ($args) use ($container) {
             $controller = $container->get(App\Controllers\Video\JesusVideoUrlController::class);
             return $controller->webFetchJesusVideoUrls($args);
         });
     });
-    
+
     // DBS Group
     $r->addGroup($basePath . 'api/dbsx', function (RouteCollector $group) {
         $group->addRoute('GET', '/pdf/{lesson}/{languageCodeHL1}', 'App/API/BibleStudies/dbsMonolingualPdf.php');
