@@ -3,7 +3,7 @@
 namespace App\Controllers\BibleStudy;
 
 use App\Services\BibleStudy\TitleService;
-use App\Utilities\JsonResponse;
+use App\Responses\JsonResponse;
 
 class StudyTitleController
 {
@@ -14,7 +14,7 @@ class StudyTitleController
         $this->titleService = $titleService;
     }
 
-    public function webGetTitleForStudy($args):void
+    public function webGetTitleForStudy($args): void
     {
         $study = $args['study'];
         $languageCodeHL = $args['languageCodeHL'];

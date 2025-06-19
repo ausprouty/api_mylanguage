@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Services\Language\TranslationService;
-use App\Utilities\JsonResponse;
+use App\Responses\JsonResponse;
 use Exception;
 
 /**
@@ -51,7 +51,7 @@ class TranslationFetchController
             $study = $args['study'];
             $languageCodeHL = $args['languageCodeHL'];
 
-            $output = $this->translationService->getTranslatedContent('commonContent', $study,$languageCodeHL);
+            $output = $this->translationService->getTranslatedContent('commonContent', $study, $languageCodeHL);
             JsonResponse::success($output);
         } catch (Exception $e) {
             JsonResponse::error($e->getMessage());
@@ -82,7 +82,7 @@ class TranslationFetchController
             $app = $args['app'];
             $languageCodeHL = $args['languageCodeHL'];
 
-            $output = $this->translationService->getTranslatedContent('interface', $app,$languageCodeHL);
+            $output = $this->translationService->getTranslatedContent('interface', $app, $languageCodeHL);
             JsonResponse::success($output);
         } catch (Exception $e) {
             JsonResponse::error($e->getMessage());

@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Repositories\BibleRepository;
-use App\Utilities\JsonResponse;
+use App\Responses\JsonResponse;
 
 
 class BibleController
@@ -13,7 +13,6 @@ class BibleController
     public function __construct(BibleRepository $bibleRepository)
     {
         $this->bibleRepository = $bibleRepository;
-  
     }
 
     public function getBestBibleByLanguageCodeHL(string $languageCode)

@@ -6,7 +6,7 @@ use App\Repositories\JVideoContentRepository;
 use App\Models\Video\JesusVideoSegmentModel;
 use App\Services\Database\DatabaseService;
 use App\Services\VideoService;
-use App\Utilities\JsonResponse;
+use App\Responses\JsonResponse;
 use Exception;
 
 class JesusVideoUrlController

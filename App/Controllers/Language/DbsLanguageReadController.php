@@ -3,34 +3,38 @@
 namespace App\Controllers\Language;
 
 use App\Repositories\DbsLanguageRepository;
-use App\Utilities\JsonResponse;
+use App\Responses\JsonResponse;
 use Exception;
 
-class DbsLanguageReadController {
+class DbsLanguageReadController
+{
     protected $dbsLanguageRepository;
 
-    public function __construct(DbsLanguageRepository $dbsLanguageRepository) {
+    public function __construct(DbsLanguageRepository $dbsLanguageRepository)
+    {
         $this->dbsLanguageRepository = $dbsLanguageRepository;
     }
 
-    public function getLanguagesWithCompleteBible() {
+    public function getLanguagesWithCompleteBible()
+    {
         return $this->dbsLanguageRepository->getLanguagesWithCompleteBible();
     }
 
-    public function webGetLanguagesWithCompleteBible() {
+    public function webGetLanguagesWithCompleteBible()
+    {
         $output = $this->getLanguagesWithCompleteBible();
         JsonResponse::success($output);
     }
 
-    public function webGetSummaryOfLanguagesWithCompleteBible(){
+    public function webGetSummaryOfLanguagesWithCompleteBible()
+    {
         $output = $this->dbsLanguageRepository->getSummaryOfLanguagesWithCompleteBible();
         JsonResponse::success($output);
     }
 
-    public function webGetSummaryOfLanguagesWithCompleteBibleAndJVideo(){
+    public function webGetSummaryOfLanguagesWithCompleteBibleAndJVideo()
+    {
         $output = $this->dbsLanguageRepository->getSummaryOfLanguagesForDBSAndJVideo();
         JsonResponse::success($output);
     }
 }
-
-
