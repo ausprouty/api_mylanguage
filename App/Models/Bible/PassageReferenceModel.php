@@ -3,11 +3,12 @@
 namespace App\Models\Bible;
 
 use ReflectionClass;
+use App\Interfaces\ArclightVideoInterface; // Or wherever your interface is
 
 /**
  * Represents Bible reference information.
  */
-class PassageReferenceModel
+class PassageReferenceModel implements ArclightVideoInterface
 {
     private $entry;
     private $bookName;
@@ -43,87 +44,88 @@ class PassageReferenceModel
     }
 
     // Getters
-    public function getEntry()
+    public function getEntry(): ?string
     {
         return $this->entry;
     }
 
-    public function getBookName()
+    public function getBookName(): ?string
     {
         return $this->bookName;
     }
 
-    public function getBookID()
+    public function getBookID(): ?string
     {
         return $this->bookID;
     }
 
-    public function getUversionBookID()
+    public function getUversionBookID(): ?string
     {
         return $this->uversionBookID;
     }
 
-    public function getBookNumber()
+    public function getBookNumber(): ?int   
     {
         return $this->bookNumber;
     }
 
-    public function getTestament()
+    public function getTestament(): ?string
     {
         return $this->testament;
     }
 
-    public function getChapterStart()
+    public function getChapterStart(): ?int   
     {
         return $this->chapterStart;
     }
 
-    public function getVerseStart()
+    public function getVerseStart(): ?int  
     {
         return $this->verseStart;
     }
 
-    public function getChapterEnd()
+    public function getChapterEnd(): ?int
     {
         return $this->chapterEnd;
     }
 
-    public function getVerseEnd()
+    public function getVerseEnd(): ?int
     {
         return $this->verseEnd;
     }
 
-    public function getPassageID()
+    public function getPassageID(): ?string
     {
         return $this->passageID;
     }
 
-    public function getVideoSource()
+    public function getVideoSource():? string
     {
         return $this->videoSource;
     }
 
-    public function getVideoPrefix()
+    public function getVideoPrefix(): ?string  
     {
         return $this->videoPrefix;
     }
 
-    public function getVideoCode()
+    public function getVideoCode() : ?string
     {
         return $this->videoCode;
     }
 
-    public function getVideoSegment()
+    public function getVideoSegment(): ?int
     {
         return $this->videoSegment;
     }
 
-    public function getStartTime()
+    public function getStartTime(): ?string
     {
         return $this->startTime;
     }
+    
 
-    public function getEndTime()
+    public function getEndTime(): ?string
     {
         return $this->endTime;
     }

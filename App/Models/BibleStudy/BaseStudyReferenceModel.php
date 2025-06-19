@@ -3,8 +3,9 @@
 namespace App\Models\BibleStudy;
 
 use ReflectionClass;
+use App\Interfaces\ArclightVideoInterface;
 
-abstract class BaseStudyReferenceModel
+abstract class BaseStudyReferenceModel implements ArclightVideoInterface 
 {
     protected int    $lesson;
     protected string $description;
@@ -143,7 +144,7 @@ abstract class BaseStudyReferenceModel
         return $this->videoCode;
     }
 
-    public function getVideoSegment(): int
+    public function getVideoSegment():?string
     {
         return $this->videoSegment;
     }

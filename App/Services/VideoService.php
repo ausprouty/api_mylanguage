@@ -33,7 +33,7 @@ class VideoService {
         string $languageCodeJF){
         
         if ($passageReferenceInfo->getVideoSource() == 'arclight'){
-            return $this->getArclightUrl($passageReferenceInfo, $languageCodeJF);
+            return self::getArclightUrl($passageReferenceInfo, $languageCodeJF);
         }
 
     }
@@ -54,9 +54,9 @@ class VideoService {
         $url .= $videoInfo->getVideoSegment();
 
         if ($videoInfo->getEndTime()) {
-            $startSeconds = TimeHelper::convertMinutesToSeconds($videoInfo->getStartTime());
+            $startSeconds = TimeHelper::convertToSeconds($videoInfo->getStartTime());
             $url .= '&start=' . $startSeconds;
-            $endSeconds = TimeHelper::convertMinutesToSeconds($videoInfo->getEndTime());
+            $endSeconds = TimeHelper::convertToSeconds($videoInfo->getEndTime());
             $url .= '&end=' . $endSeconds;
         }
 
@@ -70,8 +70,8 @@ class VideoService {
         $videoInfo['videoCode'] = $translation['videoCode'] ?? '';
         $videoInfo['url'] =  $videoInfo['videoCode'];
         $videoInfo['videoSegment'] =  $translation['videoSegment'];
-        $videoInfo['startTime'] = TimeHelper::convertMinutesToSeconds($translation['startTime'] ?? '0:00');
-        $videoInfo['endTime'] = TimeHelper::convertMinutesToSeconds($translation['endTime'] ?? '0:00');
+        $videoInfo['startTime'] = TimeHelper::convertToSeconds($translation['startTime'] ?? '0:00');
+        $videoInfo['endTime'] = TimeHelper::convertToSeconds($translation['endTime'] ?? '0:00');
         return $videoInfo;
     }
 
