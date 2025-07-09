@@ -114,7 +114,7 @@ class PassageReferenceModel implements ArclightVideoInterface
         return $this->videoCode;
     }
 
-    public function getVideoSegment(): ?int
+    public function getVideoSegment(): ?string
     {
         return $this->videoSegment;
     }

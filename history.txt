@@ -1,8 +1,7 @@
 Check ip address for google translate:
 Google says it should be 124.149.189.154
-Now 124.149.164.144
-It is set at https://console.cloud.google.com/welcome?inv=1&invt=AbzMjA&project=mylanguage-translate
-
+Now 124.149.188.128
+It is set at https://console.cloud.google.com
 
 
 Router is from from https://github.com/phprouter/main

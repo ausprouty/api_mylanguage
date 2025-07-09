@@ -43,7 +43,9 @@ class VideoService {
         string $languageCodeJF
     ): ?string {
      
-        if (!$languageCodeJF || $videoInfo->getVideoSource() !== 'arclight') {
+        if (!$languageCodeJF || 
+            $videoInfo->getVideoSource() !== 'arclight' ||
+            $videoInfo->getVideoPrefix() === '' ) {
             return null;
         }
 

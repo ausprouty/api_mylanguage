@@ -6,7 +6,7 @@ class LeadershipReferenceModel extends BaseStudyReferenceModel
 {
     // Shared properties
     protected ?string $videoCode;
-    protected int $videoSegment;
+    protected ?string $videoSegment;
     protected ?string $startTime;
     protected ?string $endTime;
 
@@ -33,12 +33,12 @@ class LeadershipReferenceModel extends BaseStudyReferenceModel
         $this->videoCode = $videoCode;
     }
 
-    public function getVideoSegment(): int
+    public function getVideoSegment(): string
     {
         return $this->videoSegment;
     }
 
-    public function setVideoSegment(int $videoSegment): void
+    public function setVideoSegment( string $videoSegment): void
     {
         $this->videoSegment = $videoSegment;
     }

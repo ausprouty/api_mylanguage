@@ -2,28 +2,16 @@
 
 namespace App\Factories;
 
-use App\Models\BibleStudy\DbsReferenceModel;
-use App\Models\BibleStudy\LeadershipReferenceModel;
-use App\Models\BibleStudy\LifePrincipleReferenceModel;
+use App\Models\BibleStudy\StudyReferenceModel;
 use App\Repositories\PassageReferenceRepository;
 use App\Services\Database\DatabaseService;
 use Exception;
-use InvalidArgumentException;
 
-/**
- * Factory for creating and populating Bible Study Reference Models.
- */
 class BibleStudyReferenceFactory
 {
     private DatabaseService $databaseService;
     private PassageReferenceRepository $passageReferenceRepository;
 
-    /**
-     * Constructor to inject dependencies.
-     *
-     * @param DatabaseService $databaseService Database service instance.
-     * @param PassageReferenceRepository $passageReferenceRepository Repository instance.
-     */
     public function __construct(
         DatabaseService $databaseService,
         PassageReferenceRepository $passageReferenceRepository
@@ -32,101 +20,27 @@ class BibleStudyReferenceFactory
         $this->passageReferenceRepository = $passageReferenceRepository;
     }
 
-    /**
-     * Builds a JSON string for passageReferenceInfo.
-     *
-     * @param array $data The passage data.
-     * @return string JSON representation.
-     */
-    protected function buildPassageReferenceInfoJson(array $data): string
+    public function createModel(string $study, int $lesson): StudyReferenceModel
     {
-        return json_encode([
-            'bookID' => $data['bookID'] ?? null,
-            'bookName' => $data['bookName'] ?? null,
-            'bookNumber' => $data['bookNumber'] ?? 0,
-            'chapterStart' => $data['chapterStart'] ?? null,
-            'chapterEnd' => $data['chapterEnd'] ?? null,
-            'verseStart' => $data['verseStart'] ?? null,
-            'verseEnd' => $data['verseEnd'] ?? null,
-            'passageID' => $data['passageID'] ?? null,
-            'uversionBookID' => $data['uversionBookID'] ?? null,
-        ]);
+        $query = "SELECT * FROM study_references WHERE study = :study AND lesson = :lesson";
+        $params = [':study' => $study, ':lesson' => $lesson];
+        $data = $this->databaseService->fetchRow($query, $params);
+
+        if (!$data) {
+            throw new Exception("No record found for study '$study' and lesson $lesson.");
+        }
+
+        $result = $this->expandPassageReferenceInfo($data);
+        $missing = $this->validatePassageData($result);
+
+        if ($missing) {
+            $result = $this->populateMissingValues($result);
+            $this->updateStudyDatabase($study, $lesson, $result);
+        }
+
+        return (new StudyReferenceModel())->populate($result)->setStudy($study);
     }
 
-    /**
-     * Creates a study reference model based on the study type.
-     *
-     * @param string $study The type of study ('dbs', 'principle', 'leader').
-     * @param int $lesson The lesson identifier.
-     * @return mixed The created reference model.
-     * @throws Exception If the study type is invalid.
-     */
-    public function createModel(string $study, int $lesson)
-    {
-        return match ($study) {
-            'dbs' => $this->createDbsReferenceModel($lesson),
-            'life' => $this->createLifePrincipleReferenceModel($lesson),
-            'lead' => $this->createLeadershipReferenceModel($lesson),
-            default => throw new Exception("Invalid study type: $study"),
-        };
-    }
-
-    /**
-     * Creates and populates a DbsReferenceModel.
-     *
-     * @param int $lesson The lesson identifier.
-     * @return DbsReferenceModel The populated model.
-     * @throws Exception If no data is found for the lesson.
-     */
-    protected function createDbsReferenceModel(int $lesson): DbsReferenceModel
-    {
-        return $this->generateReferenceModel(
-            'study_dbs_references',
-            $lesson,
-            new DbsReferenceModel()
-        );
-    }
-
-    /**
-     * Creates and populates a LeadershipReferenceModel.
-     *
-     * @param int $lesson The lesson identifier.
-     * @return LeadershipReferenceModel The populated model.
-     * @throws Exception If no data is found for the lesson.
-     */
-    protected function createLeadershipReferenceModel(
-        int $lesson
-    ): LeadershipReferenceModel {
-        return $this->generateReferenceModel(
-            'study_leadership_references',
-            $lesson,
-            new LeadershipReferenceModel()
-        );
-    }
-
-    /**
-     * Creates and populates a LifePrincipleReferenceModel.
-     *
-     * @param int $lesson The lesson identifier.
-     * @return LifePrincipleReferenceModel The populated model.
-     * @throws Exception If no data is found for the lesson.
-     */
-    protected function createLifePrincipleReferenceModel(
-        int $lesson
-    ): LifePrincipleReferenceModel {
-        return $this->generateReferenceModel(
-            'study_life_principle_references',
-            $lesson,
-            new LifePrincipleReferenceModel()
-        );
-    }
-
-    /**
-     * Expands the passageReferenceInfo field into detailed fields.
-     *
-     * @param array $reference The reference data.
-     * @return array The expanded reference data.
-     */
     protected function expandPassageReferenceInfo(array $reference): array
     {
         $json = json_decode($reference['passageReferenceInfo'] ?? '', true);
@@ -151,125 +65,59 @@ class BibleStudyReferenceFactory
         ]);
     }
 
-    /**
-     * Generates a reference model by fetching and processing data.
-     *
-     * @param string $table The study table name.
-     * @param int $lesson The lesson identifier.
-     * @param mixed $model The model instance to populate.
-     * @return mixed The populated model.
-     */
-    private function generateReferenceModel(
-        string $table,
-        int $lesson,
-        mixed $model
-    ) {
-        $query = "SELECT * FROM $table WHERE lesson = :lesson";
-        $params = [':lesson' => $lesson];
-        $data = $this->databaseService->fetchRow($query, $params);
+    protected function validatePassageData(array $data): array
+    {
+        $requiredFields = [
+            'bookName', 'bookID', 'uversionBookID', 'bookNumber',
+            'testament', 'chapterStart', 'verseStart', 'verseEnd', 'passageID'
+        ];
 
-        if (!$data) {
-            throw new Exception("No record found for lesson: $lesson");
-        }
-
-        $result = $this->expandPassageReferenceInfo($data);
-        $missing = $this->validatePassageData($result);
-
-        if ($missing) {
-            $result = $this->populateMissingValues($result);
-            $this->updateStudyDatabase($table, $lesson, $result);
-        }
-
-        return $model->populate($result);
+        return array_filter($requiredFields, fn($field) => empty($data[$field]));
     }
 
-    /**
-     * Populates missing values in passage data.
-     *
-     * @param array $data The passage data.
-     * @return array The updated data.
-     */
     protected function populateMissingValues(array $data): array
     {
         if ($data['bookID'] === null) {
-            $data['bookID'] = $this->passageReferenceRepository
-                ->findBookID($data['bookName']);
+            $data['bookID'] = $this->passageReferenceRepository->findBookID($data['bookName']);
         }
         if ($data['bookNumber'] === 0) {
-            $data['bookNumber'] = $this->passageReferenceRepository
-                ->findBookNumber($data['bookID']);
+            $data['bookNumber'] = $this->passageReferenceRepository->findBookNumber($data['bookID']);
         }
-        if ($data['uversionBookID'] === 0) {
-            $data['uversionBookID'] = $this->passageReferenceRepository
-                ->findUversionBookID($data['bookID']);
+        if ($data['uversionBookID'] === null) {
+            $data['uversionBookID'] = $this->passageReferenceRepository->findUversionBookID($data['bookID']);
         }
         return $data;
     }
 
-    /**
-     * Saves the passage reference information to the database.
-     *
-     * @param string $studyTable The name of the study table.
-     * @param int $lesson The lesson identifier.
-     * @param string $passageReferenceInfo JSON representation of the info.
-     * @throws InvalidArgumentException If the table name is invalid.
-     */
-    protected function savePassageReferenceInfo(
-        string $studyTable,
-        int $lesson,
-        string $passageReferenceInfo
-    ) {
-        if (!preg_match('/^[a-zA-Z0-9_]+$/', $studyTable)) {
-            throw new InvalidArgumentException('Invalid table name.');
-        }
+    protected function updateStudyDatabase(string $study, int $lesson, array $data): void
+    {
+        $json = $this->buildPassageReferenceInfoJson($data);
 
-        $query = "UPDATE $studyTable 
+        $query = "UPDATE study_references
                   SET passageReferenceInfo = :passageReferenceInfo
-                  WHERE lesson = :lesson";
+                  WHERE study = :study AND lesson = :lesson";
+
         $params = [
-            ':passageReferenceInfo' => $passageReferenceInfo,
+            ':passageReferenceInfo' => $json,
+            ':study' => $study,
             ':lesson' => $lesson,
         ];
+
         $this->databaseService->executeQuery($query, $params);
     }
 
-    /**
-     * Updates the study database with expanded passage information.
-     *
-     * @param string $studyTable The name of the study table.
-     * @param int $lesson The lesson identifier.
-     * @param array $data The updated passage data.
-     */
-    protected function updateStudyDatabase(
-        string $studyTable,
-        int $lesson,
-        array $data
-    ) {
-        $json = $this->buildPassageReferenceInfoJson($data);
-        $this->savePassageReferenceInfo($studyTable, $lesson, $json);
-    }
-
-    /**
-     * Validates required passage data fields.
-     *
-     * @param array $data The passage data.
-     * @return array Missing fields.
-     */
-    protected function validatePassageData(array $data): array
+    protected function buildPassageReferenceInfoJson(array $data): string
     {
-        $requiredFields = [
-            'entry',
-            'bookName',
-            'bookID',
-            'uversionBookID',
-            'bookNumber',
-            'testament',
-            'chapterStart',
-            'verseStart',
-            'verseEnd',
-            'passageID',
-        ];
-
-        return array_filter($requiredFields, fn($field) => empty($data[$field]));
+        return json_encode([
+            'bookID' => $data['bookID'] ?? null,
+            'bookName' => $data['bookName'] ?? null,
+            'bookNumber' => $data['bookNumber'] ?? 0,
+            'chapterStart' => $data['chapterStart'] ?? null,
+            'chapterEnd' => $data['chapterEnd'] ?? null,
+            'verseStart' => $data['verseStart'] ?? null,
+            'verseEnd' => $data['verseEnd'] ?? null,
+            'passageID' => $data['passageID'] ?? null,
+            'uversionBookID' => $data['uversionBookID'] ?? null,
+        ]);
     }
 }
