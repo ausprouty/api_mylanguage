@@ -7,7 +7,7 @@ class LifePrincipleReferenceModel extends BaseStudyReferenceModel
     protected string $question;
     protected string $questionTwigKey;
     protected ?string $videoCode = null;
-    protected int $videoSegment = 0;
+    protected ?string $videoSegment = null;
     protected ?string $startTime = null;
     protected ?string $endTime = null;
 
@@ -46,7 +46,7 @@ class LifePrincipleReferenceModel extends BaseStudyReferenceModel
         return $this->videoCode;
     }
 
-    public function getVideoSegment(): int
+    public function getVideoSegment(): string
     {
         return $this->videoSegment;
     }
@@ -77,7 +77,7 @@ class LifePrincipleReferenceModel extends BaseStudyReferenceModel
         $this->videoCode = $videoCode;
     }
 
-    public function setVideoSegment(int $videoSegment): void
+    public function setVideoSegment(string $videoSegment): void
     {
         $this->videoSegment = $videoSegment;
     }

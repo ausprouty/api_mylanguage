@@ -1,55 +1,50 @@
 <?php
+
 namespace App\Services\BibleStudy;
 
-//use App\Configuration\Config;
 use App\Factories\BibleStudyReferenceFactory;
 use App\Services\VideoService;
 use App\Services\LoggerService;
-use App\Interfaces\ArclightVideoInterface;
 
 class VideoJsonService
 {
+    protected $videoService;
     protected $bibleStudyReferenceFactory;
-    protected $lesson;
-    protected $study;
-    protected $languageCodeJF;
+    protected $loggerService;
 
     public function __construct(
         VideoService $videoService,
         BibleStudyReferenceFactory $bibleStudyReferenceFactory,
-        LoggerService $loggerService,
-        
+        LoggerService $loggerService
     ) {
-        $this->loggerService = $loggerService;
+        $this->videoService = $videoService;
         $this->bibleStudyReferenceFactory = $bibleStudyReferenceFactory;
+        $this->loggerService = $loggerService;
     }
+
     public function generateVideoJsonBlock(
-        $study,
-        $lesson,
-        $languageCodeJF,
+        string $study,
+        int $lesson,
+        string $languageCodeJF
     ): array {
         try {
-            $this->study = $study;
-            $this->lesson = $lesson;
-            $this->languageCodeJF = $languageCodeJF;
-
-            // Create the Bible Study Reference
-            $bibleStudyReference = 
-                $this->bibleStudyReferenceFactory->createModel(
-                $this->study,
-                $this->lesson
+            $bibleStudyReference = $this->bibleStudyReferenceFactory->createModel(
+                $study,
+                $lesson
             );
-            $videoUrl = $this->videoService::getArclightUrl(
-                $bibleStudyReference, 
-                $languageCodeJF);
 
-            // Return the JSON block
+            $videoUrl = $this->videoService::getArclightUrl(
+                $bibleStudyReference,
+                $languageCodeJF
+            );
+
             return [
-                'videoUrl' => $bibleStudyReference,   
+                'videoUrl' => $videoUrl,
             ];
         } catch (\Exception $e) {
-            $this->loggerService->error('Error generating Bible Passage JSON Block: ' . $e->getMessage());
+            $this->loggerService::logError('VideoJsonService-5', 
+                'Error generating video JSON block: ' . $e->getMessage());
             return [];
         }
-
-
+    }
+}

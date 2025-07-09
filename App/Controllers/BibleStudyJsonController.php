@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Services\BibleStudy\BiblePassageJsonService;
+use App\Services\BibleStudy\LessonJsonService;
 use App\Responses\ResponseBuilder;
 use App\Helpers\ControllerValidator;
 use App\Services\LoggerService;
@@ -10,9 +10,9 @@ use Exception;
 
 class BibleStudyJsonController
 {
-    private BiblePassageJsonService $studyService;
+    private LessonJsonService $studyService;
 
-    public function __construct(BiblePassageJsonService $studyService)
+    public function __construct(LessonJsonService $studyService)
     {
         $this->studyService = $studyService;
     }
@@ -38,7 +38,7 @@ class BibleStudyJsonController
             $languageCodeJF = $validated['languageCodeJF'];
 
             // Build data blocks
-            $output = $this->studyService->generateLessonJsonBlock($study, $lesson, $languageCodeHL, $languageCodeJF);
+            $output = $this->studyService->generateLessonJsonObject($study, $lesson, $languageCodeHL, $languageCodeJF);
 
             LoggerService::logInfo('BibleStudyJsonController-58', print_r($output, true));
             ResponseBuilder::ok()

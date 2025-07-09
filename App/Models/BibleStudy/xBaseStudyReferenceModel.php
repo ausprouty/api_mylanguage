@@ -25,7 +25,7 @@ abstract class BaseStudyReferenceModel implements ArclightVideoInterface
     protected ?string $videoSource = null;
     protected ?string $videoPrefix = null;
     protected ?string $videoCode = null;
-    protected int $videoSegment = 0;
+    protected ?string $videoSegment = null;
     protected ?string $startTime = null;
     protected ?string $endTime = null;
 
@@ -259,7 +259,7 @@ abstract class BaseStudyReferenceModel implements ArclightVideoInterface
         $this->videoCode = $videoCode;
     }
 
-    public function setVideoSegment(int $videoSegment): void
+    public function setVideoSegment(string $videoSegment): void
     {
         $this->videoSegment = $videoSegment;
     }
