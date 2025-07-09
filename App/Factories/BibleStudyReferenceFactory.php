@@ -37,8 +37,9 @@ class BibleStudyReferenceFactory
             $result = $this->populateMissingValues($result);
             $this->updateStudyDatabase($study, $lesson, $result);
         }
-
-        return (new StudyReferenceModel())->populate($result)->setStudy($study);
+        $model = (new StudyReferenceModel())->populate($result);
+        $model->setStudy($study);
+        return $model;
     }
 
     protected function expandPassageReferenceInfo(array $reference): array
