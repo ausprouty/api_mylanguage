@@ -8,6 +8,7 @@ use App\Models\Bible\PassageModel;
 use App\Models\Bible\PassageReferenceModel;
 use App\Repositories\PassageRepository;
 use App\Services\Database\DatabaseService;
+use App\Services\LoggerService;
 
 /**
  * Service to manage Bible passages. This class checks if a passage exists in the
@@ -159,6 +160,7 @@ class BiblePassageService
      */
     private function getPassageService(): AbstractBiblePassageService
     {
+        LoggerService::logInfo('BiblePassageService-163',$this->bible->getSource());
         switch ($this->bible->getSource()) {
             case 'bible_brain':
                 return new BibleBrainPassageService(

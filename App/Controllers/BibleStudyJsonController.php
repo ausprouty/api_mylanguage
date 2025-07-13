@@ -17,8 +17,6 @@ class BibleStudyJsonController
         $this->studyService = $studyService;
     }
 
-   
-
     public function webFetchLessonContent(array $args): void
     {
         try {
@@ -40,7 +38,7 @@ class BibleStudyJsonController
             // Build data blocks
             $output = $this->studyService->generateLessonJsonObject($study, $lesson, $languageCodeHL, $languageCodeJF);
 
-            LoggerService::logInfo('BibleStudyJsonController-58', print_r($output, true));
+            LoggerService::logInfo('BibleStudyJsonController-43', print_r($output, true));
             ResponseBuilder::ok()
                 ->withMessage("Lesson content loaded.")
                 ->withData($output)
