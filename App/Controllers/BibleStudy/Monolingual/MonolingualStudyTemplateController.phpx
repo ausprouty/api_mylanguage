@@ -70,7 +70,7 @@ abstract class MonolingualStudyTemplateController
         $this->bibleRepository = $bibleRepository;
         $this->qrCodeService = $qrCodeService;
     }
-    // study can by one of 'DBS', 'Life', 'Leadership'
+    // study can by one of 'ctc', 'Life', 'Leadership'
     public function returnStudy($study, $lesson, $languageCodeHL){
     // Generate the file path for the study
         

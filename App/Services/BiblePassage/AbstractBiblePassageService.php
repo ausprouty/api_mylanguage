@@ -121,9 +121,12 @@ abstract class AbstractBiblePassageService
         $data->referenceLocalLanguage = $this->referenceLocalLanguage;
         $data->timesUsed = 1;
 
-        // Create a PassageModel instance using the factory and save it to the repository.
+        // Create a PassageModel instance using the factory and save it to the repository if it has data
         $passageModel = PassageFactory::createFromData($data);
-        $this->passageRepository->savePassageRecord($passageModel);
+        if (!empty($data->passageText) && strlen(trim($data->passageText)) >= 5) {
+            $this->passageRepository->savePassageRecord($passageModel);
+        }
+        
 
         return $passageModel;
     }

@@ -22,7 +22,10 @@ class BibleWordPassageService extends AbstractBiblePassageService
      */
     public function getPassageUrl(): string
     {
-        return "https://biblebrain.example.com/passage";
+        $url =  "https://wordproject.org/bibles/";
+        $url .= $this->bible->getExternalId();
+        $url .= '/' . $this->formatChapterPage() . '.htm';
+        return $url;
     }
 
     /**
@@ -34,9 +37,10 @@ class BibleWordPassageService extends AbstractBiblePassageService
     {
         $webpage = [];
         $localFile = $this->generateFilePath();
+        LoggerService::logInfo('BibleWordPassageService-37', $localFile);
 
-        if (!file_exists($localFile)) {
-            $webpage[0] = $this->fetchFromServerFile($localFile);
+        if (file_exists($localFile)) {
+            $webpage[0] = $this->fetchFromFileDirectory($localFile);
         } else {
             $response = $this->fetchFromWeb();
             $webpage[0] = $response->response;
@@ -54,7 +58,9 @@ class BibleWordPassageService extends AbstractBiblePassageService
     {
         $baseDir = Config::getDir('resources.root') . 'bibles/wordproject/';
         $externalId = $this->bible->getExternalId();
-        return $baseDir . $externalId . '/' . $this->formatChapterPage() . '.html';
+        $filePath =  $baseDir . $externalId . '/' . $this->formatChapterPage() . '.html';
+        LoggerService::logInfo('BibleWordPassageService-59', $filePath);
+        return $filePath;
     }
 
     /**
@@ -94,8 +100,9 @@ class BibleWordPassageService extends AbstractBiblePassageService
      * @param string $filename The file path to read.
      * @return string The file content.
      */
-    private function fetchFromServerFile($filename)
+    private function fetchFromFileDirectory($filename)
     {
+         LoggerService::logInfo('BibleWordPassageService-102','Fetching file from local source');
         return file_get_contents($filename);
     }
 
@@ -173,10 +180,15 @@ class BibleWordPassageService extends AbstractBiblePassageService
     private function trimToVerses($webpage)
     {
         $chapter = $this->trimToChapter($webpage);
+        LoggerService::logInfo('BibleWordPassageService-180',$chapter);
         $selectedVerses = $this->selectVerses($chapter);
-
-        return "\n<!-- begin bible -->" . $selectedVerses .
+         LoggerService::logInfo('BibleWordPassageService-182',$selectedVerses);
+         $result = '';
+         if ($selectedVerses){
+           $result = "\n<!-- begin bible -->" . $selectedVerses .
             "\n<!-- end bible -->\n";
+        }
+        return $result;
     }
 
     /**

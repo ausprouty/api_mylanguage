@@ -60,18 +60,8 @@ class BibleStudyService
     ): string {
         // Map study types to their corresponding service classes
         $serviceClassMap = [
-            'life' => [
-                'monolingual' => MonolingualLifeStudyService::class,
-                'bilingual' => BilingualLifeStudyService::class,
-            ],
-            'dbs' => [
-                'monolingual' => MonolingualDbsStudyService::class,
-                'bilingual' => BilingualDbsStudyService::class,
-            ],
-            'lead' => [
-                'monolingual' => MonolingualLeadStudyService::class,
-                'bilingual' => BilingualLeadStudyService::class,
-            ],
+                'monolingual' => MonolingualStudyService::class,
+                'bilingual' => BilingualStudyService::class
         ];
     
         // Validate the study type

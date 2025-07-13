@@ -8,8 +8,7 @@ use App\Factories\PassageReferenceFactory;
 use App\Models\Bible\BibleModel;
 use App\Models\Language\LanguageModel;
 use App\Models\BibleStudy\DbsReferenceModel;
-use App\Models\BibleStudy\LeadershipReferenceModel;
-use App\Models\BibleStudy\LifePrincipleReferenceModel;
+
 use App\Models\Bible\PassageModel;
 use App\Models\Video\VideoModel;
 use App\Repositories\BibleRepository;
