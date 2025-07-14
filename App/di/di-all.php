@@ -85,6 +85,8 @@ return [
     'App\Controllers\Video\VideoController' => DI\autowire()->constructor(
         DI\get('App\Services\Database\DatabaseService')
     ),
+    'App\Cron\BibleBrainLanguageSyncService' => DI\autowire(),
+
     'App\Factories\BibleBrainConnectionFactory' => DI\autowire()->constructor(
 
     ),
@@ -204,7 +206,7 @@ return [
         DI\get('App\Services\Database\DatabaseService')
     ),
     'App\Services\Bible\BibleBrainLanguageService' => DI\autowire()->constructor(
-        DI\get('App\Repositories\LanguageRepository'),
+        DI\get('App\Repositories\BibleBrainLanguageRepository'),
         DI\get('App\Factories\LanguageFactory')
     ),
     'App\Services\Bible\BibleGatewayDataParserService' => DI\autowire()->constructor(
