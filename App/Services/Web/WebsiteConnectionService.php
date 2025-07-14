@@ -19,7 +19,7 @@ class WebsiteConnectionService
     protected function connect()
     {
         try {
-            writeLog('WebsiteConntectionService', $this->url);
+            LoggerService::logInfo('WebsiteConntectionService', $this->url);
             $curl = curl_init();
             curl_setopt_array($curl, [
                 CURLOPT_URL => $this->url,

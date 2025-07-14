@@ -35,10 +35,14 @@ class LoggerService
      * Logs an informational message.
      *
      * @param string $context Context or location of the info log.
-     * @param string $message The informational message to log.
+     * @param string|array|object $message The informational message to log.
      */
-    public static function logInfo(string $context, string $message): void
+    public static function logInfo(string $context, $message): void
     {
+        if (!is_string($message)) {
+            $message = print_r($message, true);
+        }
+
         self::log('INFO', $context, $message);
     }
 
