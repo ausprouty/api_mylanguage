@@ -10,6 +10,13 @@ return function (RouteCollector $r) {
     $basePath = Config::get('base_path');
 
     $container = require __DIR__ . '/../Configuration/container.php';
+    //test
+    $r->addGroup($basePath . 'api/test', function (RouteCollector $group) use ($container) {
+        $group->addRoute('GET', '', function () use ($container) {
+            return $container->get(App\Controllers\TestBibleBrainController::class)
+                ->logFiveLanguages();
+        });
+    });
 
     // New Routes
     $r->addGroup($basePath . 'api/bible', function (RouteCollector $group) use ($container) {
