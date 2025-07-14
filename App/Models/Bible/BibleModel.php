@@ -2,17 +2,16 @@
 
 namespace App\Models\Bible;
 
-use App\Repositories\BibleRepository;
 use ReflectionClass;
-use Exception;
 
 /**
- * Represents a Bible entity.
+ * Represents a Bible resource, including metadata for language, media types,
+ * and fileset classification. Used for integration with external sources like BibleBrain.
  */
 class BibleModel
 {
-    private $repository;
 
+    // Bible metadata fields
     private $abbreviation;
     private $audio;
     private $bid;
@@ -22,7 +21,7 @@ class BibleModel
     private $externalId;
     private $format;
     private $idBibleGateway;
-    private $languageCode;
+    private $languageCodeBibleBrain;
     private $languageCodeDrupal;
     private $languageCodeHL;
     private $languageCodeIso;
@@ -39,9 +38,9 @@ class BibleModel
     private $weight;
 
     /**
-     * Populates the model with data from an associative array.
+     * Populates the model with data using reflection.
      *
-     * @param array $data Associative array of property values.
+     * @param array $data Key-value array where keys match property names.
      */
     public function populate(array $data): void
     {
@@ -56,7 +55,7 @@ class BibleModel
     }
 
     /**
-     * Resets the media type flags (text, audio, video) to zero.
+     * Resets all media type flags (text/audio/video) to false (0).
      */
     public function resetMediaFlags(): void
     {
@@ -66,9 +65,7 @@ class BibleModel
     }
 
     /**
-     * Sets the text media flag.
-     *
-     * @param bool $value The value to set (true/false).
+     * Sets the text flag.
      */
     public function setText(bool $value): void
     {
@@ -76,9 +73,7 @@ class BibleModel
     }
 
     /**
-     * Sets the audio media flag.
-     *
-     * @param bool $value The value to set (true/false).
+     * Sets the audio flag.
      */
     public function setAudio(bool $value): void
     {
@@ -86,9 +81,7 @@ class BibleModel
     }
 
     /**
-     * Sets the video media flag.
-     *
-     * @param bool $value The value to set (true/false).
+     * Sets the video flag.
      */
     public function setVideo(bool $value): void
     {
@@ -109,243 +102,55 @@ class BibleModel
         return $propsArray;
     }
 
-    /**
-     * Get the abbreviation.
-     *
-     * @return string|null
-     */
-    public function getAbbreviation(): ?string
-    {
-        return $this->abbreviation;
-    }
+    // ----------------------
+    // Getters for properties
+    // ----------------------
 
-    /**
-     * Get the audio flag.
-     *
-     * @return int
-     */
-    public function getAudio(): int
-    {
-        return $this->audio;
-    }
+    public function getAbbreviation(): ?string { return $this->abbreviation; }
 
-    /**
-     * Get the Bible ID (bid).
-     *
-     * @return int
-     */
-    public function getBid(): int
-    {
-        return $this->bid;
-    }
+    public function getAudio(): int { return $this->audio; }
 
-    /**
-     * Get the collection code.
-     *
-     * @return string
-     */
-    public function getCollectionCode(): string
-    {
-        return $this->collectionCode;
-    }
+    public function getBid(): int { return $this->bid; }
 
-    /**
-     * Get the date verified.
-     *
-     * @return string
-     */
-    public function getDateVerified(): string
-    {
-        return $this->dateVerified;
-    }
+    public function getCollectionCode(): ?string { return $this->collectionCode; }
 
-    /**
-     * Get the direction.
-     *
-     * @return string
-     */
-    public function getDirection(): string
-    {
-        return $this->direction;
-    }
+    public function getDateVerified(): ?string { return $this->dateVerified; }
 
-    /**
-     * Get the external ID.
-     *
-     * @return string
-     */
-    public function getExternalId(): string
-    {
-        return $this->externalId;
-    }
+    public function getDirection(): ?string { return $this->direction; }
 
-    /**
-     * Get the format.
-     *
-     * @return string
-     */
-    public function getFormat(): string
-    {
-        return $this->format;
-    }
+    public function getExternalId(): ?string { return $this->externalId; }
 
-    /**
-     * Get the Bible Gateway ID.
-     *
-     * @return string
-     */
-    public function getIdBibleGateway(): string
-    {
-        return $this->idBibleGateway;
-    }
+    public function getFormat(): ?string { return $this->format; }
 
-    /**
-     * Get the language code.
-     *
-     * @return string
-     */
-    public function getLanguageCode(): string
-    {
-        return $this->languageCode;
-    }
+    public function getIdBibleGateway(): ?string { return $this->idBibleGateway; }
 
-    /**
-     * Get the language code (Drupal).
-     *
-     * @return string
-     */
-    public function getLanguageCodeDrupal(): string
-    {
-        return $this->languageCodeDrupal;
-    }
+    public function getLanguageCodeBibleBrain(): ?int { return $this->languageCodeBibleBrain; }
 
-    /**
-     * Get the language code (HL).
-     *
-     * @return string
-     */
-    public function getLanguageCodeHL(): string
-    {
-        return $this->languageCodeHL;
-    }
+    public function getLanguageCodeDrupal(): ?string { return $this->languageCodeDrupal; }
 
-    /**
-     * Get the language code (ISO).
-     *
-     * @return string
-     */
-    public function getLanguageCodeIso(): string
-    {
-        return $this->languageCodeIso;
-    }
+    public function getLanguageCodeHL(): ?string { return $this->languageCodeHL; }
 
-    /**
-     * Get the language English name.
-     *
-     * @return string
-     */
-    public function getLanguageEnglish(): string
-    {
-        return $this->languageEnglish;
-    }
+    public function getLanguageCodeIso(): ?string { return $this->languageCodeIso; }
 
-    /**
-     * Get the language name.
-     *
-     * @return string
-     */
-    public function getLanguageName(): string
-    {
-        return $this->languageName;
-    }
+    public function getLanguageEnglish(): ?string { return $this->languageEnglish; }
 
-    /**
-     * Get the no-bold PDF setting.
-     *
-     * @return string
-     */
-    public function getNoBoldPdf(): string
-    {
-        return $this->noBoldPdf;
-    }
+    public function getLanguageName(): ?string { return $this->languageName; }
 
-    /**
-     * Get the numerals.
-     *
-     * @return string
-     */
-    public function getNumerals(): string
-    {
-        return $this->numerals;
-    }
+    public function getNoBoldPdf(): ?string { return $this->noBoldPdf; }
 
-    /**
-     * Get the source.
-     *
-     * @return string
-     */
-    public function getSource(): string
-    {
-        return $this->source;
-    }
+    public function getNumerals(): ?string { return $this->numerals; }
 
-    /**
-     * Get the space PDF setting.
-     *
-     * @return string
-     */
-    public function getSpacePdf(): string
-    {
-        return $this->spacePdf;
-    }
+    public function getSource(): ?string { return $this->source; }
 
-    /**
-     * Get the text flag.
-     *
-     * @return int
-     */
-    public function getText(): int
-    {
-        return $this->text;
-    }
+    public function getSpacePdf(): ?string { return $this->spacePdf; }
 
-    /**
-     * Get the video flag.
-     *
-     * @return int
-     */
-    public function getVideo(): int
-    {
-        return $this->video;
-    }
+    public function getText(): int { return $this->text; }
 
-    /**
-     * Get the volume name.
-     *
-     * @return string
-     */
-    public function getVolumeName(): string
-    {
-        return $this->volumeName;
-    }
+    public function getVideo(): int { return $this->video; }
 
-    /**
-     * Get the alternate volume name.
-     *
-     * @return string
-     */
-    public function getVolumeNameAlt(): string
-    {
-        return $this->volumeNameAlt;
-    }
+    public function getVolumeName(): ?string { return $this->volumeName; }
 
-    /**
-     * Get the weight.
-     *
-     * @return int
-     */
-    public function getWeight(): int
-    {
-        return $this->weight;
-    }
+    public function getVolumeNameAlt(): ?string { return $this->volumeNameAlt; }
+
+    public function getWeight(): ?int { return $this->weight; }
 }
