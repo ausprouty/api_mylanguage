@@ -33,13 +33,25 @@ class BibleBrainLanguageRepository extends BaseRepository
     }
 
     /**
+     * Retrieves HL and BibleBrain language codes from ISO code.
+     */
+    public function getLanguageCodesFromBibleBrain(string $languageCodeBibleBrain): ?array
+    {
+        $query = 'SELECT languageCodeHL, languageCodeJF
+                  FROM hl_languages
+                  WHERE languageCodeBibleBrain = :languageCodeBibleBrain LIMIT 1';
+        return $this->databaseService->fetchRow($query, [':languageCodeBibleBrain' => $languageCodeBibleBrain]);
+    }
+
+    /**
      * Updates the BibleBrain code for a language by ISO code.
      */
     public function updateLanguageCodeBibleBrain(string $languageCodeIso, string $languageCodeBibleBrain): void
     {
         $query = 'UPDATE hl_languages 
                   SET languageCodeBibleBrain = :languageCodeBibleBrain 
-                  WHERE languageCodeIso = :languageCodeIso';
+                  WHERE languageCodeIso = :languageCodeIso
+                  AND languageCodeBibleBrain IS NULL';
         $params = [
             ':languageCodeBibleBrain' => $languageCodeBibleBrain,
             ':languageCodeIso' => $languageCodeIso

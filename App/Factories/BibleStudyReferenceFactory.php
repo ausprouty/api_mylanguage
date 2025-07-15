@@ -26,7 +26,7 @@ class BibleStudyReferenceFactory
         $params = [':study' => $study, ':lesson' => $lesson];
         $data = $this->databaseService->fetchRow($query, $params);
 
-        if (!$data) {
+        if (empty($data)) {
             throw new Exception("No record found for study '$study' and lesson $lesson.");
         }
 

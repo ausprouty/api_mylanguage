@@ -53,8 +53,6 @@ class BibleBrainLanguageSyncService
             $response = new BibleBrainConnectionService($url);
             $data = $response->response->data ?? [];
             
-
-
             if (empty($data)) {
                 break;
             }
@@ -69,10 +67,18 @@ class BibleBrainLanguageSyncService
                 if (!$languageCodeIso || !$languageCodeBibleBrain) {
                     continue;
                 }
-
+                // see if language is already in our database; if so, skip 
+                $bibleBrain = $this->bibleBrainLanguageRepository->bibleBrainLanguageRecordExists($languageCodeBibleBrain);
+                if ($bibleBrain){
+                    loggerService::logInfo('SyncAllBibleBrainLanguages-73 - existing', " $languageCodeBibleBrain --   $languageCodeIso");
+                    continue;
+                }
+                // now we will update existing records with the same languageCodeIso that
+                // do not already have a languageCodeBibieBrain
                 $existing = $this->languageRepository->getLanguageCodesFromIso($languageCodeIso);
                 loggerService::logInfo('SyncAllBibleBrainLanguages-74',$existing);
                 if (empty($existing->languageCodeHL)) {
+                     loggerService::logInfo('SyncAllBibleBrainLanguages-81 - new', " $languageCodeBibleBrain --   $languageCodeIso");
                     $this->languageRepository->insertLanguage($languageCodeIso, $name);
                 }
 
@@ -80,7 +86,6 @@ class BibleBrainLanguageSyncService
                     loggerService::logInfo('SyncAllBibleBrainLanguages-80', $languageCodeBibleBrain);
                     $this->bibleBrainLanguageRepository->updateLanguageCodeBibleBrain($languageCodeIso, $languageCodeBibleBrain);
                 }
-
                 if ($autonym) {
                     $ethnics = $this->languageRepository->getEthnicNamesForLanguageIso($languageCodeIso);
                     if (!in_array($autonym, $ethnics, true)) {
@@ -132,7 +137,7 @@ class BibleBrainLanguageSyncService
         foreach ($data as $entry) {
             $logEntry = [
                 'id' => $entry->id ?? 'N/A',
-                'languageCodeIso' => $entry->languageCodeIso ?? 'N/A',
+                'languageCodeIso' => $entry->iso ?? 'N/A',
                 'name' => $entry->name ?? 'N/A',
                 'autonym' => $entry->autonym ?? 'N/A',
                 'bibles' => $entry->bibles ?? 0,

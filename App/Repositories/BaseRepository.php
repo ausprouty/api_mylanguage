@@ -23,7 +23,7 @@ abstract class BaseRepository
     )
     {
         $data = $this->databaseService->fetchRow($query, $params);
-        if ($data) {
+        if (!empty($data)) {
             $model = new $modelClass();
             $model->populate($data);
             return $model;

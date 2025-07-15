@@ -96,15 +96,13 @@ class DatabaseService
         }
     }
 
-
-    /**
-     * Fetches all rows from a query as an associative array.
-     *
-     * @param string $query SQL query.
-     * @param array $params Optional parameters for prepared statement.
-     * @return array|null The result set or null on failure.
-     */
-    public function fetchAll(string $query, array $params = []): ?array
+    /* Fetches all rows from a query as an associative array.
+    *
+    * @param string $query SQL query.
+    * @param array $params Optional parameters for prepared statement.
+    * @return array The result set as an array of rows, or an empty array if no results or error.
+    */
+    public function fetchAll(string $query, array $params = []): array
     {
         $stmt = $this->executeQuery($query, $params);
         return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
@@ -117,11 +115,12 @@ class DatabaseService
      * @param array $params Optional parameters for prepared statement.
      * @return array|null The result row or null on failure.
      */
-    public function fetchRow(string $query, array $params = []): ?array
+   public function fetchRow(string $query, array $params = []): ?array
     {
         $stmt = $this->executeQuery($query, $params);
-        return $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : [];
-    }
+        $result = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : false;
+        return $result === false ? null : $result;
+    }   
 
     /**
      * Fetches a single column value from the first row.
@@ -149,13 +148,14 @@ class DatabaseService
      *
      * @param string $query SQL query.
      * @param array $params Optional parameters for prepared statement.
-     * @return array|null The array of values or null if query fails.
+     * @return array The array of values or an empty array if query fails or no results.
      */
-    public function fetchColumn(string $query, array $params = []): ?array
+    public function fetchColumn(string $query, array $params = []): array
     {
         $stmt = $this->executeQuery($query, $params);
         return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
     }
+
 
     /**
      * Retrieves the last inserted ID from the database.

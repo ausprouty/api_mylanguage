@@ -18,10 +18,10 @@ class AskQuestionRepository extends BaseRepository
         $query = "SELECT * FROM ask_questions WHERE languageCodeHL = :code ORDER BY weight DESC LIMIT 1";
         $params = [':code' => $code];
 
-        // Fetch a single row using fetchRow, which returns null if no result is found
+        // Fetch a single row using fetchRow, which returns [] if no result is found
         $data = $this->databaseService->fetchRow($query, $params);
 
-        if ($data) {
+        if (!empty($data)) {
             $askQuestion = new AskQuestionModel();
             $askQuestion->setValues($data);
             return $askQuestion;
