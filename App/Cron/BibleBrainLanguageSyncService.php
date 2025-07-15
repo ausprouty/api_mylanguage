@@ -3,6 +3,7 @@
 namespace App\Cron;
 
 use App\Repositories\BibleBrainLanguageRepository;
+use App\Repositories\LanguageRepository;
 use App\Services\Web\BibleBrainConnectionService;
 use App\Services\LoggerService;
 
@@ -12,11 +13,13 @@ use App\Services\LoggerService;
  */
 class BibleBrainLanguageSyncService
 {
-    private BibleBrainLanguageRepository $languageRepository;
+    private BibleBrainLanguageRepository $bibleBrainLanguageRepository;
+    private LanguageRepository $languageRepository;
     private string $logFile;
 
-    public function __construct(BibleBrainLanguageRepository $languageRepository)
+    public function __construct(BibleBrainLanguageRepository $bibleBrainLanguageRepository,LanguageRepository $languageRepository)
     {
+        $this->bibleBrainLanguageRepository = $bibleBrainLanguageRepository;
         $this->languageRepository = $languageRepository;
         $this->logFile = __DIR__ . '/../../data/cron/last_biblebrain_sync.txt';
     }
@@ -42,17 +45,14 @@ class BibleBrainLanguageSyncService
     private function syncAllBibleBrainLanguages(): void
     {
         $page = 1;
-        $limit = 10;
+        $limit = 100;
 
         do {
             $url = "languages?limit={$limit}&page={$page}&v=4";
             loggerService::logInfo('SyncAllBibleBrainLanguages-49', $url);
             $response = new BibleBrainConnectionService($url);
             $data = $response->response->data ?? [];
-            // to debug
-            if ($page == 2){
-                break;
-            }
+            
 
 
             if (empty($data)) {
@@ -70,7 +70,7 @@ class BibleBrainLanguageSyncService
                     continue;
                 }
 
-                $existing = $this->languageRepository->getLanguageCodes($languageCodeIso);
+                $existing = $this->languageRepository->getLanguageCodesFromIso($languageCodeIso);
                 loggerService::logInfo('SyncAllBibleBrainLanguages-74',$existing);
                 if (empty($existing->languageCodeHL)) {
                     $this->languageRepository->insertLanguage($languageCodeIso, $name);
@@ -78,7 +78,7 @@ class BibleBrainLanguageSyncService
 
                 if (empty($existing->languageCodeBibleBrain)) {
                     loggerService::logInfo('SyncAllBibleBrainLanguages-80', $languageCodeBibleBrain);
-                    $this->languageRepository->updateLanguageCodeBibleBrain($languageCodeIso, $languageCodeBibleBrain);
+                    $this->bibleBrainLanguageRepository->updateLanguageCodeBibleBrain($languageCodeIso, $languageCodeBibleBrain);
                 }
 
                 if ($autonym) {

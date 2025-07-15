@@ -23,52 +23,12 @@ class LanguageRepository extends BaseRepository
     }
 
     /**
-     * Inserts a new language with generated HL code.
-     */
-    public function insertLanguage(string $languageCodeIso, string $name): void
-    {
-        $languageCodeHL = $languageCodeIso . date('y');
-        $query = 'INSERT INTO hl_languages (languageCodeIso, languageCodeHL, name)
-                  VALUES (:languageCodeIso, :languageCodeHL, :name)';
-        $params = [
-            ':languageCodeIso' => $languageCodeIso,
-            ':languageCodeHL' => $languageCodeHL,
-            ':name' => $name
-        ];
-        $this->databaseService->executeQuery($query, $params);
-    }
-
-    /**
-     * Updates the ethnic name of a language by ISO code.
-     */
-    public function updateEthnicName(string $languageCodeIso, string $ethnicName): void
-    {
-        $query = 'UPDATE hl_languages SET ethnicName = :ethnicName WHERE languageCodeIso = :languageCodeIso';
-        $params = [
-            ':ethnicName' => $ethnicName,
-            ':languageCodeIso' => $languageCodeIso
-        ];
-        $this->databaseService->executeQuery($query, $params);
-    }
-
-    /**
      * Checks if a language with the given ISO code exists.
      */
     public function languageIsoRecordExists(string $languageCodeIso): bool
     {
         $query = 'SELECT id FROM hl_languages WHERE languageCodeIso = :languageCodeIso LIMIT 1';
         return $this->databaseService->fetchSingleValue($query, [':languageCodeIso' => $languageCodeIso]) !== null;
-    }
-
-    /**
-     * Retrieves languageCodeHL and languageCodeBibleBrain for a given ISO code.
-     */
-    public function getLanguageCodes(string $languageCodeIso): ?array
-    {
-        $query = 'SELECT languageCodeHL, languageCodeBibleBrain
-                  FROM hl_languages
-                  WHERE languageCodeIso = :languageCodeIso LIMIT 1';
-        return $this->databaseService->fetchRow($query, [':languageCodeIso' => $languageCodeIso]);
     }
 
     /**
@@ -127,6 +87,18 @@ class LanguageRepository extends BaseRepository
     }
 
     /**
+     * Retrieves all unique ethnic names for a given ISO code.
+     */
+    public function getEthnicNamesForLanguageIso(string $languageCodeIso): array
+    {
+        $query = 'SELECT DISTINCT ethnicName
+                  FROM hl_languages
+                  WHERE languageCodeIso = :languageCodeIso AND ethnicName IS NOT NULL';
+        
+        return $this->databaseService->fetchColumn($query, [':languageCodeIso' => $languageCodeIso]);
+    }
+
+    /**
      * Retrieves ethnic name by ISO code.
      */
     public function getEthnicNameForLanguageCodeIso(string $languageCodeIso): ?string
@@ -145,13 +117,42 @@ class LanguageRepository extends BaseRepository
     }
 
     /**
-     * Retrieves all unique ethnic names for a given ISO code.
+     * Inserts a new language with a generated HL code based on ISO and current year.
      */
-    public function getEthnicNamesForLanguageIso(string $languageCodeIso): array
+    public function insertLanguage(string $languageCodeIso, string $name): void
     {
-        $query = 'SELECT DISTINCT ethnicName
+        $languageCodeHL = $languageCodeIso . date('y');
+        $query = 'INSERT INTO hl_languages (languageCodeIso, languageCodeHL, name)
+                  VALUES (:languageCodeIso, :languageCodeHL, :name)';
+        $params = [
+            ':languageCodeIso' => $languageCodeIso,
+            ':languageCodeHL' => $languageCodeHL,
+            ':name' => $name
+        ];
+        $this->databaseService->executeQuery($query, $params);
+    }
+
+    /**
+     * Retrieves HL and BibleBrain language codes from ISO code.
+     */
+    public function getLanguageCodesFromIso(string $languageCodeIso): ?array
+    {
+        $query = 'SELECT languageCodeHL, languageCodeBibleBrain
                   FROM hl_languages
-                  WHERE languageCodeIso = :languageCodeIso AND ethnicName IS NOT NULL';
-        return $this->databaseService->fetchColumnList($query, [':languageCodeIso' => $languageCodeIso]);
+                  WHERE languageCodeIso = :languageCodeIso LIMIT 1';
+        return $this->databaseService->fetchRow($query, [':languageCodeIso' => $languageCodeIso]);
+    }
+
+    /**
+     * Updates the ethnic name of a language by ISO code.
+     */
+    public function updateEthnicName(string $languageCodeIso, string $ethnicName): void
+    {
+        $query = 'UPDATE hl_languages SET ethnicName = :ethnicName WHERE languageCodeIso = :languageCodeIso';
+        $params = [
+            ':ethnicName' => $ethnicName,
+            ':languageCodeIso' => $languageCodeIso
+        ];
+        $this->databaseService->executeQuery($query, $params);
     }
 }

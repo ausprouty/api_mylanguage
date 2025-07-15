@@ -107,7 +107,7 @@ class DatabaseService
     public function fetchAll(string $query, array $params = []): ?array
     {
         $stmt = $this->executeQuery($query, $params);
-        return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : null;
+        return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
     }
 
     /**
@@ -120,7 +120,7 @@ class DatabaseService
     public function fetchRow(string $query, array $params = []): ?array
     {
         $stmt = $this->executeQuery($query, $params);
-        return $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+        return $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : [];
     }
 
     /**
@@ -154,7 +154,7 @@ class DatabaseService
     public function fetchColumn(string $query, array $params = []): ?array
     {
         $stmt = $this->executeQuery($query, $params);
-        return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : null;
+        return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
     }
 
     /**
