@@ -44,32 +44,26 @@ class BibleBrainBibleSyncService
      */
     private function syncNewBibles(): void
     {
-        $offset = 0;
         $addedCount = 0;
 
-        do {
-            $languages = $this->repository->getUnverifiedLanguages($this->batchSize, $offset);
-            if (empty($languages)) {
-                break;
+        while ($language = $this->repository->getNextLanguageForBibleBrainSync()) {
+            $iso = strtoupper($language['languageCodeIso']);
+            $url = "bibles?language_code=$iso";
+
+            $connection = new BibleBrainConnectionService($url);
+            $entries = $connection->response->data ?? [];
+
+            foreach ($entries as $entry) {
+                $addedCount += $this->processEntry($entry, $language);
             }
 
-            foreach ($languages as $language) {
-                $iso = strtoupper($language['languageCodeIso']);
-                $url = "bibles/defaults/types?language_code=$iso";
-
-                $connection = new BibleBrainConnectionService($url);
-                $entries = $connection->response->data ?? [];
-
-                foreach ($entries as $entry) {
-                    $addedCount += $this->processEntry($entry, $language);
-                }
-            }
-
-            $offset += $this->batchSize;
-        } while (count($languages) === $this->batchSize);
+            // Mark the language as checked whether or not new entries were added
+            $this->repository->markLanguageAsChecked($language['languageCodeIso']);
+        }
 
         LoggerService::logInfo('BibleBrainSync', "Total new entries added: $addedCount");
     }
+
 
     /**
      * Processes a single Bible entry from BibleBrain and inserts any new filesets.
@@ -91,7 +85,7 @@ class BibleBrainBibleSyncService
                     'languageCodeIso' => $language['languageCodeIso'],
                     'languageCodeHL' => $language['languageCodeHL'],
                     'source' => 'dbt',
-                    'format' => 'text',
+                    'format' => $fs['type'],
                     'text' => 'Y',
                     'audio' => '',
                     'video' => '',
