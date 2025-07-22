@@ -86,6 +86,9 @@ return [
         DI\get('App\Services\Database\DatabaseService')
     ),
     'App\Cron\BibleBrainLanguageSyncService' => DI\autowire(),
+    'App\Cron\BibleBrainBibleSyncService' => DI\autowire(),
+    'App\Cron\BibleBrainBibleCleanupService' => DI\autowire(),
+    
 
     'App\Factories\BibleBrainConnectionFactory' => DI\autowire()->constructor(
 

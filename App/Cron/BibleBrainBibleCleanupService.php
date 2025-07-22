@@ -20,7 +20,7 @@ class BibleBrainBibleCleanupService
 {
     private BibleBrainBibleRepository $repository;
     private string $logFile;
-    private int $batchSize = 100;
+    private int $batchSize = 1;
 
     public function __construct(BibleBrainBibleRepository $repository)
     {
@@ -62,7 +62,7 @@ class BibleBrainBibleCleanupService
     private function processBible(array $bible): bool
     {
         $iso = strtoupper($bible['languageCodeIso']);
-        $url = "bibles/defaults/types?language_code=$iso";
+        $url = "bibles?language_code=$iso";
 
         $connection = new BibleBrainConnectionService($url);
         $bibleData = $connection->response->data ?? [];
@@ -73,23 +73,18 @@ class BibleBrainBibleCleanupService
                     continue;
                 }
 
-                // Match based on languageCodeHL and volume similarity
-                if (
-                    strtolower($bible['languageCodeHL']) === strtolower($bible['languageCodeHL']) &&
-                    stripos($fileset['volume'], $bible['volumeName']) !== false
-                ) {
-                    if ($bible['externalId'] !== $fileset['id']) {
-                        $this->repository->updateExternalId($bible['bid'], $fileset['id']);
-                        $this->repository->markAsVerified($bible['bid']);
-                        LoggerService::logInfo('BibleBrainCleanup', "Updated BID {$bible['bid']} from {$bible['externalId']} to {$fileset['id']}");
-                        return true;
-                    }
+                $match = $this->repository->findMatchingBible($bible['languageCodeIso'], $fileset['volume']);
+                if ($match && $match['bid'] === $bible['bid'] && $match['externalId'] !== $fileset['id']) {
+                    $this->repository->updateExternalId($bible['bid'], $fileset['id']);
+                    LoggerService::logInfo('BibleBrainCleanup', "Updated BID {$bible['bid']} from {$bible['externalId']} to {$fileset['id']}");
+                    return true;
                 }
             }
         }
 
-        // Still mark as verified, even if no update needed
-        $this->repository->markAsVerified($bible['bid']);
+        // Do NOT mark as verified unless we found a match (per your new policy)
         return false;
     }
+
+    
 }
