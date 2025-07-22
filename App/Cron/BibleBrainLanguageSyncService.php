@@ -21,7 +21,7 @@ class BibleBrainLanguageSyncService
     {
         $this->bibleBrainLanguageRepository = $bibleBrainLanguageRepository;
         $this->languageRepository = $languageRepository;
-        $this->logFile = __DIR__ . '/../../data/cron/last_biblebrain_sync.txt';
+        $this->logFile = __DIR__ . '/../../data/cron/last_biblebrain_language_sync.txt';
     }
 
     /**
