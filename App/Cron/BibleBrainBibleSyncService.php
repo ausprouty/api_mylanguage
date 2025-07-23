@@ -95,7 +95,7 @@ class BibleBrainBibleSyncService
                 $added++;
             }
         }
-
+        $this->repository->markLanguageAsChecked($language['languageCodeIso']);
         $this->repository->markLanguageAsVerified($language['languageCodeIso']);
         return $added;
     }

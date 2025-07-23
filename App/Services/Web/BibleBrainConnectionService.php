@@ -30,7 +30,5 @@ class BibleBrainConnectionService extends WebsiteConnectionService
         // Call the parent constructor to initialize the URL and connection
         parent::__construct($url);
 
-        // Decode the JSON response after the connection
-        $this->response = json_decode($this->response);
     }
 }
