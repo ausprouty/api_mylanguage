@@ -52,6 +52,15 @@ class BibleBrainBibleRepository extends BaseRepository
     }
 
     /**
+     * Updates the dateVerified field to today's date for a Bible row.
+     */
+    public function updateDateVerified(int $bid): void
+    {
+        $query = 'UPDATE bibles SET dateVerified = CURDATE() WHERE bid = :bid';
+        $this->databaseService->executeQuery($query, [':bid' => $bid]);
+    }
+
+    /**
      * Checks if a Bible record already exists by externalId.
      */
     public function bibleRecordExists(string $externalId): bool
@@ -71,7 +80,7 @@ class BibleBrainBibleRepository extends BaseRepository
         $query = 'INSERT INTO bibles (' . implode(',', $columns) . ') VALUES (' . implode(',', $placeholders) . ')';
         $this->databaseService->executeQuery($query, array_combine($placeholders, array_values($data)));
     }
-
+    
     /**
      * Finds existing Bible record for matching language and volume name.
      */
@@ -93,18 +102,29 @@ class BibleBrainBibleRepository extends BaseRepository
 
     /**
      * Retrieves a batch of bibles for initial cleanup.
+     * Only includes Bibles that have not yet been verified.
      */
-    public function getBiblesForCleanup(int $limit, int $offset): array
+    public function getBiblesForCleanup(int $limit, int $lastBid = 0): array
     {
-        $query = 'SELECT * FROM bibles
-                  WHERE source = "dbt"
-                    AND format = "text"
-                  ORDER BY bid ASC
-                  LIMIT :limit OFFSET :offset';
+        $query = '
+            SELECT *
+            FROM bibles
+            WHERE source = :source
+            AND format LIKE :formatPrefix
+            AND (dateVerified IS NULL OR dateVerified = "0000-00-00")
+            AND bid > :lastBid
+            ORDER BY bid ASC
+            LIMIT :limit
+        ';
+        $params = [
+            ':source'       => 'dbt',
+            ':formatPrefix' => 'text%',
+            ':lastBid'      => $lastBid,
+            ':limit'        => $limit,
+        ];
 
-        return $this->databaseService->fetchAll($query, [
-            ':limit' => $limit,
-            ':offset' => $offset
-        ]);
+        return $this->databaseService->fetchAll($query, $params);
     }
+
+
 }

@@ -14,6 +14,7 @@ class WebsiteConnectionService
     {
         $this->url = $url;
         $this->connect();
+        $this->decode(); // <<--- decode here
     }
     
     protected function connect()
@@ -51,15 +52,17 @@ class WebsiteConnectionService
 
     protected function decode()
     {
-        $decoded = json_decode($this->response);
+        $decoded = json_decode($this->response, true); // decode as array
         if (json_last_error() !== JSON_ERROR_NONE) {
             $errorMessage = "JSON decode error: " . json_last_error_msg();
             LoggerService::logError($errorMessage);
             throw new Exception($errorMessage);
         }
 
-        $this->response = isset($decoded->data) ? $decoded->data : $decoded;
+        // store decoded response as array
+        $this->response = $decoded;
     }
+
 
     public function getResponse()
     {
