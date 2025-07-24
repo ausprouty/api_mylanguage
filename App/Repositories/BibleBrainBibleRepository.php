@@ -17,30 +17,10 @@ class BibleBrainBibleRepository extends BaseRepository
         parent::__construct($databaseService);
     }
 
-    /**
-     * Fetches the next language needing BibleBrain verification.
-     * Only languages with a valid BibleBrain code and unverified in the last 6 months.
-     */
-    public function getNextLanguageForBibleBrainSync(): ?array
-    {
-        $query = 'SELECT languageCodeHL, languageCodeIso, languageCodeBibleBrain
-                  FROM hl_languages
-                  WHERE languageCodeBibleBrain IS NOT NULL
-                    AND (CheckedBBBibles IS NULL OR CheckedBBBibles < DATE_SUB(CURDATE(), INTERVAL 6 MONTH))
-                  ORDER BY CheckedBBBibles ASC
-                  LIMIT 1';
 
-        return $this->databaseService->fetchRow($query);
-    }
 
-    /**
-     * Updates CheckedBBBibles date to today for a given ISO code.
-     */
-    public function markLanguageAsChecked(string $languageCodeIso): void
-    {
-        $query = 'UPDATE hl_languages SET CheckedBBBibles = CURDATE() WHERE languageCodeIso = :iso';
-        $this->databaseService->executeQuery($query, [':iso' => $languageCodeIso]);
-    }
+    
+    
 
     /**
      * Updates the externalId for a Bible row.
@@ -125,6 +105,28 @@ class BibleBrainBibleRepository extends BaseRepository
 
         return $this->databaseService->fetchAll($query, $params);
     }
+
+    public function updateLanguageFieldsIfMissing(string $externalId, array $entry): void
+{
+    $query = '
+        UPDATE bibles
+        SET languageEnglish = :languageEnglish,
+            languageName = :languageAutonym,
+            languageCodeBibleBrain = :languageCodeBibleBrain,
+            dateVerified = :dateVerified
+        WHERE externalId = :externalId
+          AND (languageCodeBibleBrain IS NULL)
+    ';
+    $dateVerified = date('Y-m-d');
+    $this->databaseService->executeQuery($query, [
+        ':languageEnglish' => $entry['language'] ?? '',
+        ':languageAutonym' => $entry['autonym'] ?? '',
+        ':languageCodeBibleBrain' => $entry['language_id'] ?? '',
+        ':dateVerified'=> $dateVerified, 
+        ':externalId' => $externalId,
+    ]);
+}
+
 
 
 }
