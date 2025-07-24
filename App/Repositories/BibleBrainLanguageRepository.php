@@ -32,6 +32,46 @@ class BibleBrainLanguageRepository extends BaseRepository
         $this->databaseService->executeQuery($query, $params);
     }
 
+    
+    /**
+     * Fetches the next language needing BibleBrain verification.
+     * Only languages with a valid BibleBrain code and unverified in the last 6 months.
+     */
+    public function getNextLanguageForBibleBrainSync(): ?array
+    {
+        $query = 'SELECT languageCodeHL, languageCodeIso, languageCodeBibleBrain
+                  FROM hl_languages
+                  WHERE languageCodeBibleBrain IS NOT NULL
+                    AND (checkedBBBibles IS NULL OR checkedBBBibles < DATE_SUB(CURDATE(), INTERVAL 6 MONTH))
+                  ORDER BY languageCodeIso ASC
+                  LIMIT 1';
+
+        return $this->databaseService->fetchRow($query);
+    }
+
+      /**
+     * Updates CheckedBBBibles date to today for a given ISO code.
+     */
+    public function markLanguageAsChecked(string $languageCodeIso): void
+    {
+        $query = 'UPDATE hl_languages SET CheckedBBBibles = CURDATE() WHERE languageCodeIso = :iso';
+        $this->databaseService->executeQuery($query, [':iso' => $languageCodeIso]);
+    }
+
+   /** 
+     * Clears the checkedBBBibles field in hl_languages 
+     * if it is more than 4 months old.
+     */
+    public function clearCheckedBBBibles(): void 
+    {
+        $query = '
+            UPDATE hl_languages
+            SET checkedBBBibles = NULL
+            WHERE checkedBBBibles IS NOT NULL
+            AND checkedBBBibles < DATE_SUB(CURDATE(), INTERVAL 4 MONTH)
+        ';
+        $this->databaseService->executeQuery($query);
+    }
     /**
      * Retrieves HL and BibleBrain language codes from ISO code.
      */
@@ -73,13 +113,6 @@ class BibleBrainLanguageRepository extends BaseRepository
         ) !== null;
     }
 
-    /**
-     * Clears the CheckedBBBibles field for all languages.
-     */
-    public function clearCheckedBBBibles(): void
-    {
-        $this->databaseService->executeQuery('UPDATE hl_languages SET CheckedBBBibles = NULL');
-    }
 
     /**
      * Retrieves the next languageCodeIso needing BibleBrain detail processing.

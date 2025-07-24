@@ -72,7 +72,7 @@ class BibleBrainBibleCleanupService
                 if ($this->isMatchingBible($bible, $fileset)) {
                     $this->repository->updateExternalId($bible['bid'], $fileset['id']);
                     $this->repository->updateDateVerified($bible['bid']);
-                    LoggerService::logInfo('BibleBrainCleanup', "Matched and updated {$bible['bid']}");
+                    LoggerService::logInfo('BibleBrainCleanup', "Matched and updated bid {$bible['bid']}");
                     return true;
                 }
             }
