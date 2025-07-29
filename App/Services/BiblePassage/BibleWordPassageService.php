@@ -221,27 +221,33 @@ class BibleWordPassageService extends AbstractBiblePassageService
         return $verses;
     }
 
+    
     /**
-     * Extracts the local language reference from the webpage.
+     * Extracts the local language book name from the HTML title tag,
+     * and combines it with the verse range (e.g., "IsiLilo:3-5").
      *
-     * @return string The extracted reference in local language.
+     * @return string The formatted reference in local language.
      */
     public function getReferenceLocalLanguage(): string
     {
+        // Get the HTML content from the first item in the $webpage array
         $webpage = $this->webpage[0];
-        $startMarker = '<!-- End of Display Options  -->';
-        $endMarker = '<!--... the Word of God:-->';
-        $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
-        $endPos = strpos($webpage, $endMarker);
-        $webpage = substr($webpage, $startPos, $endPos - $startPos);
 
-        $startMarker = '<h3>';
-        $endMarker = '</h3>';
-        $startPos = strpos($webpage, $startMarker) + strlen($startMarker);
-        $endPos = strpos($webpage, $endMarker);
-        $bookName = trim(substr($webpage, $startPos, $endPos - $startPos));
+        // Use regex to extract the contents of the <title> tag (case-insensitive)
+        preg_match('/<title>(.*?)<\/title>/i', $webpage, $titleMatch);
 
-        return $bookName . ':' . $this->passageReference->getVerseStart() .
-            '-' . $this->passageReference->getVerseEnd();
+        // If a title was found, use it; otherwise, fallback to empty string
+        $title = isset($titleMatch[1]) ? $titleMatch[1] : '';
+
+        // Extract all characters from the start of the title until the first digit (the book name)
+        preg_match('/^([^\d]+)/', $title, $matches);
+
+        // If a match was found, trim it to remove surrounding whitespace
+        $bookName = isset($matches[1]) ? trim($matches[1]) : '';
+
+        // Return the book name followed by the verse range, e.g., "Luka:10-12"
+        return $bookName . ':' .
+            $this->passageReference->getVerseStart() . '-' .
+            $this->passageReference->getVerseEnd();
     }
 }
