@@ -39,16 +39,21 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
     /**
      * Retrieves the webpage content of the Bible passage.
      *
-     * @return array The passage content as an array.
+     * @return passage content as an arraystring.
      */
-    public function getWebPage(): array
+    public function getWebPage(): string
     {
         $reference = str_replace(' ', '%20', $this->passageReference->getEntry());
         $passageUrl = '/passage/?search=' . $reference;
         $passageUrl .= '&version=' . $this->bible->getExternalId();
-
-        $passage = new BibleGatewayConnectionService($passageUrl);
-        return [$passage->response];
+        // Fetch
+        $conn = new BibleGatewayConnectionService($passageUrl);
+        // Return the HTML body (string), as the signature requires
+        $body = $conn->getBody();
+        if ($body === '') {
+            throw new \RuntimeException("Empty response from BibleGateway: {$passageUrl}");
+        }
+        return $body;
     }
 
     /**
@@ -56,140 +61,214 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      *
      * @return string The formatted passage text.
      */
+    /**
+ * Extracts and processes the text of the Bible passage.
+ *
+ * @return string The formatted passage HTML.
+    */
     public function getPassageText(): string
     {
-        require_once(Config::getDir('libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
+        $t0 = microtime(true);
+        $inBytes = strlen($this->webpage ?? '');
+        \App\Services\LoggerService::logInfo(
+            'PassageText:start',
+            "in_bytes={$inBytes}"
+        );
 
-        $html = str_get_html($this->webpage[0]);
-        if (!$html) {
+        if ($inBytes === 0) {
+            \App\Services\LoggerService::logError(
+                'PassageText:empty',
+                'No HTML input'
+            );
             return '';
         }
 
-        // Find the main passage text container.
-        $startDiv = $html->find('div.passage-text', 0);
-        if (!$startDiv) {
+        // Parse the HTML with libxml (fast, safe).
+        libxml_use_internal_errors(true);
+        $flags = LIBXML_NOERROR
+            | LIBXML_NOWARNING
+            | LIBXML_NONET
+            | LIBXML_COMPACT
+            | (defined('LIBXML_BIGLINES') ? LIBXML_BIGLINES : 0);
+
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $ok = @$dom->loadHTML($this->webpage, $flags);
+
+        $parseMs = (int) ((microtime(true) - $t0) * 1000);
+        \App\Services\LoggerService::logInfo(
+            'PassageText:parse_ms',
+            (string) $parseMs
+        );
+
+        if (!$ok) {
+            \App\Services\LoggerService::logError(
+                'PassageText:parse_fail',
+                'DOMDocument->loadHTML failed'
+            );
             return '';
         }
 
-        // Extract relevant content.
-        $cleanedHtml = $startDiv->outertext;
+        $xp = new \DOMXPath($dom);
+        // Find the main passage container
+        $nl = $xp->query(
+            "//div[contains(concat(' ', normalize-space(@class), ' '),"
+            . " ' passage-text ')]"
+        );
+        if ($nl->length === 0) {
+            \App\Services\LoggerService::logError(
+                'PassageText:no_container',
+                'div.passage-text not found'
+            );
+            return '';
+        }
 
-        // Remove footnotes if present.
-        $endDiv = $html->find('div.footnotes', 0);
-        if ($endDiv) {
-            $endPos = strpos($cleanedHtml, $endDiv->outertext);
-            if ($endPos !== false) {
-                $cleanedHtml = substr($cleanedHtml, 0, $endPos);
+        // Work in a new tiny DOM that only contains the passage div.
+        $newDom = new \DOMDocument('1.0', 'UTF-8');
+        $passageDiv = $newDom->importNode($nl->item(0), true);
+        $newDom->appendChild($passageDiv);
+        $xp2 = new \DOMXPath($newDom);
+
+        // Remove footnotes if present inside the passage chunk.
+        foreach ($xp2->query(
+            "//div[contains(concat(' ', normalize-space(@class), ' '),"
+            . " ' footnotes ')]"
+        ) as $n) {
+            $n->parentNode->removeChild($n);
+        }
+
+        // Strip heavy/useless nodes early.
+        foreach ($xp2->query('//script|//style|//noscript|//template') as $n) {
+            $n->parentNode->removeChild($n);
+        }
+
+        // Remove superscripts and headings.
+        foreach ($xp2->query('//sup|//h3') as $n) {
+            $n->parentNode->removeChild($n);
+        }
+
+        // Remove links entirely (matches your prior behavior).
+        foreach ($xp2->query('//a') as $n) {
+            $n->parentNode->removeChild($n);
+        }
+
+        // Unwrap spans EXCEPT chapternum/versenum.
+        $spans = $xp2->query(
+            "//span[not(contains(concat(' ', normalize-space(@class), ' '),"
+            . " ' chapternum ')) and "
+            . "not(contains(concat(' ', normalize-space(@class), ' '),"
+            . " ' versenum '))]"
+        );
+        foreach ($spans as $n) {
+            $parent = $n->parentNode;
+            while ($n->firstChild) {
+                $parent->insertBefore($n->firstChild, $n);
             }
+            $parent->removeChild($n);
         }
 
-        // Further clean and process the HTML content.
-        $cleanedHtml = $this->removeSupTags($cleanedHtml);
-        $cleanedHtml = str_get_html($cleanedHtml);
-
-        // Remove links, unwanted spans, superscripts, headings, and process small caps.
-        foreach ($cleanedHtml->find('a') as $link) {
-            $link->outertext = '';
-        }
-
-        foreach ($cleanedHtml->find('span') as $span) {
-            $class = $span->class ?? '';
-            if (!in_array($class, ['chapternum', 'versenum'])) {
-                $span->outertext = $span->innertext;
+        // <small-caps> → styled <span>.
+        foreach ($xp2->query('//small-caps') as $n) {
+            $span = $newDom->createElement('span');
+            $span->setAttribute('class', 'small-caps');
+            $span->setAttribute('style', 'font-variant: small-caps');
+            while ($n->firstChild) {
+                $span->appendChild($n->firstChild);
             }
+            $n->parentNode->replaceChild($span, $n);
         }
 
-        foreach ($cleanedHtml->find('sup') as $sup) {
-            $sup->outertext = '';
-        }
+        $cleanMs = (int) ((microtime(true) - $t0) * 1000);
+        \App\Services\LoggerService::logInfo(
+            'PassageText:clean_ms',
+            (string) $cleanMs
+        );
 
-        foreach ($cleanedHtml->find('h3') as $heading) {
-            $heading->outertext = '';
-        }
+        // Serialize only the passage div.
+        $out = $newDom->saveHTML($newDom->documentElement);
+        $outBytes = strlen($out);
 
-        foreach ($cleanedHtml->find('small-caps') as $smallCaps) {
-            $smallCaps->outertext = '<span style="font-variant: small-caps"';
-            $smallCaps->outertext .= ' class="small-caps">' . $smallCaps->innertext;
-            $smallCaps->outertext .= '</span>';
-        }
+        $totalMs = (int) ((microtime(true) - $t0) * 1000);
+        \App\Services\LoggerService::logInfo(
+            'PassageText:done',
+            "ms={$totalMs} out_bytes={$outBytes}"
+        );
 
-        $finalOutput = $cleanedHtml->outertext;
-
-        // Clear memory and return the balanced HTML content.
-        $cleanedHtml->clear();
-        unset($cleanedHtml);
-
-        return $this->balanceDivTags($finalOutput);
+        return $out;
     }
 
+
+   
     /**
      * Extracts the passage reference in the local language.
      *
      * @return string The reference in the local language.
-     * @throws Exception If HTML parsing fails.
      */
     public function getReferenceLocalLanguage(): string
     {
-        require_once(Config::getDir('libraries') . 'simplehtmldom_1_9_1/simple_html_dom.php');
+        $t0 = microtime(true);
 
-        $webpage = preg_replace('/<script.*?<\/script>/is', '', $this->webpage[0]);
-        $webpage = preg_replace('/<style.*?<\/style>/is', '', $webpage);
+        // Ensure we have a string (your pipeline should make $this->webpage a string).
+        $html = is_array($this->webpage) ? (string)($this->webpage[0] ?? '') : (string)$this->webpage;
+        $inBytes = strlen($html);
 
-        $html = str_get_html($webpage, false, false, DEFAULT_TARGET_CHARSET, false, -1, false, DEFAULT_BR_TEXT);
-        if (!$html) {
-            throw new Exception("Failed to parse HTML");
+        \App\Services\LoggerService::logInfo('RefLocal:start', "in_bytes={$inBytes}");
+        if ($inBytes === 0) {
+            \App\Services\LoggerService::logError('RefLocal:empty', 'No HTML input');
+            return '';
         }
 
-        // Attempt to locate the title element.
-        $title = $html->find('div.passage-display', 0)
-            ?? $html->find('h1.passage-display', 0)
-            ?? $html->find('div.dropdown-display-text', 0);
+        // Optional: strip heavy blocks to speed DOM parse on big pages
+        $html = preg_replace('~<(script|style|noscript|template)\b[^>]*>.*?</\1>~is', '', $html);
 
-        $reference = $title ? $title->plaintext : '';
+        libxml_use_internal_errors(true);
+        $flags = LIBXML_NOERROR
+            | LIBXML_NOWARNING
+            | LIBXML_NONET
+            | LIBXML_COMPACT
+            | (defined('LIBXML_BIGLINES') ? LIBXML_BIGLINES : 0);
 
-        $html->clear();
-        unset($html);
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $ok  = @$dom->loadHTML($html, $flags);
+
+        $parseMs = (int)((microtime(true) - $t0) * 1000);
+        \App\Services\LoggerService::logInfo('RefLocal:parse_ms', (string)$parseMs);
+
+        if (!$ok) {
+            \App\Services\LoggerService::logError('RefLocal:parse_fail', 'DOMDocument->loadHTML failed');
+            return '';
+        }
+
+        $xp = new \DOMXPath($dom);
+
+        // Try the likely containers, in order.
+        $xpaths = [
+            "//div[contains(concat(' ', normalize-space(@class), ' '), ' passage-display ')]",
+            "//h1[contains(concat(' ', normalize-space(@class), ' '), ' passage-display ')]",
+            "//div[contains(concat(' ', normalize-space(@class), ' '), ' dropdown-display-text ')]",
+        ];
+
+        $reference = '';
+        foreach ($xpaths as $q) {
+            $nl = $xp->query($q);
+            if ($nl && $nl->length > 0) {
+                $reference = trim(preg_replace('/\s+/u', ' ', $nl->item(0)->textContent ?? ''));
+                if ($reference !== '') break;
+            }
+        }
+
+        // Fallback: light regex if DOM/XPath didn’t find it (structure change?)
+        if ($reference === '') {
+            if (preg_match('~<(?:div|h1)[^>]*class="[^"]*(?:passage-display|dropdown-display-text)[^"]*"[^>]*>(.*?)</(?:div|h1)>~is', $html, $m)) {
+                $text = strip_tags($m[1]);
+                $reference = trim(preg_replace('/\s+/u', ' ', html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+                \App\Services\LoggerService::logInfo('RefLocal:fallback', 'regex_used=1');
+            }
+        }
+
+        $totalMs = (int)((microtime(true) - $t0) * 1000);
+        \App\Services\LoggerService::logInfo('RefLocal:done', "ms={$totalMs} found=" . ($reference !== '' ? '1' : '0'));
+
         return $reference;
     }
 
-    /**
-     * Removes specific <sup> tags from the HTML content.
-     *
-     * @param string $htmlContent The raw HTML content.
-     * @return string The cleaned HTML content.
-     */
-    private function removeSupTags(string $htmlContent): string
-    {
-        $pattern = '/<sup[^>]*data-fn[^>]*>.*?<\/sup>/is';
-        return preg_replace($pattern, '', $htmlContent);
-    }
-
-    /**
-     * Balances any unclosed or mismatched <div> tags in the HTML content.
-     *
-     * @param string $html The HTML content.
-     * @return string The balanced HTML content.
-     */
-    private function balanceDivTags(string $html): string
-    {
-        libxml_use_internal_errors(true);
-
-        $convmap = [0x80, 0xFFFF, 0, 0xFFFF];
-        $html = mb_encode_numericentity($html, $convmap, 'UTF-8');
-
-        $dom = new DOMDocument('1.0', 'UTF-8');
-        $dom->loadHTML(
-            '<!DOCTYPE html><html><body>' . $html . '</body></html>',
-            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
-        );
-
-        libxml_clear_errors();
-
-        $balancedHtml = '';
-        foreach ($dom->getElementsByTagName('body')->item(0)->childNodes as $node) {
-            $balancedHtml .= $dom->saveHTML($node);
-        }
-
-        return mb_decode_numericentity($balancedHtml, $convmap, 'UTF-8');
-    }
 }

@@ -13,12 +13,17 @@ $container = require __DIR__ . '/../Configuration/container.php';
 $factory = $container->get(BibleStudyReferenceFactory::class);
 
 $studies = [
-    'share' => 9,
-    'trust' => 17,
-    'obey' => 8,
-    'relate' => 9,
-    'serve' => 9,
-    'give' => 9,
+   // 'jvideo'   => 61,
+    'life'     => 23,
+   // 'ctc'      => 23,
+    'obey'     => 8,
+    'give'     => 9,
+    'relate'   => 9,
+    'serve'    => 9,
+    'hope'     => 7,
+    'share'    => 9,
+    'trust'    => 17,
+   // 'lead'     => 25,
     'disciple' => 8,
 ];
 

@@ -26,10 +26,16 @@ class LessonJsonService
     ): array {
         try {
             $bibleOutput = $this->biblePassageJsonService->generateBiblePassageJsonBlock($study, $lesson, $languageCodeHL);
-            $videoOutput = $this->videoJsonService->generateVideoJsonBlock($study, $lesson, $languageCodeJF);
-            $mergedOutput = array_merge($bibleOutput, $videoOutput);
+            if (!$languageCodeJF){
+                return $bibleOutput;
+            }
+            if ($languageCodeJF){
+                $videoOutput = $this->videoJsonService->generateVideoJsonBlock($study, $lesson, $languageCodeJF);
+                $mergedOutput = array_merge($bibleOutput, $videoOutput);
+                return $mergedOutput; 
+            }
 
-            return $mergedOutput; // ✅ added return
+           
         } catch (\Exception $e) {
             throw new \Exception("Error generating Bible passage JSON block: " . $e->getMessage());
         }

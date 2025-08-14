@@ -169,7 +169,7 @@ class BibleStudyReferenceFactory
         // 4. Chapter end (optional)
         // 5. Verse end (optional)
 
-        if (!preg_match('/^([\dA-Za-z ]+)\s+(\d+)(?::(\d+))?(?:–(?:(\d+):)?(\d+))?$/u', $reference, $matches)) {
+        if (!preg_match('/^([\dA-Za-z ]+)\s+(\d+)(?::(\d+))?(?:[-–](?:(\d+):)?(\d+))?$/u', $reference, $matches)) { 
             error_log("❌ Failed to parse reference: $reference");
             return null;
         }
@@ -220,10 +220,10 @@ class BibleStudyReferenceFactory
             'bookID' => $data['bookID'] ?? null,
             'bookName' => $data['bookName'] ?? null,
             'bookNumber' => $data['bookNumber'] ?? 0,
-            'chapterStart' => $data['chapterStart'] ?? null,
-            'chapterEnd' => $data['chapterEnd'] ?? null,
-            'verseStart' => $data['verseStart'] ?? null,
-            'verseEnd' => $data['verseEnd'] ?? null,
+            'chapterStart' => $data['chapterStart'] ?? 0,
+            'chapterEnd' => $data['chapterEnd'] ?? 0,
+            'verseStart' => $data['verseStart'] ?? 0,
+            'verseEnd' => $data['verseEnd'] ?? 0,
             'passageID' => $data['passageID'] ?? null,
             'uversionBookID' => $data['uversionBookID'] ?? null,
         ]);

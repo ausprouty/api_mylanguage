@@ -75,9 +75,9 @@ abstract class AbstractBiblePassageService
      * Get the webpage content for the passage.
      * Subclasses must implement this method.
      *
-     * @return array The webpage content as an array.
+     * @return  array<string,mixed>|string.
      */
-    abstract public function getWebpage(): array;
+    abstract public function getWebPage(): array|string;
 
     /**
      * Get the text of the Bible passage.
