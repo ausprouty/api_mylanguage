@@ -36,7 +36,7 @@ class BibleBrainPassageService extends AbstractBiblePassageService
      *
      * @return array The webpage content as an array.
      */
-    public function getWebpage(): array
+    public function getWebPage(): array
     {
         $url = 'bibles/filesets/' . $this->bible->getExternalId();
         $url .= '/' . $this->passageReference->getBookID() . '/';

@@ -56,8 +56,8 @@ class TranslationService
         // Load the English master file
         $masterFile = "{$this->rootTranslationsPath}{$type}/{$sourceKey}/eng00.json";
         if (!file_exists($masterFile)) {
-            LoggerService::logError("TranslationService", "Missing master file: $masterFile");
-            return [];
+            LoggerService::logError("TranslationService", "Missing master file: " .  $masterFile);
+            return [' Missing master file: $masterFile'];
         }
 
         $masterData = self::parseJsonFile($masterFile);
