@@ -1,0 +1,12 @@
+run as Bash.  This will create a zip.
+
+chmod +x make-release.sh
+./make-release.sh
+
+
+
+
+hash=$(git rev-parse --short HEAD)
+printf "commit=%s\ndate=%s\n" "$hash" "$(date -u +%F_%T)" > VERSION.txt
+zip -j "release_${ts}.zip" VERSION.txt
+rm VERSION.txt
