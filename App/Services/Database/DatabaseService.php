@@ -12,96 +12,219 @@ use App\Configuration\Config;
 /**
  * DatabaseService
  *
- * Provides a layer for handling database connections and query execution using PDO.
+ * Thin wrapper around PDO with:
+ * - Config-driven connection (via App\Configuration\Config)
+ * - Safe nullable $dbConnection so closeConnection() can null it
+ * - A canonical getPdo() that ALWAYS returns a live PDO or throws
+ * - Helper query/transaction methods
+ *
+ * Expected config shape (from .env.local.php / .env.remote.php):
+ *
+ * return [
+ *   'databases' => [
+ *     'standard' => [
+ *       'DB_HOST'      => '127.0.0.1',
+ *       'DB_PORT'      => 3306,
+ *       'DB_DATABASE'  => 'dbname',
+ *       'DB_USERNAME'  => 'user',
+ *       'DB_PASSWORD'  => 'pass',
+ *       'DB_CHARSET'   => 'utf8mb4',
+ *       'DB_COLLATION' => 'utf8mb4_unicode_ci',
+ *       'PREFIX'       => '',
+ *     ],
+ *   ],
+ * ];
  */
 class DatabaseService
 {
-    private $host;
-    private $username;
-    private $password;
-    private $database;
-    private $port;
-    private $charset;
-    private $collation;
-    private $prefix;
-    private $dbConnection;
+    private string $host;
+    private string $username;
+    private string $password;
+    private string $database;
+    private int $port;
+    private string $charset;
+    private string $collation;
+    private string $prefix = '';
 
-    public function __construct($configType = 'standard')
+    /**
+     * Allow null so we can safely "close" by assigning null.
+     * getPdo() will ensure this is non-null (or throw).
+     */
+    private ?PDO $dbConnection = null;
+
+    /**
+     * @param string $configType Which config profile to load (e.g. 'standard').
+     *                           Resolved via Config::get("databases.$configType").
+     *                           Config chooses .env.* based on APP_ENV/host.
+     * @throws Exception if required config keys are missing.
+     */
+    public function __construct(string $configType = 'standard')
     {
-        $databaseConfig = Config::get("databases.$configType", null);
+        // Pull credentials from Config (.env.remote.php for cron with APP_ENV=remote)
+        $databaseConfig = Config::get("databases.$configType");
 
-        if ($databaseConfig === null) {
-            LoggerService::logError("Database configuration", " type '$configType' not found.");
-            throw new InvalidArgumentException("Configuration type '$configType' not found.");
-        }
+        // Assign with safe defaults for optional items
+        $this->host      = $databaseConfig['DB_HOST']      ?? 'localhost';
+        $this->username  = $databaseConfig['DB_USERNAME']  ?? '';
+        $this->password  = $databaseConfig['DB_PASSWORD']  ?? '';
+        $this->database  = $databaseConfig['DB_DATABASE']  ?? '';
+        $this->port      = (int)($databaseConfig['DB_PORT'] ?? 3306);
+        $this->charset   = $databaseConfig['DB_CHARSET']   ?? 'utf8mb4';
+        $this->collation = $databaseConfig['DB_COLLATION'] ?? 'utf8mb4_unicode_ci';
+        $this->prefix    = $databaseConfig['PREFIX']       ?? '';
 
-        $this->host = $databaseConfig['DB_HOST'] ?? 'localhost';
-        $this->username = $databaseConfig['DB_USERNAME'];
-        $this->password = $databaseConfig['DB_PASSWORD'];
-        $this->database = $databaseConfig['DB_DATABASE'];
-        $this->port = $databaseConfig['DB_PORT'] ?? 3306;
-        $this->charset = $databaseConfig['DB_CHARSET'];
-        $this->collation = $databaseConfig['DB_COLLATION'];
-        $this->prefix = $databaseConfig['PREFIX'] ?? '';
+        // Attempt connection immediately; callers can catch PDOException.
         $this->connect();
     }
 
-    private function connect()
+    /**
+     * Establishes the PDO connection and sets attributes.
+     * Throws PDOException on failure.
+     */
+    private function connect(): void
     {
+        // charset in DSN ensures correct encoding; collation set just after connect
+        $dsn = "mysql:host={$this->host};port={$this->port};"
+             . "dbname={$this->database};charset={$this->charset}";
+
         try {
-            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->database};charset={$this->charset}";
-            $this->dbConnection = new PDO($dsn, $this->username, $this->password);
-            $this->dbConnection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo = new PDO(
+                $dsn,
+                $this->username,
+                $this->password,
+                [
+                    // Throwing errors simplifies error handling
+                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+                    // Consistent fetches
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    // Use native prepares where possible
+                    PDO::ATTR_EMULATE_PREPARES   => false,
+                ]
+            );
+
+            // Set collation explicitly if provided (DSN covers charset only)
+            if (!empty($this->collation)) {
+                $pdo->exec(
+                    "SET NAMES {$this->charset} "
+                    . "COLLATE {$this->collation}"
+                );
+            }
+
+            $this->dbConnection = $pdo;
         } catch (PDOException $e) {
-            LoggerService::logError('Database Connect', "Failed to connect to the database: " . $e->getMessage());
-            throw new Exception("Database connection error.");
+            // Log and rethrow so caller sees the real PDOException message
+            LoggerService::logError('DB connect failed', $e->getMessage());
+            throw $e;
         }
+    }
+
+    /**
+     * Returns true if we currently hold an open PDO connection.
+     */
+    public function isConnected(): bool
+    {
+        return $this->dbConnection instanceof PDO;
+    }
+
+    /**
+     * Ensures we have an active connection; reconnects if necessary.
+     * You can change this to only throw if you prefer not to reconnect.
+     */
+    public function ensureConnected(): void
+    {
+        if (!$this->isConnected()) {
+            $this->connect();
+        }
+    }
+
+    /**
+     * Canonical getter: ALWAYS returns a live PDO instance or throws.
+     * Prefer this everywhere instead of touching $dbConnection directly.
+     *
+     * @throws \RuntimeException if not connected and reconnection fails.
+     */
+    public function getPdo(): PDO
+    {
+        $this->ensureConnected();
+
+        if (!$this->dbConnection) {
+            // Should not happen because ensureConnected() re-connects or throws
+            throw new \RuntimeException('Database not connected.');
+        }
+
+        return $this->dbConnection;
+    }
+
+    /**
+     * Non-throwing getter for rare cases where you want to probe.
+     * Returns null if not connected.
+     */
+    public function tryGetPdo(): ?PDO
+    {
+        return $this->dbConnection;
+    }
+
+    /**
+     * @deprecated Use getPdo(). Left for older callers.
+     */
+    public function pdo(): PDO
+    {
+        return $this->getPdo();
     }
 
     /**
      * Executes a SQL query with optional parameters.
      *
-     * @param string $query The SQL query to execute.
-     * @param array $params Optional parameters for prepared statement.
-     * @return \PDOStatement|null The PDOStatement object or null if execution fails.
+     * - Uses getPdo() (ensures connection / throws on failure)
+     * - Binds ints, bools, nulls with appropriate PDO types
+     * - Supports positional (?) and named (:name) parameters
+     *
+     * @return \PDOStatement|null Returns statement on success, null on failure
+     *                            (and logs details).
      */
-    public function executeQuery(string $query, array $params = []): ?\PDOStatement
-    {
+    public function executeQuery(
+        string $query,
+        array $params = []
+    ): ?\PDOStatement {
         try {
-            $stmt = $this->dbConnection->prepare($query);
+            $stmt = $this->getPdo()->prepare($query);
 
             foreach ($params as $key => $value) {
-                $paramType = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+                // Choose correct PDO param type
+                $type = match (true) {
+                    is_int($value)  => PDO::PARAM_INT,
+                    is_bool($value) => PDO::PARAM_BOOL,
+                    is_null($value) => PDO::PARAM_NULL,
+                    default         => PDO::PARAM_STR,
+                };
 
-                // Handle positional parameters (0-based array index for ?, requires 1-based binding)
+                // Positional params: array index is 0-based; PDO is 1-based
                 if (is_int($key)) {
-                    $stmt->bindValue($key + 1, $value, $paramType);
+                    $stmt->bindValue($key + 1, $value, $type);
                 } else {
-                    // Handle named parameters like :name
-                    $stmt->bindValue($key, $value, $paramType);
+                    // Named params: include leading ':' in $key or not, both ok
+                    $name = $key[0] === ':' ? $key : (':' . $key);
+                    $stmt->bindValue($name, $value, $type);
                 }
             }
 
             $stmt->execute();
             return $stmt;
         } catch (PDOException $e) {
-            $logMessage = print_r([
-                'query' => $query,
-                'params' => $params,
-                'error' => $e->getMessage()
-            ], true);
-
+            // Log query and params for diagnostics (avoid secrets in production logs)
+            $logMessage = print_r(
+                ['query' => $query, 'params' => $params, 'error' => $e->getMessage()],
+                true
+            );
             LoggerService::logError('executeQuery', $logMessage);
             return null;
         }
     }
 
-    /* Fetches all rows from a query as an associative array.
-    *
-    * @param string $query SQL query.
-    * @param array $params Optional parameters for prepared statement.
-    * @return array The result set as an array of rows, or an empty array if no results or error.
-    */
+    /**
+     * Fetches all rows as an array of associative arrays.
+     * Returns [] on error or no results.
+     */
     public function fetchAll(string $query, array $params = []): array
     {
         $stmt = $this->executeQuery($query, $params);
@@ -109,46 +232,36 @@ class DatabaseService
     }
 
     /**
-     * Fetches a single row from a query as an associative array.
-     *
-     * @param string $query SQL query.
-     * @param array $params Optional parameters for prepared statement.
-     * @return array|null The result row or null on failure.
+     * Fetches a single row as an associative array.
+     * Returns null on error or if no row.
      */
-   public function fetchRow(string $query, array $params = []): ?array
+    public function fetchRow(string $query, array $params = []): ?array
     {
         $stmt = $this->executeQuery($query, $params);
-        $result = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : false;
-        return $result === false ? null : $result;
-    }   
-
-    /**
-     * Fetches a single column value from the first row.
-     *
-     * @param string $query SQL query.
-     * @param array $params Optional parameters for prepared statement.
-     * @return mixed|null The single value or null if no result.
-     */
-    public function fetchSingleValue(string $query, array $params = []): mixed
-    {
-        $stmt = $this->executeQuery($query, $params);
-
-        if (!$stmt) {
-            return null;
-        }
-
-        $value = $stmt->fetchColumn();
-
-        // Ensure false is treated as null for consistency
-        return $value === false ? null : $value;
+        $row  = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : false;
+        return ($row === false) ? null : $row;
     }
 
     /**
-     * Fetches an array of values from a single column in multiple rows.
-     *
-     * @param string $query SQL query.
-     * @param array $params Optional parameters for prepared statement.
-     * @return array The array of values or an empty array if query fails or no results.
+     * Fetches a single scalar value (first column of first row).
+     * Returns null on error or if no row/value.
+     */
+    public function fetchSingleValue(
+        string $query,
+        array $params = []
+    ): mixed {
+        $stmt = $this->executeQuery($query, $params);
+        if (!$stmt) {
+            return null;
+        }
+        $value = $stmt->fetchColumn();
+        // Normalize false (no column) to null for consistency
+        return ($value === false) ? null : $value;
+    }
+
+    /**
+     * Fetches a single column across all rows.
+     * Returns [] on error or no results.
      */
     public function fetchColumn(string $query, array $params = []): array
     {
@@ -156,22 +269,93 @@ class DatabaseService
         return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
     }
 
-
     /**
-     * Retrieves the last inserted ID from the database.
-     *
-     * @return string The last inserted ID.
+     * Last inserted ID for the current connection.
+     * Use after an INSERT into a table with AUTO_INCREMENT.
      */
     public function getLastInsertId(): string
     {
-        return $this->dbConnection->lastInsertId();
+        return $this->getPdo()->lastInsertId();
     }
 
     /**
-     * Closes the database connection.
+     * Closes the database connection (lets PDO be GC'd).
+     * Safe because property is ?PDO.
      */
     public function closeConnection(): void
     {
         $this->dbConnection = null;
+    }
+
+    /**
+     * Begin a new transaction.
+     * Leaves autocommit mode and holds locks until commit()/rollBack().
+     *
+     * @throws PDOException if a transaction is already active or cannot start.
+     */
+    public function beginTransaction(): void
+    {
+        $this->getPdo()->beginTransaction();
+    }
+
+    /**
+     * Commit the current transaction.
+     *
+     * @throws PDOException if commit fails or no transaction active.
+     */
+    public function commit(): void
+    {
+        $this->getPdo()->commit();
+    }
+
+    /**
+     * Roll back current transaction.
+     * Guarded by inTransaction() so it's safe in catch blocks.
+     */
+    public function rollBack(): void
+    {
+        $pdo = $this->tryGetPdo();
+        if ($pdo && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+    }
+
+    /**
+     * True if a transaction is currently active.
+     */
+    public function inTransaction(): bool
+    {
+        $pdo = $this->tryGetPdo();
+        return $pdo ? $pdo->inTransaction() : false;
+    }
+
+    /**
+     * Preferred table name helper: prefix + base, quoted with backticks.
+     * Validates prefix so only [A-Za-z0-9_] are allowed.
+     */
+    public function table(string $base): string
+    {
+        $this->assertSafePrefix();
+        return $this->quoteIdent($this->getPrefix() . $base);
+    }
+
+    /** Prefix getter for external callers (e.g., building dynamic SQL). */
+    public function getPrefix(): string
+    {
+        return $this->prefix;
+    }
+
+    /** Validate once so no weird chars get into identifiers. */
+    private function assertSafePrefix(): void
+    {
+        if (!preg_match('/^[A-Za-z0-9_]*$/', (string)$this->prefix)) {
+            throw new \RuntimeException('Invalid DB prefix.');
+        }
+    }
+
+    /** Quote an identifier safely for MySQL (escapes backticks). */
+    private function quoteIdent(string $name): string
+    {
+        return '`' . str_replace('`', '``', $name) . '`';
     }
 }

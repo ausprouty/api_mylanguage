@@ -18,7 +18,35 @@ return function (RouteCollector $r) {
         });
     });
 
-    // New Routes
+    // version 2
+
+    $r->addGroup($basePath . 'api/v2/translate', function (RouteCollector $g)
+    use ($container) {
+
+        // Unified for interface + commonContent
+        // GET /api/v2/translate/text/{kind}/{subject}/{languageCodeHL}?variant=
+        $g->addRoute('GET',
+            '/text/{kind}/{subject}/{languageCodeHL}',
+            function ($args) use ($container) {
+                $c = $container->get(App\Controllers\StudyTextController::class);
+                return $c->webFetch($args);
+            }
+        );
+
+        // Lesson content (clean signature). Make JF optional via query ?jf=
+        // GET /api/v2/translate/lessonContent/{languageCodeHL}/{study}/{lesson}?jf=
+        $g->addRoute('GET',
+            '/lessonContent/{languageCodeHL}/{study}/{lesson}',
+            function ($args) use ($container) {
+                // Controller reads optional $_GET['jf'] if present
+                $c = $container->get(App\Controllers\BibleStudyJsonController::class);
+                return $c->webFetchLessonContent($args);
+            }
+        );
+    });
+
+
+    // original
     $r->addGroup($basePath . 'api/bible', function (RouteCollector $group) use ($container) {
         $group->addRoute('GET', '/best/{languageCodeHL}', function ($params) use ($container) {
             return $container->get(App\Controllers\BibleController::class)

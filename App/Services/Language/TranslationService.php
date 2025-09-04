@@ -7,173 +7,190 @@ use App\Repositories\LanguageRepository;
 use App\Services\Database\DatabaseService;
 use App\Services\LoggerService;
 use App\Services\Language\TranslationMemoryService;
+use App\Contracts\Translation\BundleRepository;
 
 /**
  * Service for loading and translating JSON-based language files dynamically.
- * Automatically translates non-English content using cached memory or queues for future translation.
+ * Automatically translates non-English content using cached memory or queues
+ * for future translation.
  */
-class TranslationService
+final class TranslationService
 {
-    protected string $rootTranslationsPath;
-    protected DatabaseService $databaseService;
-    protected LanguageRepository $languageRepository;
-    protected TranslationMemoryService $translationMemoryService;
+    private readonly string $rootTemplates;
+    private readonly string $rootTranslations;
 
     public function __construct(
-        DatabaseService $databaseService,
-        LanguageRepository $languageRepository,
-        TranslationMemoryService $translationMemoryService
+        private readonly DatabaseService $databaseService,
+        private readonly LanguageRepository $languageRepository,
+        private readonly TranslationMemoryService $translationMemoryService,
+        private readonly BundleRepository $bundles
     ) {
-        $this->rootTranslationsPath = Config::getDir('resources.translations');
-        $this->databaseService = $databaseService;
-        $this->languageRepository = $languageRepository;
-        $this->translationMemoryService = $translationMemoryService;
+        $this->rootTemplates = Config::getDir('resources.templates');
+        $this->rootTranslations = Config::getDir('resources.translations');
     }
 
     /**
-     * Returns translated content (or master English if requested) for a given type/sourceKey.
-     * 
-     * @param string $type One of:
-     *                     - 'commonContent': shared translations across studies
-     *                     - 'interface': UI elements for a specific app (e.g., 'beta')
-     *                     - other folders under `resources.translations`
-     *  @param string $type Specifies the internal scope:
-     *                     - `commonContent`, 
-     *                     - ` interface`
-     * @param string $sourceKey Specifies the internal scope:
-     *                     - For `commonContent`, this could be:
-     *                         'dbs', 'life', 'grow', 'bible', 'video', etc.
-     *                     - For `interface`, this is typically:
-     *                         an app name like 'beta', 'admin', etc.
-     *                     - Must correspond to a subdirectory inside the type folder.
-     * 
-     * @param string $languageCodeHL The HL-style language code (e.g., 'eng00', 'urd00')
-     * 
-     * @return array The translated JSON as a PHP associative array.
+     * Returns translated content (or master English if requested).
+     *
+     * @param string      $type       'commonContent' | 'interface'
+     * @param string      $sourceKey  study/app key (e.g., 'hope' or site 'wsu')
+     * @param string      $languageHL HL code (e.g., 'eng00', 'urd00')
+     * @param string|null $variant    reserved for future overlay logic
+     *
+     * @return array
      */
-    public function getTranslatedContent(string $type, string $sourceKey, string $languageCodeHL): array
-    {
-        // Load the English master file
-        $masterFile = "{$this->rootTranslationsPath}{$type}/{$sourceKey}/eng00.json";
-        if (!file_exists($masterFile)) {
-            LoggerService::logError("TranslationService", "Missing master file: " .  $masterFile);
-            return [' Missing master file: $masterFile'];
+    public function getTranslatedContent(
+        string $type,
+        string $sourceKey,
+        string $languageHL,
+        ?string $variant = null
+    ): array {
+        // 1) Load English master (eng00) for this type+sourceKey
+        try {
+            $masterData = $this->bundles->getMaster(
+                $type,
+                $sourceKey,
+                'eng00',
+                $variant
+            );
+        } catch (\Throwable $e) {
+            LoggerService::logError(
+                'TranslationService',
+                sprintf(
+                    'Missing master for type=%s, sourceKey=%s, variant=%s: %s',
+                    $type,
+                    $sourceKey,
+                    $variant ?? 'null',
+                    $e->getMessage()
+                )
+            );
+            return [];
         }
 
-        $masterData = self::parseJsonFile($masterFile);
-
-        // Return English directly if requested
-        if ($languageCodeHL === 'eng00') {
+        if (strtolower($languageHL) === 'eng00') {
             return $masterData;
         }
-        //unset English language metadata
-        unset($masterData['language']);
-        // Get Google Translate code for the language
-        $googleCode = $this->languageRepository->getCodeGoogleFromCodeHL($languageCodeHL);
+
+        // 2) Translate recursively using memory/queue
+        //    Remove English metadata before translation (if present)
+        if (isset($masterData['language'])) {
+            unset($masterData['language']);
+        }
+
+        // HL -> Google code
+        $googleCode = $this->languageRepository
+            ->getCodeGoogleFromCodeHL($languageHL);
+
         if (!$googleCode) {
-            LoggerService::logError("TranslationService", "Missing Google code for $languageCodeHL");
+            LoggerService::logError(
+                'TranslationService',
+                "Missing Google code for $languageHL"
+            );
+            // Fall back to English content if we can't determine target
             return $masterData;
         }
 
-        // Perform recursive translation
-        [$translatedData, $complete] = $this->translateArrayRecursive($masterData, $googleCode);
+        [$translatedData, $complete] = $this->translateArrayRecursive(
+            $masterData,
+            $googleCode
+        );
 
-        // Add metadata to the translated output
+        // 3) Add metadata to translated output
         $translatedData['language'] = [
-            'hlCode' => $languageCodeHL,
+            'hlCode' => $languageHL,
             'google' => $googleCode,
             'translatedFrom' => 'eng00',
             'translatedDate' => date('c'),
             'translationComplete' => $complete,
+            // if master had lastUpdated, keep it; otherwise now
             'lastUpdated' => $masterData['language']['lastUpdated'] ?? date('c'),
         ];
+
+        // 4) If incomplete, create a cron token and attach
         if ($complete === false) {
-            $cronKey = bin2hex(random_bytes(16)); // 32-char secure token
+            $cronKey = bin2hex(random_bytes(16)); // 32 chars
             $this->databaseService->executeQuery(
                 "INSERT INTO cron_tokens (token) VALUES (:token)",
                 [':token' => $cronKey]
             );
             $translatedData['language']['cronKey'] = $cronKey;
         }
+
         return $translatedData;
     }
 
     /**
-     * Recursively translates each string in the array using cached memory or queues it for future translation.
+     * Recursively translates each string using cached memory or queues it.
      *
-     * @param array $data
-     * @param string $targetLang Google Translate target language code (e.g., 'ur')
+     * @param array  $data
+     * @param string $targetLang Google Translate code (e.g., 'ur')
      * @return array [translated array, isComplete flag]
      */
-    private function translateArrayRecursive(array $data, string $targetLang): array
-    {
+    private function translateArrayRecursive(
+        array $data,
+        string $targetLang
+    ): array {
         $translated = [];
         $complete = true;
 
         foreach ($data as $key => $value) {
             if (is_array($value)) {
-                [$subTranslated, $isSubComplete] = $this->translateArrayRecursive($value, $targetLang);
-                $translated[$key] = $subTranslated;
-                if (!$isSubComplete) $complete = false;
-            } elseif (is_string($value) && trim($value) !== '') {
-                // get value stored in translation_memory
-                $cached = $this->translationMemoryService->get($value, $targetLang);
+                [$sub, $ok] = $this->translateArrayRecursive(
+                    $value,
+                    $targetLang
+                );
+                $translated[$key] = $sub;
+                if (!$ok) {
+                    $complete = false;
+                }
+                continue;
+            }
+
+            if (is_string($value) && trim($value) !== '') {
+                $cached = $this->translationMemoryService->get(
+                    $value,
+                    $targetLang
+                );
                 if ($cached !== null) {
                     $translated[$key] = $cached;
                 } else {
-                    // indicate complete is false and add to translation_queue
-                    // translation_queue is emptied by a cron job
-                    // App\Cron\TranslationQueProcessor.php
+                    // not cached -> queue and mark incomplete
                     $complete = false;
                     $this->addToTranslationQueue($targetLang, $value);
                     $translated[$key] = $value; // fallback to English
                 }
-            } else {
-                $translated[$key] = $value;
+                continue;
             }
+
+            // passthrough for non-strings/null/empty strings
+            $translated[$key] = $value;
         }
 
         return [$translated, $complete];
     }
 
     /**
-     * Parses a JSON file into an associative array.
-     *
-     * @param string $filePath
-     * @return array
+     * Queue a missing string for later translation (idempotent insert).
      */
-    private static function parseJsonFile(string $filePath): array
-    {
-        $content = file_get_contents($filePath);
-        $data = json_decode($content, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            LoggerService::logError("TranslationService", "JSON error in $filePath: " . json_last_error_msg());
-            return [];
-        }
-
-        return $data ?? [];
-    }
-
-    /**
-     * Queues a missing string for later translation using Google Translate.
-     *
-     * @param string $targetLang
-     * @param string $sourceText
-     * @return void
-     */
-    private function addToTranslationQueue(string $targetLang, string $sourceText): void
-    {
-        $query = "INSERT INTO translation_queue (target_lang, source_text)
-                  SELECT :target_lang, :source_text
-                  WHERE NOT EXISTS (
-                      SELECT 1 FROM translation_queue
-                      WHERE target_lang = :target_lang AND source_text = :source_text
-                  )";
+    private function addToTranslationQueue(
+        string $targetLang,
+        string $sourceText
+    ): void {
+        $query = "
+            INSERT INTO translation_queue (target_lang, source_text)
+            SELECT :target_lang1, :source_text1
+            WHERE NOT EXISTS (
+              SELECT 1 FROM translation_queue
+              WHERE target_lang = :target_lang2
+                AND source_text = :source_text2
+            )
+        ";
 
         $params = [
-            ':target_lang' => $targetLang,
-            ':source_text' => $sourceText,
+            ':target_lang1' => $targetLang,
+            ':source_text1' => $sourceText,
+            ':target_lang2' => $targetLang,
+            ':source_text2' => $sourceText,
         ];
 
         $this->databaseService->executeQuery($query, $params);

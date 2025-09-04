@@ -1,5 +1,5 @@
 <?php
-namespace App\Controller;
+namespace App\Controllers;
 
 use App\Services\Database\DatabaseService;
 use PDO as PDO;

@@ -3,7 +3,7 @@
 // see https://mpdf.github.io/ 
 // https://mpdf.github.io/fonts-languages/fonts-in-mpdf-7-x.html
 // fonts available:  https://mpdf.github.io/fonts-languages/available-fonts-v6.html
-namespace App\Controller;
+namespace App\Controllers;
 
 use App\Models\Language\LanguageModel as LanguageModel;
 use App\Configuration\Config;

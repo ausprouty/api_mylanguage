@@ -1,40 +1,38 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Responses;
-/**
- * ResponseBuilder is a utility class for building structured API responses.
- * It allows you to create responses with a status, message, data, errors, and meta information.
- * 
- * Usage:
- * return ResponseBuilder::ok()
- *  ->withMessage("Loaded successfully")
-*  ->withData($study)
-*  ->build();
- */
 
 class ResponseBuilder
 {
     protected array $response = [
-        'status' => 'ok',
+        'status'  => 'ok',
         'message' => null,
-        'data' => null,
-        'errors' => null,
-        'meta' => null,
+        'data'    => null,
+        'errors'  => null,
+        'meta'    => null,
     ];
+
+    /** @var array<string,string> */
+    protected array $headers = [];
+
+    protected int $statusCode = 200;
 
     public static function ok(): self
     {
-        $builder = new self();
-        $builder->response['status'] = 'ok';
-        return $builder;
+        $b = new self();
+        $b->response['status'] = 'ok';
+        $b->statusCode = 200;
+        return $b;
     }
 
     public static function error(string $message = 'An error occurred'): self
     {
-        $builder = new self();
-        $builder->response['status'] = 'error';
-        $builder->response['message'] = $message;
-        return $builder;
+        $b = new self();
+        $b->response['status'] = 'error';
+        $b->response['message'] = $message;
+        $b->statusCode = 400;
+        return $b;
     }
 
     public function withMessage(string $message): self
@@ -61,15 +59,42 @@ class ResponseBuilder
         return $this;
     }
 
-    public function build(): array
+    /** @param array<string,string> $headers */
+    public function withHeaders(array $headers): self
     {
-        // Optionally filter out nulls
-        return array_filter($this->response, fn($val) => $val !== null);
+        foreach ($headers as $k => $v) {
+            $this->headers[$k] = $v;
+        }
+        return $this;
     }
 
-    public function json(): void
+    public function withStatus(int $status): self
     {
-        header('Content-Type: application/json');
-        echo json_encode($this->build());
+        $this->statusCode = $status;
+        return $this;
+    }
+
+    public function build(): array
+    {
+        return array_filter($this->response, fn($v) => $v !== null);
+    }
+
+    public function json(?int $status = null, ?array $headers = null): void
+    {
+        if (is_int($status)) {
+            $this->statusCode = $status;
+        }
+        if (is_array($headers)) {
+            $this->withHeaders($headers);
+        }
+
+        http_response_code($this->statusCode);
+        header('Content-Type: application/json; charset=utf-8');
+
+        foreach ($this->headers as $k => $v) {
+            header($k . ': ' . $v);
+        }
+
+        echo json_encode($this->build(), JSON_UNESCAPED_UNICODE);
     }
 }

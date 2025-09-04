@@ -1,7 +1,7 @@
 <?php
 namespace App\Models\Country
 ;
-class Country
+class CountryModel
 {
     private $countryCodeIso;
     private $countryCodeIso3;

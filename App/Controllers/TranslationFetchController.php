@@ -1,89 +1,94 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Controllers;
 
 use App\Services\Language\TranslationService;
 use App\Responses\JsonResponse;
+use App\Http\Concerns\ValidatesArgs;  
 use Exception;
 
 /**
- * Controller to handle fetching of translation data for interface and common content.
+ * Controller to handle fetching of translation data.
  */
 class TranslationFetchController
 {
+    use ValidatesArgs;
     /**
-     * @var TranslationService Service used to fetch translation data.
+     * Required and optional keys per endpoint.
      */
-    private TranslationService $translationService;
+    private const COMMON_REQUIRED = ['study', 'languageCodeHL'];
+    private const COMMON_OPTIONAL = ['variant'];
 
-    /**
-     * TranslationFetchController constructor.
-     *
-     * @param TranslationService $translationService The service handling translation logic.
-     */
-    public function __construct(TranslationService $translationService)
-    {
-        $this->translationService = $translationService;
-    }
+    private const IFACE_REQUIRED  = ['app', 'languageCodeHL'];
+    private const IFACE_OPTIONAL  = ['variant'];
+
+    
+    public function __construct(private TranslationService $translationService) {}
+
+    
 
     /**
      * Fetches common content translation for a given study and language.
      *
      * Expected keys in $args:
-     * - 'study' (string): The identifier for the study (required)
-     * - 'languageCodeHL' (string): The language code in HL format (required)
-     * - 'logic' (string|null): Optional logic variant to apply
+     * - 'study' (string) - required
+     * - 'languageCodeHL' (string) - required
+     * - 'variant' (string|null) - optional
      *
-     * Responds with:
-     * - JSON success response with translation data
-     * - JSON error response if required parameters are missing or an exception is thrown
-     *
-     * @param array $args Associative array of request parameters.
+     * @param array $args
      * @return void
      */
     public function webFetchCommonContent(array $args): void
     {
         try {
-            if (!isset($args['study'], $args['languageCodeHL'])) {
-                JsonResponse::error('Missing required arguments: study or languageCodeHL');
+            if ($bad = $this->missingRequired($args, self::COMMON_REQUIRED)) {
+                JsonResponse::error(
+                    'Missing or invalid required arguments: ' . implode(', ', $bad) . '. ' .
+                    $this->expectedKeysMsg(self::COMMON_REQUIRED, self::COMMON_OPTIONAL)
+                );
+                return;
             }
+            $study         = $this->arg($args, 'study', [$this,'normId']);
+            $languageCodeHL= $this->arg($args, 'languageCodeHL', [$this,'normId']);
+            $variant       = $this->arg($args, 'variant', [$this,'normId']); // optional
 
-            $study = $args['study'];
-            $languageCodeHL = $args['languageCodeHL'];
-
-            $output = $this->translationService->getTranslatedContent('commonContent', $study, $languageCodeHL);
-            JsonResponse::success($output);
+            $out = $this->translationService->getTranslatedContent(
+                'commonContent', $study, $languageCodeHL, $variant
+            );
+            JsonResponse::success($out);
         } catch (Exception $e) {
             JsonResponse::error($e->getMessage());
         }
     }
-
     /**
      * Fetches interface translation data for a specific app and language.
      *
      * Expected keys in $args:
-     * - 'app' (string): The application identifier (required)
-     * - 'languageCodeHL' (string): The language code in HL format (required)
-     *
-     * Responds with:
-     * - JSON success response with translation data
-     * - JSON error response if required parameters are missing or an exception is thrown
-     *
-     * @param array $args Associative array of request parameters.
+     * - 'app' (string) - required
+     * - 'languageCodeHL' (string) - required
+     * - 'variant' (string|null) - optional
+     * @param array $args
      * @return void
      */
     public function webFetchInterface(array $args): void
     {
-        try {
-            if (!isset($args['app'], $args['languageCodeHL']) || empty($args['app']) || empty($args['languageCodeHL'])) {
-                JsonResponse::error('Missing required arguments: app or languageCodeHL');
+        try{
+         if ($bad = $this->missingRequired($args, self::IFACE_REQUIRED)) {
+                JsonResponse::error(
+                    'Missing or invalid required arguments: ' . implode(', ', $bad) . '. ' .
+                    $this->expectedKeysMsg(self::IFACE_REQUIRED, self::IFACE_OPTIONAL)
+                );
+                return;
             }
+            $app           = $this->arg($args, 'app', [$this,'normId']);
+            $languageCodeHL= $this->arg($args, 'languageCodeHL', [$this,'normId']);
+            $variant       = $this->arg($args, 'variant', [$this,'normId']); // optional
 
-            $app = $args['app'];
-            $languageCodeHL = $args['languageCodeHL'];
-
-            $output = $this->translationService->getTranslatedContent('interface', $app, $languageCodeHL);
-            JsonResponse::success($output);
+            $out = $this->translationService->getTranslatedContent(
+                'interface', $app, $languageCodeHL, $variant
+            );
+            JsonResponse::success($out);
         } catch (Exception $e) {
             JsonResponse::error($e->getMessage());
         }

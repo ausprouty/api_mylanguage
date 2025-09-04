@@ -1,7 +1,7 @@
 <?php
-namespace App\Model;
+namespace App\Models;
 
-class Authorize{
+class AuthorizeModel{
 
 
     static function authorized($post){
