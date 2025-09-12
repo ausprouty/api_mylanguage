@@ -1,0 +1,8 @@
+JsonResponse::success($data, 200, [
+  'Cache-Control' => 'public, max-age=600',
+  'ETag' => '"' . $etag . '"',
+]);
+
+JsonResponse::error('Bad request', 400, [
+  'Cache-Control' => 'no-store',
+]);

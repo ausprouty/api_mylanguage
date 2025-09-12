@@ -27,6 +27,6 @@ class BibleController
         if (!is_array($output)) {
             $output = (array) $output;  // Ensure proper typecasting.
         }
-        JsonResponse::success($output);
+        return JsonResponse::success($output);
     }
 }

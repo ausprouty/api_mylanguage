@@ -2,30 +2,36 @@
 
 namespace App\Services\Web;
 
-use App\Services\Web\WebsiteConnectionService;
-use App\Configuration\Config;
+use App\Services\LoggerService;
 
 class BibleGatewayConnectionService extends WebsiteConnectionService
 {
-    /**
-     * The root URL for the BibleGateway API.
-     */
-    private const BASE_URL = 'https://biblegateway.com';
+    /** Public site root (HTML pages) */
+    private const BASE_URL = 'https://www.biblegateway.com';
 
-    public function __construct(string $endpoint)
-    {
-        // Construct the full URL by combining the base URL and endpoint
+    /**
+     * @param string $endpoint e.g. "/passage/?search=John+3%3A16"
+     *                         (leading slash optional)
+     * @param bool   $autoFetch  perform request immediately (default true)
+     * @param bool   $salvageJson trim pre-JSON junk (off: HTML expected)
+     */
+    public function __construct(
+        string $endpoint,
+        bool $autoFetch = true,
+        bool $salvageJson = false
+    ) {
+        $endpoint = '/' . ltrim($endpoint, "/ \t\n\r\0\x0B");
+
         $url = self::BASE_URL . $endpoint;
 
+        LoggerService::logInfo('BibleGatewayConnectionService-url', $url);
 
-        // Call the parent constructor to initialize the URL and connection
-        parent::__construct($url);
-
+        // BibleGateway returns HTML; keep salvageJson false by default.
+        parent::__construct($url, $autoFetch, $salvageJson);
     }
-    static function getBaseUrl():string{
+
+    public static function getBaseUrl(): string
+    {
         return self::BASE_URL;
     }
-
-
-    
 }

@@ -1,0 +1,13 @@
+LoggerService::logInfo('BibleBrain.fetch', 'start', ['url' => $url]);
+
+LoggerService::logWarning(
+    'WebsiteConnectionService-salvage',
+    'Non-JSON preamble',
+    ['snippet' => substr($prefix, 0, 80)]
+);
+
+LoggerService::logError(
+    'Passage.parse',
+    $e->getMessage(),
+    ['pattern' => $pattern]
+);

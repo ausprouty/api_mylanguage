@@ -1,65 +1,87 @@
 <?php
 // index.php
-//$mode = 'tests';
-//$mode = 'scripts';
+
+// ========= Mode (tests / scripts / normal) =========
 $mode = 'normal';
 
-// Load the appropriate environment configuration; moved to Config.
+// ========= Error reporting =========
+// Use CLI-safe detection and avoid notices on missing SERVER_NAME.
+$isLocal = PHP_SAPI === 'cli'
+    ? true
+    : (($_SERVER['SERVER_NAME'] ?? '') === 'localhost');
 
-//require_once __DIR__ . '/App/Configuration/EnvironmentLoader.php'; // Load environment-specific config
+error_reporting($isLocal ? E_ALL : 0);
+ini_set('display_errors', $isLocal ? '1' : '0');
+ini_set('log_errors', '1');
 
-// Load Debugging tools
-require_once __DIR__ . '/App/Services/Debugging.php'; 
+// ========= Absolutely no output before headers =========
+// If Debugging.php *prints* anything, it will break headers.
+// Keep it silent-only. Otherwise include it conditionally.
+require_once __DIR__ . '/App/Services/Debugging.php';
 
-// Error reporting based on environment
-if ($_SERVER['SERVER_NAME'] === 'localhost') {
-    error_reporting(E_ALL);
-    ini_set('display_errors', 1);
-} else {
-    error_reporting(0);
-    ini_set('display_errors', 0);
-}
+// ========= Autoload (Composer) =========
+require_once __DIR__ . '/vendor/autoload.php';
 
-
-require_once __DIR__ . '/Vendor/autoload.php';
-
+// ========= Imports (safe to use after autoload) =========
+use App\Support\Trace;
+use App\Support\ErrorHandler;
+use App\Middleware\CORSMiddleware;
 use App\Middleware\PreflightMiddleware;
 use App\Middleware\PostAuthorizationMiddleware;
-use App\Middleware\CORSMiddleware;
 
-// Define and apply the middleware stack
+// ========= Trace ID (before any response work) =========
+Trace::init();
+header('X-Trace-Id: ' . Trace::id());
+ErrorHandler::register();   // ← now all errors become JSON with traceId
+
+// ========= CORS / Preflight early exit =========
+// Handle OPTIONS quickly to avoid running the rest of the stack.
+$preflight = new PreflightMiddleware();
+$cors      = new CORSMiddleware();
+
+if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
+    // Apply CORS headers for preflight and exit.
+    $cors->handle($_SERVER, function () { return; });
+    $preflight->handle($_SERVER, function () { return; });
+    http_response_code(204);
+    // No body for preflight
+    exit;
+}
+
+// ========= Middleware chain =========
 $middlewares = [
-    new PreflightMiddleware(),
-    new CORSMiddleware(),
+    $cors,
+    $preflight,
 ];
 
 applyMiddleware($middlewares, $_SERVER);
 
-function applyMiddleware(array $middlewares, $request) {
-    $next = function($request) use (&$middlewares, &$next) {
+function applyMiddleware(array $middlewares, $request)
+{
+    $next = function ($req) use (&$middlewares, &$next) {
         if (empty($middlewares)) {
-            // All middlewares have been processed
-            return;
+            return null; // end of chain
         }
-        // Get the next middleware in the stack
-        $middleware = array_shift($middlewares);
-        // Process the middleware, passing the request and the next function
-        $middleware->handle($request, $next);
+        $mw = array_shift($middlewares);
+        return $mw->handle($req, $next);
     };
-    // Start processing the middleware stack
     return $next($request);
 }
 
+// ========= Post-authorization (if your app expects it) =========
 $postData = PostAuthorizationMiddleware::getDataSet();
 
-
-// Main application logic or routing
-if ($mode == 'tests'){
-    require_once  __DIR__ . '/App/Routes/TestLoader.php'; 
+// ========= Route dispatching =========
+switch ($mode) {
+    case 'tests':
+        require_once __DIR__ . '/App/Routes/TestLoader.php';
+        break;
+    case 'scripts':
+        require_once __DIR__ . '/App/Routes/ImportLoader.php';
+        break;
+    default:
+        // fall through to router
+        break;
 }
-elseif ($mode == 'scripts'){
-    require_once  __DIR__ . '/App/Routes/ImportLoader.php'; 
-} 
 
 require_once __DIR__ . '/App/Routes/router.php';
-

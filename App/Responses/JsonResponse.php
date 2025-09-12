@@ -1,43 +1,59 @@
 <?php
-declare(strict_types=1);
-
 namespace App\Responses;
 
-class JsonResponse
-{
-    /**
-     * @param array|object $data
-     * @param array<string,string> $headers
-     * @param int $statusCode
-     */
-    public static function success(
-        array|object $data,
-        array $headers = [],
-        int $statusCode = 200
-    ): void {
-        if (is_object($data)) {
-            $data = (array) $data;
-        }
+use App\Support\Trace;
 
-        ResponseBuilder::ok()
-            ->withData($data)
-            ->json($statusCode, $headers);
+final class JsonResponse
+{
+    /** Success: emits JSON and exits. */
+    public static function success(
+        $data = null,
+        int $status = 200,
+        array $headers = []
+    ): never {
+        self::out(['status' => 'ok', 'data' => $data], $status, $headers);
     }
 
+    /** Error: emits JSON and exits. */
     public static function error(
         string $message,
-        int $statusCode = 400,
+        int $status = 500,
         array $headers = []
-    ): void {
-        ResponseBuilder::error($message)
-            ->withMeta(['http_status' => $statusCode])
-            ->json($statusCode, $headers);
+    ): never {
+        self::out(['status' => 'error', 'message' => $message], $status, $headers);
     }
 
-    /** 304 helper for ETag matches */
-    public static function notModified(string $etag): void
-    {
-        http_response_code(304);
-        header('ETag: "' . $etag . '"');
+    /** Core emitter. */
+    private static function out(
+        array $payload,
+        int $status,
+        array $headers
+    ): never {
+        if (!isset($payload['meta']) || !is_array($payload['meta'])) {
+            $payload['meta'] = [];
+        }
+        $payload['meta']['traceId'] = Trace::id();
+
+        if (!headers_sent()) {
+            http_response_code($status);
+            header('Content-Type: application/json; charset=utf-8');
+            header('X-Trace-Id: ' . Trace::id());
+            foreach ($headers as $k => $v) {
+                header($k . ': ' . $v, true);
+            }
+        }
+
+        $json = json_encode(
+            $payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+        if ($json === false) {
+            // last-ditch safe payload
+            $json = '{"status":"error","message":"Encoding failed","meta":{"traceId":"'
+                . addslashes(Trace::id()) . '"}}';
+        }
+
+        echo $json;
+        exit;
     }
 }

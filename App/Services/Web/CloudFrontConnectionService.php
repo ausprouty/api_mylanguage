@@ -1,55 +1,39 @@
 <?php
+
 namespace App\Services\Web;
 
-use Exception;
+use App\Services\LoggerService;
 
-class CloudFrontConnectionService
+/**
+ * Generic CloudFront fetcher built on WebsiteConnectionService.
+ * Works with absolute URLs (signed or public). Assumes JSON by default,
+ * enabling preamble-salvage to tolerate stray headers/warnings.
+ */
+class CloudFrontConnectionService extends WebsiteConnectionService
 {
-    protected $url;
-    public $response;
-
-    public function __construct(string $url)
-    {
-        $this->url = $url;
-        $this->connect();
-    }
-
-    protected function connect()
-    {
-        try {
-            $curl = curl_init();
-            curl_setopt_array($curl, [
-                CURLOPT_URL => $this->url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'GET',
-            ]);
-            
-            $data = curl_exec($curl);
-
-            if (curl_errno($curl)) {
-                throw new Exception("cURL error: " . curl_error($curl));
-            }
-
-            curl_close($curl);
-
-            $this->response = json_decode($data);
-
-        } catch (Exception $e) {
-            // Log the exception
-            writeLogDebug('CloudFrontConnectionService', $e->getMessage());
-
-            // Rethrow the exception to notify the caller of the failure
-            throw new Exception("Failed to connect to CloudFront: " . $e->getMessage());
+    /**
+     * @param string $url        absolute URL to a CloudFront object
+     * @param bool   $autoFetch  perform request immediately (default true)
+     * @param bool   $salvageJson trim junk before JSON (default true)
+     */
+    public function __construct(
+        string $url,
+        bool $autoFetch = true,
+        bool $salvageJson = true
+    ) {
+        // Accept only absolute URLs to avoid surprises
+        if (!preg_match('#^https?://#i', $url)) {
+            throw new \InvalidArgumentException('CloudFront URL must be absolute');
         }
+
+        LoggerService::logInfo('CloudFrontConnectionService-url', $url);
+
+        parent::__construct($url, $autoFetch, $salvageJson);
     }
 
+    /** Convenience: return decoded JSON or null if not JSON / failed. */
     public function getResponse()
     {
-        return $this->response;
+        return $this->getJson();
     }
 }

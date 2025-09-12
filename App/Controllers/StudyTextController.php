@@ -36,7 +36,7 @@ final class StudyTextController
 
             if (!isset(self::KINDS[$kind])) {
                 JsonResponse::error('Invalid kind. Use: common | interface');
-                return;
+                exit;
             }
 
             $mapped = self::KINDS[$kind];
