@@ -1,0 +1,11 @@
+Great—here’s a clean, scalable 4-table schema (MySQL 8+) that fits your constraints:
+
+Clients (because greeting.hello can vary by client)
+
+Resources (bundle/scope = app interfaces or study “commonContent”, with subject + optional variant)
+
+Strings (source units per client+resource, keyed by a short, fixed hash of the English master)
+
+Translations (one row per target language per string)
+
+All text is utf8mb4, and the English master is stored once (not as the PK), with a stable hash used for uniqueness instead of long English text.

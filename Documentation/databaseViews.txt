@@ -1,0 +1,36 @@
+-- List all resources used by client 'wsu'
+SELECT client_code, type, subject, variant
+FROM i18n_client_resources
+WHERE client_code = 'wsu'
+ORDER BY type, subject, variant;
+
+
+
+-- Get the key hashes for the WSU 'hope' bundle
+SELECT s.key_hash
+FROM i18n_client_resources cr
+JOIN i18n_strings s ON s.resource_id = cr.resource_id
+WHERE cr.client_code = 'wsu'
+  AND cr.type = 'commonContent'
+  AND cr.subject = 'hope'
+  AND (cr.variant <=> 'wsu');
+
+You already created i18n_resolved_bundle (the row-per-string view). That one lets you read strings with fallback in one hit:
+
+SELECT key_hash, resolved_text
+FROM i18n_resolved_bundle
+WHERE client_code = 'wsu'
+  AND type = 'commonContent'
+  AND subject = 'hope'
+  AND (variant <=> 'wsu')
+  AND (language_hl = 'mrt00' OR language_hl IS NULL);
+
+Keep each new/changed view in a new migration file (don’t edit old ones).
+
+Always make view migrations idempotent with DROP VIEW IF EXISTS ... first
+
+See what views exist:
+   SHOW FULL TABLES WHERE Table_type = 'VIEW';
+
+See the exact SQL MySQL stored:
+   SHOW CREATE VIEW i18n_client_resources\G
