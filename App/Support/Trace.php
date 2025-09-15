@@ -30,4 +30,9 @@ final class Trace
         }
         return self::$id;
     }
+    
+     public static function info(string $message, array $context = []): void
+    {
+        error_log('[INFO][Trace] '.$message.' '.json_encode($context, JSON_UNESCAPED_UNICODE));
+    }
 }

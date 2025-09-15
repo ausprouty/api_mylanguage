@@ -37,6 +37,18 @@ final class TextBundleResolver
         $isBaseLang = ($languageCodeHL === $this->translator->baseLanguage());
         $hasVariant = ($variant !== null && $variant !== '');
 
+        \App\Support\Trace::info('TextBundleResolver decision', [
+            'kind'         => $kind,
+            'subject'      => $subject,
+            'lang'         => $languageCodeHL,
+            'baseLang'     => $this->translator->baseLanguage(),
+            'variant'      => $variant,
+            'isBaseLang'   => $isBaseLang,
+            'hasVariant'   => $hasVariant,
+            'tplKey'       => $tplKey,
+            'trKey'        => $this->trKey($kind,$subject,$languageCodeHL,$variant,$ver),
+        ]);
+
         if ($isBaseLang && !$hasVariant) {
             $out = $base;
             $etag = $this->etag($out, $ver);
