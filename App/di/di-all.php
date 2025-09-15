@@ -1,7 +1,12 @@
 <?php
 return [
     'App\Configuration\Config' => DI\autowire()->constructor(
-
+    ),
+    'App\Contracts\Translation\TranslationService' =>
+        DI\autowire('App\Services\Translation\I18nTranslationService')->constructor(
+        DI\get('App\Repositories\I18nStringsRepository'),
+        DI\get('App\Repositories\I18nTranslationsRepository'),
+        DI\get('i18n.baseLanguage')
     ),
     'App\Controllers\BibleController' => DI\autowire()->constructor(
         DI\get('App\Repositories\BibleRepository')
@@ -195,6 +200,12 @@ return [
     'App\Repositories\DbsLanguageRepository' => DI\autowire()->constructor(
         DI\get('App\Services\Database\DatabaseService')
     ),
+    'App\Repositories\I18nStringsRepository' =>
+        DI\autowire('App\Repositories\Sql\I18nStringsRepositorySql'),
+
+    'App\Repositories\I18nTranslationsRepository' =>
+        DI\autowire('App\Repositories\Sql\I18nTranslationsRepositorySql'),
+
     'App\Repositories\LanguageRepository' => DI\autowire()->constructor(
         DI\get('App\Services\Database\DatabaseService'),
         DI\get('App\Factories\LanguageFactory')
@@ -205,6 +216,8 @@ return [
     'App\Repositories\PassageRepository' => DI\autowire()->constructor(
         DI\get('App\Services\Database\DatabaseService')
     ),
+    'App\Repositories\TranslationQueueRepository' =>
+        DI\autowire('App\Repositories\TranslationQueueRepository'),
     'App\Repositories\VideoRepository' => DI\autowire()->constructor(
         DI\get('App\Services\Database\DatabaseService')
     ),
@@ -370,36 +383,33 @@ return [
         DI\get('App\Repositories\LanguageRepository')
     ),
     'App\Services\Language\TranslationService' => DI\autowire()->constructor(
-
     ),
+    'App\Services\Language\TranslationBatchService' =>
+    DI\autowire('App\Services\Language\TranslationBatchService'),
+    'App\Services\Language\TranslationMemoryService' =>
+        DI\autowire('App\Services\Language\TranslationMemoryService'),
     'App\Services\QrCodeGeneratorService' => DI\autowire()->constructor(
-
     ),
     'App\Services\ResourceStorageService' => DI\autowire()->constructor(
-
     ),
     'App\Services\TwigService' => DI\autowire()->constructor(
-
     ),
     'App\Services\VideoService' => DI\autowire()->constructor(
         DI\get('App\Services\TwigService')
     ),
     'App\Services\Web\BibleBrainConnectionService' => DI\autowire()->constructor(
-
     ),
     'App\Services\Web\BibleGatewayConnectionService' => DI\autowire()->constructor(
-
     ),
     'App\Services\Web\BibleWordConnectionService' => DI\autowire()->constructor(
-
     ),
     'App\Services\Web\CloudFrontConnectionService' => DI\autowire()->constructor(
-
     ),
     'App\Services\Web\WebsiteConnectionService' => DI\autowire()->constructor(
-
     ),
     'App\Services\Web\YouVersionConnectionService' => DI\autowire()->constructor(
-
     ),
+    'Psr\SimpleCache\CacheInterface' =>
+        DI\autowire('App\Services\Cache\InMemoryCache'),
+    'i18n.baseLanguage' => 'eng00'
 ];
