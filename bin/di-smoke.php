@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 error_reporting(E_ALL);
 putenv('APP_ENV=local');
+$_ENV['APP_ENV'] = 'local';
+$_SERVER['APP_ENV'] = 'local';
+
 ini_set('display_errors', '1');
 
 require __DIR__ . '/../vendor/autoload.php';

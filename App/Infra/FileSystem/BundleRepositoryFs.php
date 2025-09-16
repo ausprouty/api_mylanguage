@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Infra\FileSystem;
+namespace App\Infra\Filesystem;
 
 use App\Contracts\Translation\BundleRepository;
 use App\Support\PathService;
