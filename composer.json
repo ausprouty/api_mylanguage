@@ -11,9 +11,7 @@
     "scripts": { 
       "migrate": "php scripts/run_migrations.php",
       "test:di": "php bin/di-smoke.php",
-      "scripts": {
       "bb:cleanup": "php bin/biblebrain-cleanup-bibles.php"
-}
 
     },
     "autoload": {

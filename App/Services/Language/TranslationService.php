@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Services\Language;
 
@@ -25,16 +26,16 @@ final class TranslationService
         private readonly TranslationMemoryService $translationMemoryService,
         private readonly BundleRepository $bundles
     ) {
-        $this->rootTemplates = Config::getDir('resources.templates');
-        $this->rootTranslations = Config::getDir('resources.translations');
+        $this->rootTemplates     = Config::getDir('resources.templates');
+        $this->rootTranslations  = Config::getDir('resources.translations');
     }
 
     /**
      * Returns translated content (or master English if requested).
      *
      * @param string      $type       'commonContent' | 'interface'
-     * @param string      $sourceKey  study/app key (e.g., 'hope' or site 'wsu')
-     * @param string      $languageHL HL code (e.g., 'eng00', 'urd00')
+     * @param string      $sourceKey  study/app key (e.g. 'hope' or site 'wsu')
+     * @param string      $languageHL HL code (e.g. 'eng00', 'urd00')
      * @param string|null $variant    reserved for future overlay logic
      *
      * @return array
@@ -91,19 +92,20 @@ final class TranslationService
         }
 
         [$translatedData, $complete] = $this->translateArrayRecursive(
-            $masterData,
-            $googleCode
+            data: $masterData,
+            targetLang: $googleCode
         );
 
         // 3) Add metadata to translated output
         $translatedData['language'] = [
-            'hlCode' => $languageHL,
-            'google' => $googleCode,
-            'translatedFrom' => 'eng00',
-            'translatedDate' => date('c'),
-            'translationComplete' => $complete,
+            'hlCode'             => $languageHL,
+            'google'             => $googleCode,
+            'translatedFrom'     => 'eng00',
+            'translatedDate'     => date('c'),
+            'translationComplete'=> $complete,
             // if master had lastUpdated, keep it; otherwise now
-            'lastUpdated' => $masterData['language']['lastUpdated'] ?? date('c'),
+            'lastUpdated'        => $masterData['language']['lastUpdated']
+                                    ?? date('c'),
         ];
 
         // 4) If incomplete, create a cron token and attach
@@ -122,8 +124,8 @@ final class TranslationService
     /**
      * Recursively translates each string using cached memory or queues it.
      *
-     * @param array  $data
-     * @param string $targetLang Google Translate code (e.g., 'ur')
+     * @param array  $data       English master array
+     * @param string $targetLang Google Translate code (e.g. 'ur')
      * @return array [translated array, isComplete flag]
      */
     private function translateArrayRecursive(
@@ -131,7 +133,7 @@ final class TranslationService
         string $targetLang
     ): array {
         $translated = [];
-        $complete = true;
+        $complete   = true;
 
         foreach ($data as $key => $value) {
             if (is_array($value)) {
@@ -157,7 +159,8 @@ final class TranslationService
                     // not cached -> queue and mark incomplete
                     $complete = false;
                     $this->addToTranslationQueue($targetLang, $value);
-                    $translated[$key] = $value; // fallback to English
+                    // fallback to English
+                    $translated[$key] = $value;
                 }
                 continue;
             }
@@ -171,6 +174,7 @@ final class TranslationService
 
     /**
      * Queue a missing string for later translation (idempotent insert).
+     * Current target table: translation_queue (target_lang, source_text).
      */
     private function addToTranslationQueue(
         string $targetLang,
@@ -180,7 +184,8 @@ final class TranslationService
             INSERT INTO translation_queue (target_lang, source_text)
             SELECT :target_lang1, :source_text1
             WHERE NOT EXISTS (
-              SELECT 1 FROM translation_queue
+              SELECT 1
+              FROM translation_queue
               WHERE target_lang = :target_lang2
                 AND source_text = :source_text2
             )
@@ -194,5 +199,43 @@ final class TranslationService
         ];
 
         $this->databaseService->executeQuery($query, $params);
+    }
+
+    /** Build a dotted key for nested paths: 'interface.copyLink' etc. */
+    private function joinKeyPath(array $parts, string $leaf): string
+    {
+        $p = array_filter(
+            $parts,
+            static fn($s) => $s !== '' && $s !== null
+        );
+        $p[] = $leaf;
+        return implode('.', $p);
+    }
+
+    /** SHA1 of the English source text for queue de-dupe */
+    private function sha1Text(string $s): string
+    {
+        return sha1($s);
+    }
+
+    /** ISO from HL (prefer repository; fallback to DB) */
+    private function isoFromHl(string $languageHL): ?string
+    {
+        // If your LanguageRepository already has this, call that instead:
+        $iso = $this->languageRepository->getCodeIsoFromCodeHL($languageHL);
+        if ($iso) {
+            return $iso;
+        }
+
+        $sql = "
+            SELECT languageCodeIso
+            FROM hl_languages
+            WHERE languageCodeHL = :hl
+            LIMIT 1
+        ";
+
+        /** @var string|null $val */
+        $val = $this->databaseService->fetchValue($sql, [':hl' => $languageHL]);
+        return $val ?: null;
     }
 }
