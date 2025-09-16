@@ -39,7 +39,7 @@ class BilingualTemplateTranslationController
    {
       $filename = Config::getDir('resources.templates') . $this->templateName . '.twig';
       if (!file_exists($filename)) {
-         LoggerService::writeLogError('BilingualTemplateTranslationController-28', 'ERROR - no such template as ' . $filename);
+         LoggerService::logError('BilingualTemplateTranslationController-28', 'ERROR - no such template as ' . $filename);
          return null;
       }
       $this->template = file_get_contents($filename);

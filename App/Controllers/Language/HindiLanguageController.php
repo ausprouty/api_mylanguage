@@ -34,5 +34,7 @@ class HindiLanguageController{
         } catch (Exception $e) {
             echo "Error: " . $e->getMessage();
             return null;
+        }
+    }
     
 }

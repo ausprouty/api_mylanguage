@@ -2,10 +2,7 @@
 
 namespace App\Services\BiblePassage;
 
-use App\Factories\PassageFactory;
-use App\Services\Web\BibleBrainConnectionService;
-use App\Models\Bible\BibleModel;
-use App\Models\Bible\PassageReferenceModel;
+use App\Factories\BibleBrainConnectionFactory;
 use App\Services\BiblePassage\AbstractBiblePassageService;
 
 /**
@@ -14,11 +11,12 @@ use App\Services\BiblePassage\AbstractBiblePassageService;
  */
 class BibleBrainPassageService extends AbstractBiblePassageService
 {
+    public function __construct(
+        private BibleBrainConnectionFactory $bb // ⬅ inject factory
+    ) {}
+
     /**
-     * Generate the passage URL for Bible Brain.
      * Example: https://live.bible.is/bible/AC1IBS/GEN/1
-     *
-     * @return string The URL to access the passage.
      */
     public function getPassageUrl(): string
     {
@@ -30,72 +28,68 @@ class BibleBrainPassageService extends AbstractBiblePassageService
     }
 
     /**
-     * Fetch the webpage content for the specified passage.
-     * Example API endpoint:
-     * https://4.dbt.io/api/bibles/filesets/:fileset_id/:book/:chapter
-     *
-     * @return array The webpage content as an array.
+     * Example API: bibles/filesets/:fileset_id/:book/:chapter?verse_start=X&verse_end=Y
      */
     public function getWebPage(): array
     {
-        $url = 'bibles/filesets/' . $this->bible->getExternalId();
-        $url .= '/' . $this->passageReference->getBookID() . '/';
-        $url .= $this->passageReference->getChapterStart();
-        $url .= '?verse_start=' . $this->passageReference->getVerseStart();
-        $url .= '&verse_end=' . $this->passageReference->getVerseEnd();
+        $endpoint = sprintf(
+            'bibles/filesets/%s/%s/%d',
+            $this->bible->getExternalId(),
+            $this->passageReference->getBookID(),
+            $this->passageReference->getChapterStart()
+        );
 
-        // Instantiate the connection service to fetch the passage.
-        $passage = new BibleBrainConnectionService($url);
+        $params = [
+            'verse_start' => $this->passageReference->getVerseStart(),
+            'verse_end'   => $this->passageReference->getVerseEnd(),
+        ];
 
-        return $passage->response->data;
+        // ✅ build connection via factory (adds v/key/format from config)
+        $conn = $this->bb->fromPath($endpoint, $params);
+
+        $json = $conn->getJson();
+
+        // API usually returns {"data":[ ... ]}; fall back to root for safety
+        $data = $json['data'] ?? (is_object($json) ? ($json->data ?? $json) : $json);
+
+        // keep old $this->webpage expectation
+        $this->webpage = is_array($data) ? $data : (array) $data;
+
+        return $this->webpage;
     }
 
-    /**
-     * Generate the passage text by iterating through the response data.
-     *
-     * @return string The formatted passage text with verse numbers.
-     */
     public function getPassageText(): string
     {
-        $text = '';
-        foreach ($this->webpage as $item) {
-            // Determine the verse number range.
-            if ($item->verse_start == $item->verse_end) {
-                $verse_number = $item->verse_start;
-            } else {
-                $verse_number = $item->verse_start . "-" . $item->verse_end;
-            }
+        $items = $this->webpage ?? [];
+        $out = '';
 
-            // Format the verse text with paragraph tags and superscript verse numbers.
-            $text .= '<p>';
-            $text .= '<sup class="versenum">' . $verse_number . '</sup>';
-            $text .= $item->verse_text;
-            $text .= '</p>';
+        foreach ($items as $item) {
+            // allow array or object
+            $vs = is_array($item) ? ($item['verse_start'] ?? null) : ($item->verse_start ?? null);
+            $ve = is_array($item) ? ($item['verse_end']   ?? null) : ($item->verse_end   ?? null);
+            $vt = is_array($item) ? ($item['verse_text']  ?? '')   : ($item->verse_text  ?? '');
+
+            if ($vs === null) {
+                continue;
+            }
+            $num = ($ve === null || (string)$vs === (string)$ve) ? $vs : "{$vs}-{$ve}";
+            $out .= '<p><sup class="versenum">'.$num.'</sup>'.$vt.'</p>';
         }
-        return $text;
+
+        return $out;
     }
 
-    /**
-     * Get the reference in the local language based on API response data.
-     *
-     * @return string The local language reference for the passage.
-     */
     public function getReferenceLocalLanguage(): string
     {
-        if (isset($this->webpage[0]) && isset($this->webpage[0]->book_name_alt)) {
-            $book_name = $this->webpage[0]->book_name_alt;
+        $first = $this->webpage[0] ?? null;
+        $book  = is_array($first) ? ($first['book_name_alt'] ?? null) : ($first->book_name_alt ?? null);
 
-            // Construct the local language reference.
-            $referenceLocalLanguage = $book_name . ' ';
-            $referenceLocalLanguage .= $this->passageReference->getChapterStart();
-            $referenceLocalLanguage .= ':';
-            $referenceLocalLanguage .= $this->passageReference->getVerseStart();
-            $referenceLocalLanguage .= '-';
-            $referenceLocalLanguage .= $this->passageReference->getVerseEnd();
-        } else {
-            // Fallback for missing data.
-            $referenceLocalLanguage = 'Unknown Reference';
+        if ($book) {
+            return $book.' '
+                .$this->passageReference->getChapterStart().':'
+                .$this->passageReference->getVerseStart().'-'
+                .$this->passageReference->getVerseEnd();
         }
-        return $referenceLocalLanguage;
+        return 'Unknown Reference';
     }
 }
