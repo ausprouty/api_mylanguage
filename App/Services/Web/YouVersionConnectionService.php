@@ -1,18 +1,25 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Services\Web;
 
+use App\Configuration\Config;
 use App\Services\LoggerService;
 
 class YouVersionConnectionService extends WebsiteConnectionService
 {
-    /** YouVersion reader root */
-    private const BASE_URL = 'https://www.bible.com/bible/';
+    /** Resolve YouVersion root from config (fallback to public reader). */
+    private static function baseUrl(): string
+    {
+        // Use 'endpoints.youversion' if present; default to the public site.
+        $root = (string) Config::get('endpoints.youversion', 'https://www.bible.com/bible');
+        return rtrim($root, "/ \t\n\r\0\x0B") . '/';
+    }
 
     /**
-     * @param string $endpoint e.g. "111/JHN.3.NIV" (no leading slash needed)
+     * @param string $endpoint   e.g. "111/JHN.3.NIV" (no leading slash)
      * @param bool   $autoFetch  perform request immediately (default true)
-     * @param bool   $salvageJson trim pre-JSON junk (HTML expected ⇒ false)
+     * @param bool   $salvageJson keep false; YouVersion returns HTML
      */
     public function __construct(
         string $endpoint,
@@ -20,16 +27,16 @@ class YouVersionConnectionService extends WebsiteConnectionService
         bool $salvageJson = false
     ) {
         $endpoint = ltrim($endpoint, "/ \t\n\r\0\x0B");
-        $url = self::BASE_URL . $endpoint;
+        $url = self::baseUrl() . $endpoint;
 
         LoggerService::logInfo('YouVersionConnectionService-url', $url);
 
-        // YouVersion typically returns HTML; leave salvageJson disabled.
+        // HTML expected; leave $salvageJson = false by default.
         parent::__construct($url, $autoFetch, $salvageJson);
     }
 
     public static function getBaseUrl(): string
     {
-        return self::BASE_URL;
+        return self::baseUrl();
     }
 }

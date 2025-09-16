@@ -9,7 +9,8 @@
         "guzzlehttp/psr7": "^2.7"
     },
     "scripts": { 
-      "migrate": "php scripts/run_migrations.php" 
+      "migrate": "php scripts/run_migrations.php",
+      "test:di": "php bin/di-smoke.php" 
     },
     "autoload": {
       "psr-4": {

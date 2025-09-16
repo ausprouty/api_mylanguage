@@ -3,70 +3,93 @@ declare(strict_types=1);
 
 namespace App\Infra;
 
-use Psr\SimpleCache\CacheInterface;
 use DateInterval;
+use DateTimeImmutable;
+use DateTimeZone;
+use Psr\SimpleCache\CacheInterface;
 
 final class ApcuCache implements CacheInterface
 {
+    /** Convert TTL to seconds (0 = no expiration). */
     private function ttlSeconds(null|int|DateInterval $ttl): int
     {
-        if ($ttl === null) return 0;
-        if ($ttl instanceof DateInterval) {
-            $dt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-            return (int)$dt->add($ttl)->format('U') - (int)$dt->format('U');
+        if ($ttl === null) {
+            return 0;
         }
-        return max(0, (int)$ttl);
+        if ($ttl instanceof DateInterval) {
+            $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+            return (int) $now->add($ttl)->format('U') - (int) $now->format('U');
+        }
+        return max(0, $ttl);
     }
 
-    public function get($key, $default = null)
+    /** @inheritDoc */
+    public function get(string $key, mixed $default = null): mixed
     {
-        $ok = false;
-        $val = apcu_fetch((string)$key, $ok);
+        $ok  = false;
+        $val = apcu_fetch($key, $ok);
         return $ok ? $val : $default;
     }
 
-    public function set($key, $value, $ttl = null): bool
+    /** @inheritDoc */
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = null): bool
     {
-        return apcu_store((string)$key, $value, $this->ttlSeconds($ttl));
+        return (bool) apcu_store($key, $value, $this->ttlSeconds($ttl));
     }
 
-    public function delete($key): bool
+    /** @inheritDoc */
+    public function delete(string $key): bool
     {
-        return (bool) apcu_delete((string)$key);
+        return (bool) apcu_delete($key);
     }
 
+    /** @inheritDoc */
     public function clear(): bool
     {
-        return apcu_clear_cache();
+        return (bool) apcu_clear_cache();
     }
 
-    public function getMultiple($keys, $default = null): iterable
+    /** @inheritDoc */
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
-        $keys = array_map('strval', is_array($keys) ? $keys : iterator_to_array($keys));
-        $found = apcu_fetch($keys);
+        $k = [];
+        foreach ($keys as $key) {
+            $k[] = (string) $key;
+        }
+        $found = apcu_fetch($k); // returns [key => value] for hits
         $out = [];
-        foreach ($keys as $k) $out[$k] = $found[$k] ?? $default;
+        foreach ($k as $key) {
+            $out[$key] = array_key_exists($key, $found) ? $found[$key] : $default;
+        }
         return $out;
     }
 
-    public function setMultiple($values, $ttl = null): bool
+    /** @inheritDoc */
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
-        $ttl = $this->ttlSeconds($ttl);
-        $ok = apcu_store($values, null, $ttl);
-        // apcu_store returns an array of failed keys or true
-        return $ok === true || $ok === [];
+        $arr = [];
+        foreach ($values as $key => $value) {
+            $arr[(string) $key] = $value;
+        }
+        $ttlSec = $this->ttlSeconds($ttl);
+        $res = apcu_store($arr, null, $ttlSec); // true or array of failed keys
+        return $res === true || $res === [];
     }
 
-    public function deleteMultiple($keys): bool
+    /** @inheritDoc */
+    public function deleteMultiple(iterable $keys): bool
     {
-        $keys = is_array($keys) ? $keys : iterator_to_array($keys);
-        $res = apcu_delete($keys);
-        // returns array of keys that couldn't be deleted
-        return $res === [] || $res === true;
+        $k = [];
+        foreach ($keys as $key) {
+            $k[] = (string) $key;
+        }
+        $res = apcu_delete($k); // true or array of keys that failed
+        return $res === true || $res === [];
     }
 
-    public function has($key): bool
+    /** @inheritDoc */
+    public function has(string $key): bool
     {
-        return apcu_exists((string)$key);
+        return apcu_exists($key);
     }
 }

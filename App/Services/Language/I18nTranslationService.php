@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Services\Translation;
+namespace App\Services\Language;
 
 use App\Contracts\Translation\TranslationService;
 use App\Repositories\I18nStringsRepository;

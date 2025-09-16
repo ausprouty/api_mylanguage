@@ -1,64 +1,67 @@
 <?php
+declare(strict_types=1);
+
 namespace App\Http;
 
 use Exception;
 
-class CurlHttpClient implements HttpClientInterface
+final class RetryHttpClient implements HttpClientInterface
 {
-    public function get(string $url, ?RequestOptions $opt = null): HttpResponse
-    {
-        $opt ??= new RequestOptions();
+    private HttpClientInterface $inner;
+    private int $maxAttempts;
+    private int $baseDelayMs;
+    /** @var int[] */
+    private array $retryOn;
 
-        $ch = curl_init();
-        $hdrs = [];
-        curl_setopt_array($ch, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => $opt->timeout,
-            CURLOPT_CONNECTTIMEOUT => $opt->connectTimeout,
-            CURLOPT_ENCODING => '',
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'GET',
-            CURLOPT_HEADER => false,
-            CURLOPT_USERAGENT => $opt->userAgent ?? 'HL/HttpClient',
-            CURLOPT_HTTPHEADER => $this->formatHeaders($opt),
-            CURLOPT_HEADERFUNCTION => function ($ch, $line) use (&$hdrs) {
-                $len = strlen($line);
-                $t = trim($line);
-                if ($t === '' || str_starts_with($t, 'HTTP/')) return $len;
-                [$k, $v] = array_map('trim', explode(':', $line, 2));
-                $hdrs[strtolower($k)] = $v;
-                return $len;
-            },
-        ]);
-
-        $body = curl_exec($ch);
-        if ($body === false) {
-            $err = curl_errno($ch) . ': ' . curl_error($ch);
-            curl_close($ch);
-            throw new Exception('cURL error ' . $err);
-        }
-        $code = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        $ctype = curl_getinfo($ch, CURLINFO_CONTENT_TYPE) ?: null;
-        $final = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL) ?: null;
-        curl_close($ch);
-
-        $s = (string) $body;
-        if ($opt->maxBytes !== null && strlen($s) > $opt->maxBytes) {
-            throw new Exception('Response too large');
-        }
-
-        return new HttpResponse($code, $s, $ctype, $hdrs, $final);
+    /**
+     * @param int[] $retryOn HTTP status codes to retry on
+     */
+    public function __construct(
+        HttpClientInterface $inner,
+        int $maxAttempts = 3,
+        int $baseDelayMs = 200,
+        array $retryOn = [429, 500, 502, 503, 504]
+    ) {
+        $this->inner = $inner;
+        $this->maxAttempts = max(1, $maxAttempts);
+        $this->baseDelayMs = max(0, $baseDelayMs);
+        $this->retryOn = $retryOn;
     }
 
-    private function formatHeaders(RequestOptions $opt): array
+    public function get(string $url, ?RequestOptions $opt = null): HttpResponse
     {
-        $h = $opt->headers;
-        if ($opt->accept) $h['Accept'] = $opt->accept;
-        $out = [];
-        foreach ($h as $k => $v) $out[] = $k . ': ' . $v;
-        return $out;
+        $attempt = 0;
+        $lastEx = null;
+        while (true) {
+            $attempt++;
+            try {
+                $resp = $this->inner->get($url, $opt);
+                if (!in_array($resp->status, $this->retryOn, true)) {
+                    return $resp;
+                }
+                if ($attempt >= $this->maxAttempts) {
+                    return $resp; // give up, return last response
+                }
+            } catch (Exception $e) {
+                $lastEx = $e;
+                if ($attempt >= $this->maxAttempts) {
+                    throw $lastEx;
+                }
+            }
+
+            $delay = $this->computeDelayMs($attempt, $opt);
+            usleep($delay * 1000);
+        }
+    }
+
+    private function computeDelayMs(int $attempt, ?RequestOptions $opt): int
+    {
+        // exponential backoff: base * 2^(attempt-1), bounded
+        $factor = 1;
+        for ($i = 1; $i < $attempt; $i++) $factor *= 2;
+        $delay = $this->baseDelayMs * $factor;
+        $max = 5000;
+        if ($delay > $max) $delay = $max;
+        return $delay;
     }
 }

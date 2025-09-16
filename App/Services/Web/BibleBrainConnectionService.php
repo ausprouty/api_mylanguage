@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Services\Web;
 
@@ -7,13 +8,27 @@ use App\Services\LoggerService;
 
 class BibleBrainConnectionService extends WebsiteConnectionService
 {
-    /** BibleBrain v4 root */
-    private const BASE_URL = 'https://4.dbt.io/api/';
+    /**
+     * Resolve the BibleBrain base URL from config.
+     * Falls back to https://4.dbt.io/api/ if not set.
+     */
+    private static function baseUrl(): string
+    {
+        // You used `endpoints.*` earlier in DI; keep that key name here.
+        $root = (string) Config::get('endpoints.biblebrain', 'https://4.dbt.io');
+        $root = rtrim($root, "/ \t\n\r\0\x0B");
+
+        // Ensure it ends with '/api'
+        if (!str_ends_with($root, '/api')) {
+            $root .= '/api';
+        }
+        return $root . '/';
+    }
 
     /**
-     * @param string $endpoint e.g. "bibles" (no leading slash)
-     * @param array  $params   extra query params (will be merged)
-     * @param bool   $autoFetch  perform request immediately (default true)
+     * @param string $endpoint  e.g. "bibles" (no leading slash)
+     * @param array  $params    extra query params (will be merged)
+     * @param bool   $autoFetch perform request immediately (default true)
      * @param bool   $salvageJson trim pre-JSON junk if present (default true)
      */
     public function __construct(
@@ -28,12 +43,11 @@ class BibleBrainConnectionService extends WebsiteConnectionService
 
         // Required params
         $q = $params;
-        $q['v'] = $q['v'] ?? '4';
-        $q['key'] = $apiKey;
-        // Ask for JSON explicitly; helps Content-Type be correct
+        $q['v']      = $q['v']      ?? '4';
+        $q['key']    = $q['key']    ?? $apiKey;
         $q['format'] = $q['format'] ?? 'json';
 
-        $url = self::BASE_URL . $endpoint;
+        $url = self::baseUrl() . $endpoint;
         $sep = (strpos($url, '?') !== false) ? '&' : '?';
         $url .= $sep . http_build_query($q, '', '&', PHP_QUERY_RFC3986);
 
@@ -44,6 +58,6 @@ class BibleBrainConnectionService extends WebsiteConnectionService
 
     public static function getBaseUrl(): string
     {
-        return self::BASE_URL;
+        return self::baseUrl();
     }
 }
