@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Cron;
+namespace App\Services\BibleBrain;
 
 use App\Repositories\BibleBrainBibleRepository;
 use App\Repositories\BibleBrainLanguageRepository;

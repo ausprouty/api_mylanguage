@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Services\Web;
+namespace App\Services\BibleBrain;
 
 use App\Configuration\Config;
 use App\Services\LoggerService;
@@ -60,4 +60,10 @@ class BibleBrainConnectionService extends WebsiteConnectionService
     {
         return self::baseUrl();
     }
+    public function fetchBiblesByIso(string $iso): array
+    {
+        // internally call /bibles?language_code=...
+        // return an array of filesets shaped like ['id'=>..., 'type'=>..., 'size'=>...]
+    }
+    
 }

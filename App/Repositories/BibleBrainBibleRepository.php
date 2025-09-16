@@ -107,7 +107,7 @@ class BibleBrainBibleRepository extends BaseRepository
     }
 
     public function updateLanguageFieldsIfMissing(string $externalId, array $entry): void
-{
+    {
     $query = '
         UPDATE bibles
         SET languageEnglish = :languageEnglish,
@@ -125,7 +125,13 @@ class BibleBrainBibleRepository extends BaseRepository
         ':dateVerified'=> $dateVerified, 
         ':externalId' => $externalId,
     ]);
-}
+   }
+
+    public function updateExternalIdAndVerified(
+        int $bibleId,
+        string $externalId,
+        \DateTimeInterface $when
+    ): bool;
 
 
 
