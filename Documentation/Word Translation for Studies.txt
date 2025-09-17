@@ -1,3 +1,23 @@
+Wherever you load your English bundle (eng00):
+
+$bundle = /* load English JSON array for ('interface','app','wsu') */;
+
+$indexer = $container->get(\App\Services\Language\I18nStringIndexer::class);
+$resourceId = $indexer->indexFromBundle(
+    type: 'interface',
+    subject: 'app',
+    variant: 'wsu',
+    bundle: $bundle,
+    deactivateMissing: true
+);
+
+This keeps your DI simple and avoids guessing any template-loading interface. If you prefer a convenience method that loads the bundle from your TemplateAssemblyService, we can add a small wrapper later once we confirm that service’s method names.
+
+
+
+
+
+
 DBS words can be found at (login as bob.prouty@powertochange.org.au)
 
 
