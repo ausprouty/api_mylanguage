@@ -16,7 +16,7 @@ use App\Support\Trace;
  * - Flatten → ensure IDs in i18n_strings → bulk fetch i18n_translations
  * - Fallback to English, enqueue misses to i18n_translation_queue
  */
-final class I18nTranslationService implements TranslationService
+class I18nTranslationService implements TranslationService
 {
     public function __construct(
         private I18nStringsRepository      $strings,
