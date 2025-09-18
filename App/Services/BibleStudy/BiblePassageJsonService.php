@@ -2,12 +2,11 @@
 
 namespace App\Services\BibleStudy;
 
-//use App\Configuration\Config;
 use App\Factories\BibleStudyReferenceFactory;
 use App\Factories\PassageReferenceFactory;
-//use App\Models\Bible\BibleModel;
+
 use App\Models\Bible\PassageModel;
-//use App\Models\Language\LanguageModel;
+
 use App\Repositories\BibleRepository;
 use App\Repositories\LanguageRepository;
 use App\Services\BiblePassage\BiblePassageService;

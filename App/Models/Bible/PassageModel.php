@@ -229,4 +229,18 @@ class PassageModel
         $this->dateLastUsed = date("Y-m-d");
         $this->timesUsed++;
     }
+    public static function createBiblePassageId(
+        string $book, int $chapter, ?int $verseStart = null, ?int $verseEnd = null
+    ): string {
+        $parts = [$book, (string) $chapter];
+        if ($verseStart !== null) {
+            $range = (string) $verseStart;
+            if ($verseEnd !== null && $verseEnd > $verseStart) {
+                $range .= '-' . $verseEnd;
+            }
+            $parts[] = $range;
+        }
+        return implode(':', $parts);
+    }
+
 }

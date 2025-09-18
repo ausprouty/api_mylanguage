@@ -1,3 +1,4 @@
+<?php
 // App/Services/BibleBrain/BibleBrainLanguageSyncService.php
 namespace App\Services\BibleBrain;
 
