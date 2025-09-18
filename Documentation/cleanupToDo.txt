@@ -1,0 +1,65 @@
+28/09/2025:
+
+Before we forget what we touched, here’s a tight cleanup plan so this stays solid and we can delete the temporary scaffolding.
+
+Short-term tidy (safe to do now)
+
+Commit artifacts that made it pass
+
+30-services.php and 50-controllers.php (final versions).
+
+Shim classes under App\Services\Bible\* that extend the canonical BiblePassage\*.
+
+BibleReferenceRepository (composition wrapper).
+
+Document the intent in comments:
+
+Why BibleReferenceRepository exists (adapter to avoid cycles).
+
+Why controller factories in 50-controllers.php are explicit (to force exact types).
+
+grep for string keys and old namespaces:
+
+grep -R "PassageReferenceModel'" -n App/
+
+grep -R "App\\Services\\Bible\\YouVersionPassageService" -n App/
+
+grep -R "App\\Services\\Bible\\PassageFormatterService" -n App/
+
+grep -R "App\\Services\\Bible\\BibleBrainLanguageService" -n App/
+
+Medium-term de-scaffold (nice wins)
+
+Update controllers to canonical namespaces (App\Services\BiblePassage\*):
+
+BibleYouVersionPassageController → type-hint BiblePassage\YouVersionPassageService.
+
+BibleBrainTextPlainController → type-hint BiblePassage\PassageFormatterService.
+
+BibleBrainLanguageController → type-hint BiblePassage\BibleBrainPassageService (or keep your BiblePassage\BibleBrainLanguageService shim if you like the name).
+
+Then remove:
+
+The old-namespace shim classes in App\Services\Bible\*.
+
+The explicit controller factories in 50-controllers.php (let autowiring handle them).
+
+Unify repositories:
+
+Either switch controllers to PassageReferenceRepository and delete the BibleReferenceRepository wrapper, or keep the wrapper but add explicit proxy methods so it’s not a hollow class.
+
+Replace Null repos (if used): create real BiblePassageRepository implementation and update the binding.
+
+Small correctness todo’s we patched for the smoke test
+
+We made PassageModel::createBiblePassageId() (and BibleModel::getBid() behavior) permissive. If the app relies on them, backfill real logic + tests.
+
+Guardrail: keep the smoke test
+
+Add it to CI. If you want, I can collapse the smoke tester so it:
+
+scans all classes under App\Controllers and App\Services and
+
+resolves them through the container (skipping known “manual” entries).
+
+If you want me to produce those controller refactors (patches from old → new namespaces) or a final pass that removes the scaffolding, say the word and I’ll spit out the diffs.
