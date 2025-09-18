@@ -1,29 +1,27 @@
 <?php
-declare(strict_types=1);
 
+declare(strict_types=1);
 namespace App\Services\Language;
 
-use App\Contracts\Translation\TranslationService;
+use App\Contracts\Translation\TranslationService as TranslationServiceContract;
 use App\Repositories\I18nStringsRepository;
 use App\Repositories\I18nTranslationsRepository;
-use App\Repositories\LanguageRepository;
+use App\Repositories\I18nClientsRepository;
+use App\Repositories\I18nResourcesRepository;
+// adjust these two if your names/namespaces differ
 use App\Services\Database\DatabaseService;
-use App\Support\Trace;
+use App\Repositories\LanguageRepository;
 
-/**
- * I18nTranslationService (no TranslationMemoryService)
- *
- * - Flatten → ensure IDs in i18n_strings → bulk fetch i18n_translations
- * - Fallback to English, enqueue misses to i18n_translation_queue
- */
-class I18nTranslationService implements TranslationService
+class I18nTranslationService implements TranslationServiceContract
 {
     public function __construct(
-        private I18nStringsRepository      $strings,
-        private I18nTranslationsRepository $translations,
-        private DatabaseService            $db,
-        private LanguageRepository         $languages,
-        private string                     $baseLanguage = 'eng00'
+        private I18nStringsRepository       $strings,
+        private I18nTranslationsRepository  $translations,
+        private I18nClientsRepository       $clients,
+        private I18nResourcesRepository     $resources,
+        private DatabaseService             $db,
+        private LanguageRepository          $languages,
+        private string                      $baseLanguage = 'eng00'
     ) {}
 
     public function baseLanguage(): string
@@ -31,108 +29,86 @@ class I18nTranslationService implements TranslationService
         return $this->baseLanguage;
     }
 
-    public function translateBundle(
+   public function translateBundle(
         array $bundle,
         string $languageCodeHL,
-        ?string $variant
+        ?string $variant,
+        array $ctx = []
     ): array {
-        $isBase  = ($languageCodeHL === $this->baseLanguage);
+        // Required context from resolver
+        $type            = (string)($ctx['kind']             ?? 'interface');          // i18n_resources.type
+        $resourceSubject = (string)($ctx['resourceSubject']  ?? 'app');                // i18n_resources.subject
+        $resourceVariant = (string)($ctx['resourceVariant']  ?? ($variant ?: 'default')); // i18n_resources.variant
+        $clientCode      = (string)($ctx['clientCode']       ?? 'wsu');                // i18n_clients.clientCode
+        $isBase          = (bool)  ($ctx['isBase']           ?? ($languageCodeHL === $this->baseLanguage));
+        $normVariant     = (string)($ctx['variant']          ?? ($variant ?: 'default'));
 
-        $meta     = $bundle['meta'] ?? [];
-        $kind     = (string)($meta['kind']    ?? '');
-        $subject  = (string)($meta['subject'] ?? '');
-        $client   = (string)($meta['client']  ?? '');
-        $variant  = ($variant !== null && $variant !== '') ? $variant : null;
+        // Resolve IDs
+        $clientId = $this->clientsRepo->getIdByCode($clientCode);
+        if (!$clientId) {
+            throw new \RuntimeException("Unknown clientCode '{$clientCode}'");
+        }
+        $resourceId = $this->resourcesRepo->getIdByTypeSubjectVariant($type, $resourceSubject, $resourceVariant);
+        if (!$resourceId) {
+            throw new \RuntimeException("Unknown resource {$type}/{$resourceSubject}/{$resourceVariant}");
+        }
 
-        Trace::info('I18nTranslationService.translateBundle', [
-            'kind'    => $kind,
-            'subject' => $subject,
-            'client'  => $client,
-            'langHL'  => $languageCodeHL,
-            'variant' => $variant,
-            'isBase'  => $isBase,
-        ]);
+        // Extract master texts and compute deterministic key hashes.
+        // Your repo can decide: use key-paths or english text as the hash basis.
+        // This call should return an array like:
+        //   [
+        //     ['key' => 'interface.share.button', 'text' => 'Share this with a friend', 'note' => 'Button label'],
+        //     ...
+        //   ]
+        $masters = $this->extractMasterTexts($bundle);
 
-        // 1) Flatten (skip meta)
-        $skipTop = ['meta'];
-        $collected = [];
-        $this->collectStrings($bundle, [], $skipTop, $collected);
+        // Upsert strings and get back stringIds keyed by hash
+        // Repo contract suggestion:
+        //   ensureIdsForMasterTexts(int $clientId, int $resourceId, array $masters): array
+        // Return: ['<keyHash>' => <stringId>, ...]
+        $stringMap = $this->stringsRepo->ensureIdsForMasterTexts(
+            clientId:   (int)$clientId,
+            resourceId: (int)$resourceId,
+            masters:    $masters
+        );
 
-        if (empty($collected)) {
-            $bundle['meta']['translationComplete'] = true;
+        if ($isBase) {
+            // For ENG: we've seeded stringIds already; return bundle as-is
             return $bundle;
         }
 
-        // 2) Ensure string IDs for EN masters
-        $uniqueTexts = array_values(array_unique(array_map(
-            fn(array $r) => $r['text'], $collected
-        )));
-        $stringInfos = $this->strings->ensureIdsForMasterTexts($kind, $subject, $uniqueTexts);
-
-        // 3) Bulk fetch translations for target HL (+ variant if repo supports)
-        $stringIds = array_values(array_unique(array_map(
-            fn($r) => $stringInfos[$r['text']]['id'] ?? null, $collected
-        )));
-        $stringIds = array_values(array_filter($stringIds, fn($v) => $v !== null));
-
-        $rows = [];
-        if (!$isBase && !empty($stringIds)) {
-            $rows = $this->translations->fetchForLanguage(
-                stringIds: $stringIds,
-                language:  $languageCodeHL,
-                client:    $client,
-                variant:   $variant
-            );
+        // Fetch translations by stringId + HL language
+        $stringIds = array_values($stringMap);
+        if (empty($stringIds)) {
+            return $bundle;
         }
 
-        // Map: stringId => translated text
-        $trMap = [];
-        foreach ($rows as $row) {
-            $sid = (int)$row['stringId'];
-            $txt = (string)$row['text'];
-            if ($txt !== '') $trMap[$sid] = $txt;
+        $rows = $this->translationsRepo->fetchByStringIdsAndLanguage(
+            stringIds: $stringIds,
+            language:  $languageCodeHL
+        );
+
+        // Map stringId -> translatedText
+        $trById = [];
+        foreach ($rows as $r) {
+            $sid = (int)$r['stringId'];
+            $trById[$sid] = (string)$r['translatedText'];
         }
 
-        // ISO for queue
-        $isoCode = $this->languages->getCodeIsoFromCodeHL($languageCodeHL)
-                   ?? $this->db->fetchValue(
-                        'SELECT languageCodeIso FROM hl_languages WHERE languageCodeHL = :hl LIMIT 1',
-                        [':hl' => $languageCodeHL]
-                      )
-                   ?? 'en';
+        // Apply translations back onto the bundle nodes using the same hash mapping
+        // Implement applyTranslationsByStringId() to walk the bundle tree and replace
+        // where a hash (or key) maps to a stringId with a translated text.
+        $out = $this->applyTranslationsByStringId($bundle, $stringMap, $trById);
 
-        // 4) Rehydrate; enqueue misses
-        $out = $bundle;
-        $complete = true;
-
-        foreach ($collected as $item) {
-            $path = $item['path'];
-            $src  = $item['text'];
-            $sid  = $stringInfos[$src]['id'] ?? null;
-
-            if (!$isBase && $sid !== null && isset($trMap[$sid]) && $trMap[$sid] !== '') {
-                $this->setByPath($out, $path, $trMap[$sid]);
-            } else {
-                if (!$isBase) {
-                    $complete = false;
-                    $this->enqueueMissing(
-                        clientCode:         $client,
-                        resourceType:       $kind,
-                        subject:            $subject,
-                        variant:            (string)($variant ?? ''),
-                        stringKey:          implode('.', $path),
-                        sourceKeyHash:      sha1($src),
-                        sourceStringId:     $sid,
-                        sourceLanguageIso:  'en',
-                        targetLanguageIso:  $isoCode,
-                        sourceText:         $src
-                    );
-                }
-                $this->setByPath($out, $path, $src); // English fallback
-            }
+        // Optional: annotate meta for debugging
+        if (isset($out['meta']) && is_array($out['meta'])) {
+            $out['meta']['resourceSubject'] = $resourceSubject;
+            $out['meta']['resourceVariant'] = $resourceVariant;
+            $out['meta']['clientCode']      = $clientCode;
+            $out['meta']['langHL']          = $languageCodeHL;
+            $out['meta']['variant']         = $normVariant;
         }
 
-        $out['meta']['translationComplete'] = $isBase ? true : $complete;
         return $out;
     }
 

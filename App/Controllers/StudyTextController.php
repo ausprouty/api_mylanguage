@@ -36,27 +36,30 @@ final class StudyTextController
 
             if (!isset(self::KINDS[$kind])) {
                 JsonResponse::error('Invalid kind. Use: common | interface');
-                exit;
+                return;
             }
 
             $mapped = self::KINDS[$kind];
             $res = $this->resolver->fetch($mapped, $subj, $lang, $var);
 
-            $client = $_SERVER['HTTP_IF_NONE_MATCH'] ?? null;
-            $client = is_string($client) ? trim($client, '"') : null;
-            if ($client !== null && $client === $res['etag']) {
-                JsonResponse::notModified($res['etag']);
-                return;
+            // Prepare headers (ETag MUST be quoted)
+            $etagHeader = '"' . $res['etag'] . '"';
+            $headers = [
+                'ETag'          => $etagHeader,
+                'Cache-Control' => 'public, max-age=600',
+            ];
+
+            // Conditional GET: If-None-Match may contain multiple ETags or '*'
+            $ifNoneMatch = $_SERVER['HTTP_IF_NONE_MATCH'] ?? null;
+            if (is_string($ifNoneMatch)) {
+                $candidates = array_map('trim', explode(',', $ifNoneMatch));
+                if ($ifNoneMatch === '*' || in_array($etagHeader, $candidates, true)) {
+                    JsonResponse::notModified($headers); // pass ARRAY, not string
+                    return;
+                }
             }
 
-            JsonResponse::success(
-                $res['data'],
-                [
-                    'ETag'          => '"' . $res['etag'] . '"',
-                    'Cache-Control' => 'public, max-age=600',
-                ],
-                200
-            );
+            JsonResponse::success($res['data'], $headers, 200);
         } catch (Exception $e) {
             JsonResponse::error($e->getMessage());
         }

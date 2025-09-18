@@ -15,7 +15,8 @@ interface TranslationService
     public function translateBundle(
         array $bundle,
         string $languageCodeHL,
-        ?string $variant
+        ?string $variant,
+        array $ctx = []
     ): array;
 
     public function baseLanguage(): string; // e.g., "eng00"

@@ -155,6 +155,11 @@ class DatabaseService
         return $this->dbConnection;
     }
 
+    public function prepare(string $sql): \PDOStatement
+    {
+        return $this->getPdo()->prepare($sql);
+    }
+
     /**
      * Non-throwing getter for rare cases where you want to probe.
      * Returns null if not connected.

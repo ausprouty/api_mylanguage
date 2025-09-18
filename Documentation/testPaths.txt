@@ -1,0 +1,29 @@
+http://localhost/api_mylanguage/api/v2/translate/text/interface/wsu/frn00
+
+SELECT COUNT(*) AS total_wsui_strings
+FROM i18n_strings
+WHERE type = 'interface' AND subject = 'wsu';
+
+
+SELECT id, type, subject, LEFT(text, 120) AS master_text
+FROM i18n_strings
+WHERE type = 'interface' AND subject = 'wsu'
+ORDER BY id
+LIMIT 50;
+
+SELECT s.id,
+       LEFT(s.text, 100)  AS master_text,
+       t.language,
+       t.client,
+       t.variant,
+       LEFT(t.text, 100)  AS fr_text
+FROM i18n_strings s
+LEFT JOIN i18n_translations t
+       ON t.string_id = s.id
+      AND t.language  = 'frn00'
+      AND t.client    = 'wsu'
+      AND t.variant   = 'default'
+WHERE s.type = 'interface'
+  AND s.subject = 'wsu'
+ORDER BY s.id
+LIMIT 100;

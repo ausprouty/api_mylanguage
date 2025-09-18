@@ -9,11 +9,15 @@
         "guzzlehttp/psr7": "^2.7",
         "psr/simple-cache": "^3.0"
     },
-    "scripts": { 
+    "scripts": {
+      "pre-test:di":  ["@composer dump-autoload -o"],
+      "test:di": [
+        "@composer dump-autoload -o",
+        "@php bin/di-smoke.php"
+      ],
+      
       "migrate": "php scripts/run_migrations.php",
-      "test:di": "php bin/di-smoke.php",
       "bb:cleanup": "php bin/biblebrain-cleanup-bibles.php"
-
     },
     "autoload": {
       "psr-4": {
