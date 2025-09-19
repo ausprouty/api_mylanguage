@@ -1,5 +1,10 @@
 http://localhost/api_mylanguage/api/v2/translate/text/interface/wsu/frn00
 
+
+http://localhost/api_mylanguage/api/v2/translate/text/interface/wsu/eng00
+
+to genrate i18n_strings
+
 SELECT COUNT(*) AS total_wsui_strings
 FROM i18n_strings
 WHERE type = 'interface' AND subject = 'wsu';

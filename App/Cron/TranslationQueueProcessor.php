@@ -238,20 +238,17 @@ class TranslationQueueProcessor
              WHERE c.clientCode = :c
                AND r.type       = :r
                AND r.subject    = :s
-               AND (
-                     (:v <> '' AND r.variant = :v)
-                  OR (:v =  '' AND (r.variant = '' OR r.variant IS NULL))
-               )
+               AND COALESCE(r.variant, '') = COALESCE(NULLIF(:v, ''), '')
                AND s.keyHash    = :h
              LIMIT 1
         ";
-
+        $v = ($variant === null || $variant === 'default') ? '' : (string)$variant;
         $id = $this->db->fetchSingleValue($sql, [
             ':c' => $clientCode,
             ':r' => $resourceType,
             ':s' => $subject,
-            ':v' => $variant,
-            ':h' => $sourceKeyHash,
+            ':v' => $v,
+            ':h' => $sourceKeyHash, // 40-hex only (no "sha1:" prefix)
         ]);
 
         return $id ? (int)$id : null;

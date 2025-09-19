@@ -182,10 +182,12 @@ class LoggerService
               . ' [' . $context . '] '
               . self::compactOneLine($msg)
               . ' ' . self::encodeJsonSafe($ctx);
-
+        // Determine separator: newline + optional blank line
+        $sep = PHP_EOL . (self::extraBlankLineEnabled() ? PHP_EOL : '');
         try {
-            file_put_contents(self::$logFile, $line . PHP_EOL, FILE_APPEND);
-            self::mirrorLine($line);
+            file_put_contents(self::$logFile, $line . $sep, FILE_APPEND);
+            self::mirrorLine($line, $sep);
+      
         } catch (Exception $e) {
             error_log('Logging failed: ' . $e->getMessage());
         }
@@ -275,7 +277,7 @@ class LoggerService
      * If mirroring is enabled, send the already-formatted log line either
      * to PHP's error_log() or to the configured mirror file.
      */
-    private static function mirrorLine(string $line): void
+     private static function mirrorLine(string $line, string $sep): void
     {
         if (!self::mirrorEnabled()) {
             return;
@@ -283,11 +285,25 @@ class LoggerService
 
         if (self::$mirrorFile) {
             // Best-effort (avoid breaking request flow on permission errors)
-            @file_put_contents(self::$mirrorFile, $line . PHP_EOL, FILE_APPEND);
+            @file_put_contents(self::$mirrorFile, $line . $sep, FILE_APPEND);
             return;
         }
+         // error_log doesn't append a newline by itself
+        error_log($line . $sep);
+    }
 
-        error_log($line);
+        /**
+     * Whether to add a blank line between entries (configurable).
+     * Prefers `logging.blank_line_between`, falls back to true by default.
+     */
+    private static function extraBlankLineEnabled(): bool
+    {
+        $v = Config::get('logging.blank_line_between', null);
+        if ($v === null) {
+            // legacy/off-by-default switch could be added here if you like
+            return true;
+        }
+        return (bool) $v;
     }
 
     // ------------------------------- Utils -------------------------------

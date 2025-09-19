@@ -1,0 +1,47 @@
+Perfect — you actually already have everything you need, just under slightly different namespaces. Here’s what you’ve got (from the files you shared):
+
+App\Cron\TranslationQueueProcessor
+
+Role: the “cron-style” loop. Method runCron($seconds, $batch) repeatedly picks queued jobs and processes them.
+
+Depends on: DatabaseService, App\Services\Language\TranslationBatchService.
+
+App\Services\Language\I18nTranslationQueueWorker
+
+Role: the per-job worker (pick → lock → reuse MT/TM if possible → upsert → ack/backoff).
+
+Depends on: DatabaseService.
+
+Methods include: processOne(), deleteJob(), pushBack(), markFailed(), etc.
+
+App\Services\Language\TranslationBatchService
+
+Role: MT engine client (e.g., Google V2), with retry logic.
+
+Method: translateBatch() plus low-level callGoogleV2*.
+
+App\Services\Language\I18nTranslationService
+
+Role: the HTTP-side assembler/translator; enqueues missing strings, applies translations back, updates meta.
+
+Helpers: extractMasterTexts(), applyTranslationsByStringId(), resolveIsoAndName().
+
+So… where should they “belong”?
+
+You don’t need an App\I18n\... folder to proceed. Your current layout is valid:
+
+Keep the loop under App\Cron\TranslationQueueProcessor (something a scheduler/CLI calls).
+
+Keep the per-job worker logic under App\Services\Language\I18nTranslationQueueWorker.
+
+Keep the MT client as a language service.
+
+Keep the HTTP translation service as-is.
+
+If later you want tidy layering, you can rename/move like this (optional, not required now):
+
+App\I18n\Queue\TranslationQueueWorker (move the worker class)
+
+App\Cron\TranslationQueueCron (a thin loop that calls the worker)
+
+…but that’s purely cosmetic and can wait.

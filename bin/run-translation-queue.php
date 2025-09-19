@@ -10,7 +10,7 @@ declare(strict_types=1);
  */
 
 use App\Cron\TranslationQueueProcessor;
-use App\Services\Language\NullTranslationBatchService; // <-- fix import
+use App\Services\Language\NullTranslationBatchService; 
 
 require __DIR__ . '/../vendor/autoload.php';
 
