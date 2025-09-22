@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace App\Services\Language;
 
 use App\Contracts\Translation\TranslationService as TranslationServiceContract;
@@ -9,21 +10,22 @@ use App\Repositories\I18nTranslationsRepository;
 use App\Repositories\I18nClientsRepository;
 use App\Repositories\I18nResourcesRepository;
 use App\Repositories\LanguageRepository;
-
-use App\Services\LoggerService;
 use App\Services\Database\DatabaseService;
+use App\Services\LoggerService;
+use App\Services\LoggerService as Log;
 use App\Support\Async;
+use App\Configuration\Config;
 
 class I18nTranslationService implements TranslationServiceContract
 {
     public function __construct(
-        private I18nStringsRepository       $strings,
-        private I18nTranslationsRepository  $translations,
-        private I18nClientsRepository       $clients,
-        private I18nResourcesRepository     $resources,
-        private DatabaseService             $db,
-        private LanguageRepository          $languages,
-        private string                      $baseLanguage = 'eng00'
+        private I18nStringsRepository      $strings,
+        private I18nTranslationsRepository $translations,
+        private I18nClientsRepository      $clients,
+        private I18nResourcesRepository    $resources,
+        private DatabaseService            $db,
+        private LanguageRepository         $languages,
+        private string                     $baseLanguage = 'eng00'
     ) {}
 
     public function baseLanguage(): string
@@ -31,21 +33,25 @@ class I18nTranslationService implements TranslationServiceContract
         return $this->baseLanguage;
     }
 
-   public function translateBundle(
+    /**
+     * Translate a resolved content bundle into the requested HL language.
+     * Google-only (languageCodeGoogle); English source is the fallback.
+     */
+    public function translateBundle(
         array $bundle,
         string $languageCodeHL,
         ?string $variant,
         array $ctx = []
     ): array {
-        // Required context from resolver
-        $type            = (string)($ctx['kind']             ?? 'interface');          // i18n_resources.type
-        $resourceSubject = (string)($ctx['resourceSubject']  ?? 'app');                // i18n_resources.subject
-        $resourceVariant = (string)($ctx['resourceVariant']  ?? ($variant ?: 'default')); // i18n_resources.variant
-        $clientCode      = (string)($ctx['clientCode']       ?? 'wsu');                // i18n_clients.clientCode
-        $isBase          = (bool)  ($ctx['isBase']           ?? ($languageCodeHL === $this->baseLanguage));
-        $normVariant     = (string)($ctx['variant']          ?? ($variant ?: 'default'));
+        // ---- context --------------------------------------------------------
+        $type            = (string)($ctx['kind']            ?? 'interface');
+        $resourceSubject = (string)($ctx['resourceSubject'] ?? 'app');
+        $resourceVariant = (string)($ctx['resourceVariant'] ?? ($variant ?: 'default'));
+        $clientCode      = (string)($ctx['clientCode']      ?? 'wsu');
+        $isBase          = (bool)  ($ctx['isBase']          ?? ($languageCodeHL === $this->baseLanguage));
+        $normVariant     = (string)($ctx['variant']         ?? ($variant ?: 'default'));
+        $dbg             = (bool)  ($ctx['debug']           ?? Config::get('logging.i18n_debug', false));
 
-        // Resolve IDs
         $clientId = $this->clients->getIdByCode($clientCode);
         if (!$clientId) {
             throw new \RuntimeException("Unknown clientCode '{$clientCode}'");
@@ -55,105 +61,133 @@ class I18nTranslationService implements TranslationServiceContract
             throw new \RuntimeException("Unknown resource {$type}/{$resourceSubject}/{$resourceVariant}");
         }
 
-        // Extract master texts and compute deterministic key hashes.
-        // Your repo can decide: use key-paths or english text as the hash basis.
-        // This call should return an array like:
-        //   [
-        //     ['key' => 'interface.share.button', 'text' => 'Share this with a friend', 'note' => 'Button label'],
-        //     ...
-        //   ]
-        $masters = $this->extractMasterTexts($bundle);
+        if ($dbg) {
+            Log::logDebug('I18nTr-060', 'ctxids', [
+                'isBase' => $isBase,
+                'kind' => $type, 'subject' => $resourceSubject, 'variant' => $resourceVariant,
+                'clientCode' => $clientCode, 'clientId' => $clientId, 'resourceId' => $resourceId,
+                'languageCodeHL' => $languageCodeHL,
+            ]);
+        }
 
-        // Upsert strings and get back stringIds keyed by hash
-        // Repo contract suggestion:
-        //   ensureIdsForMasterTexts(int $clientId, int $resourceId, array $masters): array
-        // Return: ['<keyHash>' => <stringId>, ...]
-        $stringMap = $this->strings->ensureIdsForMasterTexts(
-            clientId:   (int)$clientId,
-            resourceId: (int)$resourceId,
-            masters:    $masters
-        );
+        // ---- extract masters (English source lines) ------------------------
+        if ($dbg) { Log::logDebug('I18nTr-076', 'bundle', $bundle); }
+        $masters = $this->extractMasterTexts($bundle); // [['key' => 'a.b', 'text' => '...'], ...]
+        if ($dbg) { Log::logDebug('I18nTr-077', 'masters', $masters); }
 
+        // ---- resolve Google code from HL -----------------------------------
+        $google = $this->languages->getCodeGoogleFromCodeHL($languageCodeHL) ?? '';
+        if ($google === '') {
+            $google = strtolower(substr($languageCodeHL, 0, 2)); // best-effort
+        }
+
+        // ---- base language: seed ids and return as-is -----------------------
         if ($isBase) {
-            // For ENG: we've seeded stringIds already; return bundle as-is
-            return $bundle;
+            // Ensure IDs exist even for base language (keeps catalog in sync)
+            $this->ensureStringIds($clientId, $resourceId, $masters, $dbg);
+            return $this->withMeta($bundle, [
+                'resourceSubject'  => $resourceSubject,
+                'resourceVariant'  => $resourceVariant,
+                'clientCode'       => $clientCode,
+                'languageCodeHL'   => $languageCodeHL,
+                'languageCodeGoogle' => 'en',
+                'variant'          => $normVariant,
+                'keysTotal'        => count($masters),
+                'keysMissing'      => 0,
+                'keysFuzzy'        => $bundle['meta']['keysFuzzy'] ?? 0,
+                'translationComplete' => true,
+            ]);
         }
 
-        // langauge details
-        [$languageName, $languageCodeIso] = $this->resolveIsoAndName($languageCodeHL) ?? [null, null];
-
-        // Fetch translations by stringId + HL language
-        $stringIds = array_values($stringMap);
+        // ---- ensure strings exist, get mapping + ids ------------------------
+        [$stringMap, $stringIds] = $this->ensureStringIds($clientId, $resourceId, $masters, $dbg);
         if (empty($stringIds)) {
-            return $bundle;
+            return $this->withMeta($bundle, [
+                'resourceSubject'   => $resourceSubject,
+                'resourceVariant'   => $resourceVariant,
+                'clientCode'        => $clientCode,
+                'languageCodeHL'    => $languageCodeHL,
+                'languageCodeGoogle'=> $google,
+                'variant'           => $normVariant,
+                'keysTotal'         => 0,
+                'keysMissing'       => 0,
+                'keysFuzzy'         => $bundle['meta']['keysFuzzy'] ?? 0,
+                'translationComplete' => true,
+            ]);
         }
-        // Fetch by HL first
-        $rows = $this->translations->fetchByStringIdsAndLanguage(
-            stringIds: $stringIds,
-            languageCodeHL:  $languageCodeHL
-        );
-        $iso2 = $this->languages->getCodeIsoFromCodeHL($languageCodeHL) ?? substr($languageCodeHL, 0, 2);
-        if (empty($rows)) {
-            
-            if (method_exists($this->translations, 'fetchByStringIdsAndLanguageIso')) {
-                $rows = $this->translations->fetchByStringIdsAndLanguageIso(
-                    stringIds:         $stringIds,
-                    languageCodeIso:   $languageCodeIso
-                );
+
+        if ($dbg) { Log::logDebug('I18nTr-120', 'stringIds', $stringIds); }
+
+        // ---- fetch Google translations for those ids ------------------------
+        $rowsGoogle = $this->translations->fetchByStringIdsAndLanguageGoogle($stringIds, $google);
+        if ($dbg) { Log::logDebug('I18nTr-126', 'rowsGoogle', $rowsGoogle); }
+
+        $trById = [];
+        foreach ($rowsGoogle as $r) {
+            $sid = (int)($r['stringId'] ?? 0);
+            if ($sid > 0) {
+                $trById[$sid] = (string)($r['translatedText'] ?? '');
             }
         }
 
-        // Map stringId -> translatedText
-        $trById = [];
-        foreach ($rows as $r) {
-            $sid = (int)$r['stringId'];
-            $trById[$sid] = (string)$r['translatedText'];
-        }
-        +        // --- Compute counts & enqueue missing (for non-base languages) ---
-        $keysTotal     = count($masters);
+        // ---- count translated vs missing; enqueue missing -------------------
+        $keysTotal     = count($stringIds);
         $translatedCnt = 0;
         $missingRows   = [];
-        $srcIso        = strtolower(substr($this->baseLanguage, 0, 2));
-        $tgtIso        = strtolower(substr($languageCodeHL, 0, 2));
+
+        $norm = static function (?string $s): string {
+            if ($s === null) return '';
+            $s = preg_replace('/\s+/u', ' ', trim($s));
+            return \function_exists('mb_strtolower') ? mb_strtolower($s, 'UTF-8') : strtolower($s);
+        };
 
         foreach ($masters as $m) {
             $dot = (string)($m['key']  ?? '');
             $txt = (string)($m['text'] ?? '');
-            if ($txt === '') continue;
+            if ($txt === '') { continue; }
+
             $shaHex = sha1($txt);
-            $shaKey = 'sha1:' . $shaHex; // keep prefixed form for lookups
-             // tolerate any of the three key styles
+            $shaKey = 'sha1:' . $shaHex;
+
+            // find stringId for this line
             $sid = $stringMap[$dot] ?? $stringMap[$shaKey] ?? $stringMap[$shaHex] ?? null;
-            $has = ($sid !== null) && array_key_exists((int)$sid, $trById) && $trById[(int)$sid] !== '';
-            if ($has) {
-                $translatedCnt;
-            } elseif (!$isBase) {
+            $sid = ($sid !== null) ? (int)$sid : null;
+
+            $applied = ($sid !== null && isset($trById[$sid])) ? (string)$trById[$sid] : '';
+            $isTranslated = ($applied !== '') && ($norm($applied) !== $norm($txt));
+
+            if ($isTranslated) {
+                $translatedCnt++;
+            } else {
                 $missingRows[] = [
-                    // Prefer dot-path as the human key; fall back to prefixed key
-                    'stringKey' => $dot !== '' ? $dot : $shaKey,
-+                   'keyHash'   => $shaHex, // DB wants 40-hex
-                    'sid'       => $sid ? (int)$sid : null,
+                    'stringKey' => ($dot !== '' ? $dot : $shaKey),
+                    'keyHash'   => $shaHex,
+                    'sid'       => $sid,
                     'text'      => $txt,
                 ];
             }
         }
 
-        if (!$isBase && $missingRows) {
+        $keysMissing = max(0, $keysTotal - $translatedCnt);
+
+        if (!empty($missingRows)) {
             foreach ($missingRows as $mr) {
                 $this->enqueueMissing(
-                    clientCode:        $clientCode,
-                    resourceType:      $type,
-                    subject:           $resourceSubject,
-                    variant:           $resourceVariant,
-                    stringKey:         $mr['stringKey'],
-                    sourceKeyHash:     $mr['keyHashHex'],
-                    sourceStringId:    $mr['sid'],
-                    sourceLanguageIso: $srcIso,
-                    targetLanguageIso: $tgtIso,
-                    sourceText:        $mr['text'],
-                    priority:          0
+                    clientCode:            $clientCode,
+                    resourceType:          $type,
+                    subject:               $resourceSubject,
+                    variant:               $resourceVariant,
+                    stringKey:             $mr['stringKey'],
+                    sourceKeyHash:         $mr['keyHash'],
+                    sourceStringId:        $mr['sid'],
+                    sourceLanguageGoogle:  'en',
+                    targetLanguageGoogle:  $google,
+                    sourceText:            $mr['text'],
+                    priority:              0
                 );
             }
+
+            // Kick a one-shot worker (optional)
             Async::php(__DIR__ . '/../../../bin/translate-queue.php', [
                 '--once',
                 '--lang=' . $languageCodeHL,
@@ -164,128 +198,89 @@ class I18nTranslationService implements TranslationServiceContract
             ]);
         }
 
-        // Apply translations back onto the bundle nodes using the same hash mapping
+        // ---- apply translations back onto the bundle ------------------------
         $out = $this->applyTranslationsByStringId($bundle, $stringMap, $trById);
- 
-        // Optional: annotate meta for debugging
-        if (isset($out['meta']) && is_array($out['meta'])) {
-            $out['meta']['resourceSubject'] = $resourceSubject;
-            $out['meta']['resourceVariant'] = $resourceVariant;
-            $out['meta']['clientCode']      = $clientCode;
-            $out['meta']['languageCodeHL']  = $languageCodeHL;
-            $out['meta']['variant']         = $normVariant;
 
-            $font = $this->languages->getFontDataFromLanguageCodeHL($languageCodeHL);
-            if ($font) $out['meta']['font'] = $font;
-
-            
-            if ($name) $out['meta']['languageName']    = $languageName;
-            if ($languageCodeIso)  $out['meta']['languageCodeISO'] = $iso;
-
-             // Update translation progress meta
-            $out['meta']['keysTotal']       = $keysTotal;
-            $out['meta']['keysMissing']     = max(0, $keysTotal - $translatedCnt);
-            $out['meta']['keysFuzzy']       = $out['meta']['keysFuzzy'] ?? 0;
-            $out['meta']['translationComplete'] = 
-                ($out['meta']['keysMissing'] === 0);
-            // cleanup
-             unset($out['meta']['langHL']);
-             if (($out['meta']['font'] ?? null) === 'null') {
-                unset($out['meta']['font']);
-            }
-
-            
-        }
+        // ---- meta -----------------------------------------------------------
+        $out = $this->withMeta($out, [
+            'resourceSubject'     => $resourceSubject,
+            'resourceVariant'     => $resourceVariant,
+            'clientCode'          => $clientCode,
+            'languageCodeHL'      => $languageCodeHL,
+            'languageCodeGoogle'  => $google,
+            'variant'             => $normVariant,
+            'keysTotal'           => $keysTotal,
+            'keysMissing'         => $keysMissing,
+            'keysFuzzy'           => $out['meta']['keysFuzzy'] ?? 0,
+            'translationComplete' => ($keysMissing === 0),
+            'fallbackCount'       => $keysMissing, // number of English fallbacks used
+        ]);
 
         return $out;
     }
 
-    // -------- internals --------
+    // ---------------------------------------------------------------------
+    // internals
+    // ---------------------------------------------------------------------
 
-    private function collectStrings(array $node, array $path, array $skipTopKeys, array &$out): void
-    {
-        if (empty($path) && is_array($node)) {
-            foreach ($skipTopKeys as $skip) unset($node[$skip]);
+    /**
+     * Ensure every master line exists in i18n_strings and return:
+     *   [$stringMap, $stringIds]
+     * $stringMap is keyed by dot key, "sha1:<hex>", and "<hex>".
+     */
+    private function ensureStringIds(
+        int $clientId,
+        int $resourceId,
+        array $masters,
+        bool $dbg = false
+    ): array {
+        // Prefer the richer helper if your repository has it
+        if (\method_exists($this->strings, 'ensureAndMapForMasters')) {
+            [$stringMap, $stringIds] = $this->strings->ensureAndMapForMasters($clientId, $resourceId, $masters);
+            if ($dbg) {
+                Log::logDebug('I18nTr-115', 'ensureAndMapForMasters', ['ids' => count($stringIds)]);
+            }
+            return [$stringMap, $stringIds];
         }
-        if (is_array($node)) {
-            foreach ($node as $k => $v) {
-                $p = [...$path, (string)$k];
-                if (is_array($v)) {
-                    $this->collectStrings($v, $p, $skipTopKeys, $out);
-                } elseif (is_string($v)) {
-                    if ($this->looksHumanText($p, $v)) $out[] = ['path' => $p, 'text' => $v];
-                }
+
+        // Fallback: ensureIdsForMasterTexts returns keyHash=>stringId
+        $hashMap = $this->strings->ensureIdsForMasterTexts(
+            clientId:   $clientId,
+            resourceId: $resourceId,
+            masters:    $masters
+        ); // ['<hex>' => int]
+
+        // Build a map that also includes dot and "sha1:<hex>" keys
+        $stringMap = [];
+        foreach ($masters as $m) {
+            $dot = (string)($m['key']  ?? '');
+            $txt = (string)($m['text'] ?? '');
+            if ($txt === '') { continue; }
+            $hex = sha1($txt);
+            $sid = $hashMap[$hex] ?? null;
+            if ($sid) {
+                if ($dot !== '' && !isset($stringMap[$dot])) { $stringMap[$dot] = $sid; }
+                $stringMap["sha1:$hex"] = $sid;
+                $stringMap[$hex]        = $sid;
             }
         }
-    }
+        $stringIds = array_values(array_unique(array_values($stringMap)));
 
-    private function looksHumanText(array $path, string $text): bool
-    {
-        if ($text === '' || trim($text) === '') return false;
-        $last = strtolower((string)end($path));
-        if (str_contains($last, 'code') || str_contains($last, 'id')) return false;
-        return true;
-    }
-
-    private function setByPath(array &$arr, array $path, string $value): void
-    {
-        $ref =& $arr;
-        $n = count($path);
-        for ($i = 0; $i < $n - 1; $i++) {
-            $k = $path[$i];
-            if (!isset($ref[$k]) || !is_array($ref[$k])) $ref[$k] = [];
-            $ref =& $ref[$k];
+        if ($dbg) {
+            $sampleKeys = array_slice(array_keys($stringMap), 0, 5);
+            $sampleVals = array_slice(array_values($stringMap), 0, 5);
+            Log::logDebug('I18nTr-119', 'stringMap.sample', [
+                'keys' => $sampleKeys, 'sids' => $sampleVals, 'total' => count($stringMap)
+            ]);
         }
-        $ref[$path[$n - 1]] = $value;
+
+        return [$stringMap, $stringIds];
     }
 
-    private function enqueueMissing(
-        string $clientCode,
-        string $resourceType,
-        string $subject,
-        string $variant,
-        string $stringKey,
-        string $sourceKeyHash,
-        ?int   $sourceStringId,
-        string $sourceLanguageIso,
-        string $targetLanguageIso,
-        string $sourceText,
-        int    $priority = 0
-    ): void {
-        $sql = "
-        INSERT INTO i18n_translation_queue
-          (sourceStringId, sourceLanguageCodeIso, clientCode,
-           resourceType, subject, variant, stringKey, sourceKeyHash,
-           targetLanguageCodeIso, sourceText, status, runAfter, priority)
-        VALUES
-          (:sid, :srcIso, :client, :rtype, :subj, :var, :skey, :shash,
-           :tIso, :stext, 'queued', NOW(), :prio)
-        ON DUPLICATE KEY UPDATE
-          runAfter = LEAST(i18n_translation_queue.runAfter, VALUES(runAfter)),
-          priority = LEAST(i18n_translation_queue.priority, VALUES(priority))
-        ";
-        $this->db->executeQuery($sql, [
-            ':sid'    => $sourceStringId,
-            ':srcIso' => $sourceLanguageIso,
-            ':client' => $clientCode,
-            ':rtype'  => $resourceType,
-            ':subj'   => $subject,
-            ':var'    => $variant,
-            ':skey'   => $stringKey,
-            ':shash'  => $sourceKeyHash,
-            ':tIso'   => $targetLanguageIso,
-            ':stext'  => $sourceText,
-            ':prio'   => $priority,
-        ]);
-    }
-    /**
-     * Walk the bundle and return a flat list of master texts with stable keys.
-     * Each item: ['key' => 'a.b.c', 'text' => '...']
-     */
+    /** Walk the bundle and return master lines with stable dot-keys. */
     private function extractMasterTexts(array $bundle): array
     {
         $rows = [];
-        // Skip meta at the top level; keep everything else
         $this->collectStrings($bundle, [], ['meta'], $rows);
         $out = [];
         foreach ($rows as $r) {
@@ -297,97 +292,160 @@ class I18nTranslationService implements TranslationServiceContract
         return $out;
     }
 
-     /**
-     * Apply translations back onto the bundle.
-     *
-     * @param array $bundle   Original assembled bundle.
-     * @param array $stringMap Map: stableKey => stringId. The stableKey can be
-     *                         a dot-path (e.g., 'interface.share') or a text
-     *                         hash in the form 'sha1:<hex>'.
-     * @param array $trById    Map: stringId (int) => translated text (string).
-     * @return array           Bundle with translated strings applied.
-     */
+    private function collectStrings(array $node, array $path, array $skipTopKeys, array &$out): void
+    {
+        if (empty($path) && is_array($node)) {
+            foreach ($skipTopKeys as $skip) { unset($node[$skip]); }
+        }
+        if (is_array($node)) {
+            foreach ($node as $k => $v) {
+                $p = [...$path, (string)$k];
+                if (is_array($v)) {
+                    $this->collectStrings($v, $p, $skipTopKeys, $out);
+                } elseif (is_string($v)) {
+                    if ($this->looksHumanText($p, $v)) {
+                        $out[] = ['path' => $p, 'text' => $v];
+                    }
+                }
+            }
+        }
+    }
+
+    private function looksHumanText(array $path, string $text): bool
+    {
+        if ($text === '' || trim($text) === '') { return false; }
+        $last = strtolower((string)end($path));
+        if (str_contains($last, 'code') || str_contains($last, 'id')) { return false; }
+        return true;
+    }
+
+    private function setByPath(array &$arr, array $path, string $value): void
+    {
+        $ref =& $arr;
+        $n = count($path);
+        for ($i = 0; $i < $n - 1; $i++) {
+            $k = $path[$i];
+            if (!isset($ref[$k]) || !is_array($ref[$k])) { $ref[$k] = []; }
+            $ref =& $ref[$k];
+        }
+        $ref[$path[$n - 1]] = $value;
+    }
+
+    /** Apply translations onto the bundle using stringId mapping. */
     private function applyTranslationsByStringId(
         array $bundle,
         array $stringMap,
         array $trById
     ): array {
         $out = $bundle;
-        LoggerService::logInfo('I18nTranslatioService-290', $out);
-        // Build stableKey => translatedText index.
+
+        // stableKey => translated
         $keyToText = [];
         foreach ($stringMap as $stableKey => $sid) {
             $sid = (int) $sid;
             if (isset($trById[$sid]) && is_string($trById[$sid])) {
-                $keyToText[(string) $stableKey] = $trById[$sid];
+                $keyToText[(string)$stableKey] = $trById[$sid];
             }
         }
         if (empty($keyToText)) {
             return $out;
         }
 
-        // Collect all candidate strings (skip top-level 'meta').
         $rows = [];
         $this->collectStrings($bundle, [], ['meta'], $rows);
 
         foreach ($rows as $r) {
-            $path = (array) ($r['path'] ?? []);
-            $text = (string) ($r['text'] ?? '');
-            if ($text === '') {
-                continue;
-            }
+            $path = (array)($r['path'] ?? []);
+            $text = (string)($r['text'] ?? '');
+            if ($text === '') { continue; }
 
-            // Two possible stable keys:
-            //  1) dot-path: a.b.c
-            //  2) text hash: sha1:<hex>
-             $dot    = implode('.', $path);
+            $dot    = implode('.', $path);
             $shaHex = sha1($text);
             $shaKey = 'sha1:' . $shaHex;
+
             $new = $keyToText[$dot]
                 ?? $keyToText[$shaKey]
                 ?? $keyToText[$shaHex]
                 ?? null;
+
             if ($new !== null) {
                 $this->setByPath($out, $path, $new);
             }
         }
-        LoggerService::logInfo('I18nTranslatioService-324', $out);
+
         return $out;
     }
 
-    private function resolveIsoAndName(string $languageCodeHL): array
-    {
-        try {
-            // ISO first (null if missing)
-            $iso = $this->languages->getCodeIsoFromCodeHL($languageCodeHL);
-            // Prefer name by HL, fall back to name by ISO
-            $name = $this->languages->getEnglishNameForLanguageCodeHL($languageCodeHL)
-                 ?: ($iso ? $this->languages->getEnglishNameForLanguageCodeIso($iso) : null);
-            return [$name, $iso];
-        } catch (\Throwable $e) {
-            // Don't fail the request if lookup bombs; just return what we can.
-            return [null, null];
-        }
-    }
-    /** Fallback for stores that index translations by ISO instead of HL. */
-    public function fetchByStringIdsAndLanguageIso(array $stringIds, string $languageCodeIso): array
-    {
-        if (empty($stringIds)) return [];
-        $placeholders = [];
-        $params = [':iso' => $languageCodeIso];
-        foreach ($stringIds as $i => $id) {
-            $ph = ':id'.$i;
-            $placeholders[] = $ph;
-            $params[$ph] = (int)$id;
-        }
-        $in = implode(',', $placeholders);
-        $sql = "SELECT stringId, translatedText
-                  FROM i18n_translations
-                 WHERE stringId IN ($in)
-                   AND languageCodeIso = :iso";
-        return $this->databaseService->fetchAll($sql, $params);
+    /** Insert/refresh queue rows for missing translations (Google-only). */
+    private function enqueueMissing(
+        string $clientCode,
+        string $resourceType,
+        string $subject,
+        string $variant,
+        string $stringKey,
+        string $sourceKeyHash,
+        ?int   $sourceStringId,
+        string $sourceLanguageGoogle,
+        string $targetLanguageGoogle,
+        string $sourceText,
+        int    $priority = 0
+    ): void {
+        $sql = "
+            INSERT INTO i18n_translation_queue
+              (sourceStringId, sourceLanguageCodeGoogle, clientCode,
+               resourceType, subject, variant, stringKey, sourceKeyHash,
+               targetLanguageCodeGoogle, sourceText, status, runAfter, priority)
+            VALUES
+              (:sid, :srcG, :client, :rtype, :subj, :var, :skey, :shash,
+               :tG, :stext, 'queued', NOW(), :prio)
+            ON DUPLICATE KEY UPDATE
+              runAfter = LEAST(i18n_translation_queue.runAfter, VALUES(runAfter)),
+              priority = LEAST(i18n_translation_queue.priority, VALUES(priority)),
+              -- if a worker crashed mid-flight, release it
+              status   = IF(status='processing','queued',status),
+              lockedBy = IF(status='processing',NULL,lockedBy),
+              lockedAt = IF(status='processing',NULL,lockedAt)
+        ";
+
+        $this->db->executeQuery($sql, [
+            ':sid'   => $sourceStringId,
+            ':srcG'  => $sourceLanguageGoogle,
+            ':client'=> $clientCode,
+            ':rtype' => $resourceType,
+            ':subj'  => $subject,
+            ':var'   => $variant,
+            ':skey'  => $stringKey,
+            ':shash' => $sourceKeyHash,
+            ':tG'    => strtolower($targetLanguageGoogle),
+            ':stext' => $sourceText,
+            ':prio'  => $priority,
+        ]);
     }
 
-    
+    /** Attach/override meta fields neatly. */
+    private function withMeta(array $bundle, array $add): array
+    {
+        $out = $bundle;
+        if (!isset($out['meta']) || !is_array($out['meta'])) {
+            $out['meta'] = [];
+        }
+        foreach ($add as $k => $v) {
+            $out['meta'][$k] = $v;
+        }
 
+        // Optional: attach font data for this HL (if available)
+        if (!isset($out['meta']['font'])) {
+            $font = $this->languages->getFontDataFromLanguageCodeHL($out['meta']['languageCodeHL'] ?? '');
+            if ($font && $font !== 'null') {
+                $out['meta']['font'] = $font;
+            }
+        }
+
+        // cleanup
+        if (array_key_exists('langHL', $out['meta'])) {
+            unset($out['meta']['langHL']);
+        }
+
+        return $out;
+    }
 }

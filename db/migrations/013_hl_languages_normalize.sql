@@ -69,33 +69,46 @@ SET @sql := IF(@idx=0,
 );
 PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
 
--- 6) Ensure a PRIMARY KEY on id; drop redundant UNIQUE 'ID'
--- 6a) Add PK if missing
+-- 6+7) Ensure id is primary and drop legacy unique `ID` atomically (avoid AI-without-key error)
+SET @db := DATABASE();
+
+-- Current state flags
 SET @has_pk := (
-  SELECT COUNT(*)
-  FROM information_schema.table_constraints
-  WHERE table_schema=DATABASE()
-    AND table_name='hl_languages'
-    AND constraint_type='PRIMARY KEY'
+  SELECT COUNT(*) FROM information_schema.table_constraints
+   WHERE table_schema=@db AND table_name='hl_languages' AND constraint_type='PRIMARY KEY'
 );
-SET @sql := IF(@has_pk=0,
-  'ALTER TABLE hl_languages
-       ADD PRIMARY KEY (id);',
-  'SELECT 1;'
-);
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
-
--- 6b) Drop old UNIQUE index named `ID` if it exists (redundant with PK)
-SET @idx := (
+SET @has_idx_id := (
   SELECT COUNT(*) FROM information_schema.statistics
-  WHERE table_schema=DATABASE()
-    AND table_name='hl_languages'
-    AND index_name='ID'
+   WHERE table_schema=@db AND table_name='hl_languages' AND index_name='ID'
 );
-SET @sql := IF(@idx=1,
-  'ALTER TABLE hl_languages DROP INDEX ID;',
-  'SELECT 1;'
+
+-- Case A: No PK and `ID` unique exists -> add PK and drop `ID` in ONE ALTER
+SET @sql := IF(@has_pk=0 AND @has_idx_id>0,
+  'ALTER TABLE hl_languages ADD PRIMARY KEY (id), DROP INDEX `ID`',
+  'SELECT 1'
 );
 PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
 
-COMMIT;
+-- Recompute because previous step may have changed state
+SET @has_pk := (
+  SELECT COUNT(*) FROM information_schema.table_constraints
+   WHERE table_schema=@db AND table_name='hl_languages' AND constraint_type='PRIMARY KEY'
+);
+SET @has_idx_id := (
+  SELECT COUNT(*) FROM information_schema.statistics
+   WHERE table_schema=@db AND table_name='hl_languages' AND index_name='ID'
+);
+
+-- Case B: No PK and no `ID` -> just add PK
+SET @sql := IF(@has_pk=0 AND @has_idx_id=0,
+  'ALTER TABLE hl_languages ADD PRIMARY KEY (id)',
+  'SELECT 1'
+);
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+-- Case C: PK already exists but leftover `ID` still present -> drop `ID`
+SET @sql := IF(@has_pk=1 AND @has_idx_id>0,
+  'ALTER TABLE hl_languages DROP INDEX `ID`',
+  'SELECT 1'
+);
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
