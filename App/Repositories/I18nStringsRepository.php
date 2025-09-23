@@ -28,9 +28,11 @@ final class I18nStringsRepository
         array $masters
     ): array {
         // set Debugging
-        $dbg= Config::get('logging.i18n_debug');
+        $dbg= Config::get('logging.i18n_debug', false);
+        
+        $dbg = true;
         if ($dbg){
-            LoggerService::logInfo('I18nStrings-33', 'masters', $masters);
+            Log::logInfo('I18nStrings-33', 'masters', $masters);
         }
         // 1) Build unique set of (hash => englishText)
         $hashToText = [];
@@ -44,6 +46,12 @@ final class I18nStringsRepository
         }
 
         // 2) Insert any missing/changed strings (idempotent via UNIQUE (clientId,resourceId,keyHash))
+       
+         if ($dbg){
+            Log::logInfo('I18nStrings-49', 'hashToText', $hashToText);
+            Log::logInfo('I18nStrings-50', 'clientId', $clientId);
+            Log::logInfo('I18nStrings-51', 'resourceId', $resourceId);
+        }       
         $ins = $this->pdo->prepare(
             "INSERT INTO i18n_strings
                 (clientId, resourceId, keyHash, englishText, createdAt, updatedAt)
@@ -54,6 +62,11 @@ final class I18nStringsRepository
                 updatedAt   = NOW()"
         );
         foreach ($hashToText as $h => $t) {
+            if ($dbg){
+            Log::logInfo('I18nStrings-64', 'hash', $h);
+            Log::logInfo('I18nStrings-65', 'text', $t);
+
+           } 
             $ins->bindValue(':c', $clientId,  PDO::PARAM_INT);
             $ins->bindValue(':r', $resourceId, PDO::PARAM_INT);
             $ins->bindValue(':h', $h);
