@@ -31,7 +31,7 @@ final class FsTemplateAssemblyService implements TemplateAssemblyService
         $data = [];
 
         foreach ($candidates as $path) {
-            LoggerService::logInfo('FsTemplateAssemblyService-candidate', ['path' => $path]);
+            //LoggerService::logInfo('FsTemplateAssemblyService-candidate', ['path' => $path]);
             if (!is_string($path) || $path === '' || !is_file($path)) {
                 continue;
             }
@@ -39,7 +39,7 @@ final class FsTemplateAssemblyService implements TemplateAssemblyService
             $overlay = $this->readJson($path);
             $data = $this->overlayDestructive($data, $overlay); // overlay wins; null/"" deletes
         }
-        LoggerService::logInfo('FsTemplateAssemblyService-data', ['data' => $data]);
+        //LoggerService::logInfo('FsTemplateAssemblyService-data', ['data' => $data]);
 
         if (!$foundAny) {
             throw new RuntimeException("Template not found for {$kind}/{$subject}" . ($variant ? " (variant={$variant})" : ''));

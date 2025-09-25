@@ -3,6 +3,15 @@ declare(strict_types=1);
 
 /**
  * Translation queue cron runner.
+ * /bin/translation-cron.php
+ * 
+ * Use in production and staging
+ * Handles locking (no overlapping runs)
+ *
+ *  Sets up logging to your configured log file
+ *  Reads CLI/env flags (--max-secs, --batch-size, --dry-run)
+ *  Boots DI and constructs TranslationQueueProcessor with real deps
+ *  Intended to be called by cron / scheduler, quietly, forever
  *
  * Usage:
  *   php translation-cron.php [maxSecs] [batchSize]
@@ -12,6 +21,9 @@ declare(strict_types=1);
  *   APP_ENV=remote MAX_SECS=55 BATCH_SIZE=120 DRY_RUN=0
  */
 
+use App\Cron\TranslationQueueProcessor;
+use App\Configuration\Config;
+
 if (PHP_SAPI !== 'cli') {
     fwrite(STDERR, "This script must be run from CLI.\n");
     exit(1);
@@ -19,22 +31,32 @@ if (PHP_SAPI !== 'cli') {
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-use App\Cron\TranslationQueueProcessor;
 
-const LOG = '/home/mylanguagenet/api2.mylanguage.net.au/logs/translation-a.log';
-const LOCK = LOG . '.lock';
+// Load environment & config once
+Config::initialize();
+/**
+ * Resolve log path:
+ *  - LOG_DIR env var (if set)
+ *  - project /logs (if writable)
+ *  - system temp dir as fallback
+ */
+
+
+
+define('LOG_PATH', Config::get('logging.cli_file'));   // make log path available to functions
+define('LOCK_PATH', $LOG_PATH . '.lock'); // optional, if you want the lock path too
 
 error_reporting(E_ALL);
 ini_set('log_errors', '1');
-ini_set('error_log', LOG);
+ini_set('error_log', $LOG);
 // Set a sane memory limit for cron jobs. Adjust if needed.
 if (!ini_get('memory_limit') || ini_get('memory_limit') === '-1') {
     ini_set('memory_limit', '512M');
 }
 
 /** Ensure log directory exists */
-(function (): void {
-    $dir = dirname(LOG);
+(function () use ($LOG): void {
+    $dir = dirname($LOG);
     if (!is_dir($dir)) {
         @mkdir($dir, 0755, true);
     }
@@ -43,8 +65,12 @@ if (!ini_get('memory_limit') || ini_get('memory_limit') === '-1') {
 /** Small logger helpers */
 function log_line(string $msg): void
 {
-    file_put_contents(LOG, '[' . date('c') . '] ' . $msg . PHP_EOL,
-        FILE_APPEND);
+    file_put_contents(
+        $LOG_PATH,
+       '[' . date('c') . '] ' . $msg . PHP_EOL,
+        FILE_APPEND
+    );
+
 }
 
 function log_exception(\Throwable $e): void
@@ -132,16 +158,15 @@ function get_bool_opt(string $long, string $envName, bool $default): bool
 
 /** Main */
 $startedAt = microtime(true);
-$appEnv = getenv('APP_ENV') ?: 'none';
-
+$appEnv = Config::get('environment') ?: 'none';
 $maxSecs = get_int_opt('max-secs', 1, 55);
 $batchSize = get_int_opt('batch-size', 2, 120);
 $dryRun = get_bool_opt('dry-run', 'DRY_RUN', false);
 
 // Prevent overlap
-$lockHandle = @fopen(LOCK, 'c');
+$lockHandle = @fopen($LOCK, 'c');
 if (!$lockHandle) {
-    log_line('ERROR could not open lock file: ' . LOCK);
+    log_line('ERROR could not open lock file: ' . $LOCK);
     exit(1);
 }
 if (!flock($lockHandle, LOCK_EX | LOCK_NB)) {

@@ -50,7 +50,10 @@ class I18nTranslationService implements TranslationServiceContract
         $isBase          = (bool)  ($ctx['isBase']          ?? ($languageCodeHL === $this->baseLanguage));
         $normVariant     = (string)($ctx['variant']         ?? ($variant ?: 'default'));
         $dbg             = (bool)  ($ctx['debug']           ?? Config::get('logging.i18n_debug', false));
-
+       
+       // NOTICE THE RESET HERE
+        $dbg = false;
+        
         $clientId = $this->clients->getIdByCode($clientCode);
         if (!$clientId) {
             throw new \RuntimeException("Unknown clientCode '{$clientCode}'");
@@ -194,17 +197,18 @@ class I18nTranslationService implements TranslationServiceContract
                     priority:              0
                 );
             }
-
-            // optional: kick a one-shot worker
-            Async::php(__DIR__ . '/../../../bin/translate-queue.php', [
-                '--once',
-                '--lang=' . $languageCodeHL,
-                '--client=' . $clientCode,
-                '--type=' . $type,
-                '--subject=' . $resourceSubject,
-                '--variant=' . $resourceVariant,
-            ]);
+            // Optionally kick a worker based on environment.
+            // In production we usually rely on cron. You can force a kick with
+            // FEATURE_KICK_QUEUE=1.
+            $this->kickQueueWorker(
+                client:   $clientCode,
+                type:     $type,
+                subject:  $resourceSubject,
+                variant:  $resourceVariant,
+                lang:     $google
+            );
         }
+            
 
         // ---- apply translations back onto the bundle ------------------------
         $out = $this->applyTranslationsByStringId($bundle, $stringMap, $trById);
@@ -345,7 +349,7 @@ class I18nTranslationService implements TranslationServiceContract
                 'masters'   => count($masters),
                 'hashes'    => count($hashToText),
                 'mapped'    => count($stringIds),
-                'sampleKeys'=> array_slice(array_keys($stringMap), 0, 8),
+               'sampleKeys'=> array_slice(array_keys($stringMap), 0, 8),
             ]);
         }
 
@@ -366,10 +370,10 @@ class I18nTranslationService implements TranslationServiceContract
             ];
         }
 
-            Log::logDebug('I18nTr-319', 'ensureMastersAndMap', [
-                'bundle'   => $bundle,
-                'out'    => $out,
-            ]);
+           // Log::logDebug('I18nTr-319', 'ensureMastersAndMap', [
+            //    'bundle'   => $bundle,
+            //    'out'    => $out,
+            //]);
 
         return $out;
     }
@@ -556,4 +560,106 @@ class I18nTranslationService implements TranslationServiceContract
         }
         return [implode(',', $ph), $params];
     }
+   
+
+    /**
+     * Kick a short queue run after enqueue, driven entirely by Config::get.
+     * Dev/local: kick by default. Prod: no-op unless forced in config.
+     */
+    function kickQueueWorker(
+        string $client,
+        string $type,
+        string $subject,
+        string $variant,
+        string $lang
+    ): void {
+        //Log::logDebug('kickQueueWorker-575', 'entred', [$lang]);
+        // Safe getter: return $default if key missing.
+        $cfg = static function (string $key, mixed $default = null): mixed {
+            try { return Config::get($key); } catch (\Throwable $e) { return $default; }
+        };
+
+        // Environment comes ONLY from 'environment'
+        $env   = strtolower((string) Config::get('environment'));
+        $isDev = in_array($env, ['local', 'dev', 'development'], true);
+        $isProd = in_array($env, ['prod', 'production', 'remote'], true);
+
+        $force   = (bool) $cfg('i18n.force_kick', false);
+        $sec     = (int)  $cfg('i18n.force_kick_seconds', 10);
+        $batch   = (int)  $cfg('i18n.force_kick_batch', 25);
+        $kickDev = (bool) $cfg('i18n.kick_on_enqueue_dev', true);
+        $kickProd = (bool) $cfg('i18n.kick_on_enqueue_prod', false);
+
+        $binDirCfg = $cfg('i18n.kick_bin_dir', null);
+        $runnerCfg = $cfg('i18n.kick_runner', null);
+
+        $defaultBin = realpath(__DIR__ . '/../../../bin')
+            ?: (__DIR__ . '/../../../bin');
+        $binDir = (is_string($binDirCfg) && $binDirCfg !== '')
+            ? $binDirCfg : $defaultBin;
+
+        $devRunner  = $binDir . DIRECTORY_SEPARATOR . 'run-translation-queue.php';
+        $prodRunner = $binDir . DIRECTORY_SEPARATOR . 'translation-cron.php';
+
+        // Optional override: 'dev' | 'prod' | '/abs/path/to/script.php'
+        if (is_string($runnerCfg) && $runnerCfg !== '') {
+            if ($runnerCfg === 'dev') {
+                $prodRunner = $devRunner;
+            } elseif ($runnerCfg === 'prod') {
+                /* keep defaults */
+            } elseif (substr($runnerCfg, -4) === '.php') {
+                $devRunner  = $runnerCfg;
+                $prodRunner = $runnerCfg;
+            }
+        }
+        // Log::logDebug('kickQueueWorker-615', 'devRunner',  [$devRunner]);
+        // Log::logDebug('kickQueueWorker-616', 'prodRunner',  [$prodRunner]);
+
+        // Filters for the dev runner; cron runner doesn't take these.
+        $filterArgs = [
+            '--lang=' . $lang,
+            '--client=' . $client,
+            '--type=' . $type,
+            '--subject=' . $subject,
+            '--variant=' . $variant,
+        ];
+
+        $devArgs = array_merge(
+            $filterArgs,
+            ['--seconds=' . max(5, $sec), '--batch=' . max(1, $batch)]
+        );
+
+        // translation-cron.php uses different flags
+        $prodArgs = [
+            '--max-secs=' . max(5, $sec),
+            '--batch-size=' . max(1, $batch),
+        ];
+
+        if ($isDev && $kickDev) {
+            if (file_exists($devRunner)) {
+                Log::logDebug('kickQueueWorker-640', 'devArgs',  [$devArgs]);
+                Log::logDebug('kickQueueWorker-640', 'devRuner',  [$devRunner]);
+                Async::php($devRunner, $devArgs);
+                Log::logInfo('kickQueueWorker-643', 'Async Finished');
+            }
+            return;
+        }
+
+        if ($isProd && ($force || $kickProd)) {
+            if (file_exists($devRunner)) {
+                Async::php($devRunner, $devArgs);
+                return;
+            }
+            if (file_exists($prodRunner)) {
+                Async::php($prodRunner, $prodArgs);
+            }
+            return;
+        }
+
+        // Default in prod: rely on cron; no-op here.
+    }
+
+
+
+
 }
