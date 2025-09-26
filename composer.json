@@ -15,6 +15,7 @@
         "@composer dump-autoload -o",
         "@php bin/di-smoke.php"
       ],
+      "tests": "phpunit --colors=always",
       
       "migrate": "php scripts/run_migrations.php",
       "bb:cleanup": "php bin/biblebrain-cleanup-bibles.php"
@@ -24,6 +25,8 @@
         "App\\": "App/",
         "ScriptsTemporary\\": "ScriptsTemporary/"
       }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10"
     }
-
 }

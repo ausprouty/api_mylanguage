@@ -3,7 +3,9 @@
 namespace App\Services\Language;
 
 use App\Configuration\Config;
+use App\Contracts\Translation\TranslationProvider;
 use App\Services\LoggerService;
+
 
 /*
 Keep it only if you want the worker to do automatic MT 
@@ -16,7 +18,7 @@ Wire TranslationBatchService into the worker and call it when reuseExistingIfPos
 then upsert into i18n_translations and delete the job.
 */
 
-class TranslationBatchService
+class GoogleTranslationBatchService implements TranslationProvider
 {
     private const MAX_Q_PER_REQ        = 100;   // # of strings per request (v2 supports multiple)
     private const MAX_CHARS_PER_REQ    = 4500;  // keep well under ~5k recommended size
@@ -28,9 +30,9 @@ class TranslationBatchService
 
     public function __construct()
     {
-        $this->apiKey = (string) Config::get('api.google_api_key');
+        $this->apiKey = (string) Config::get('api.google_translate_apiKey');
         if ($this->apiKey === '') {
-            LoggerService::logError('TranslationBatchService', 'Missing Google API key.');
+            LoggerService::logError('GoogleTranslationBatchService', 'Missing Google API key.');
             throw new \RuntimeException('Google API key is required.');
         }
     }
@@ -153,7 +155,7 @@ class TranslationBatchService
         }
 
         LoggerService::logError(
-            'TranslationBatchService',
+            'GoogleTranslationBatchService',
             "Google v2 failed after {$attempt} attempts; http={$lastCode}; err=" . ($lastErr ?? 'n/a') . "; respLen=" . ($lastBody ?? 0)
         );
 

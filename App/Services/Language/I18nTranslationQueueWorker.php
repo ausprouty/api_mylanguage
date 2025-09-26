@@ -22,7 +22,7 @@ final class I18nTranslationQueueWorker
         private TranslationBatchService $batch,
         private bool $autoMtEnabled = false,
         /** @var string[] ISO allow-list; if empty we just require googleCode to exist */
-        private array $autoMtAllowIso = []
+        private array $autoMtAllowGoogle = []
     ) {}
 
     /**
@@ -87,7 +87,7 @@ final class I18nTranslationQueueWorker
             $reused = $this->reuseExistingIfPossible(
                 stringId:  $stringId,
                 keyHash:   (string)$row['sourceKeyHash'],
-                targetIso: (string)$row['targetLanguageCodeIso'],
+                targetGoogle: (string)$row['targetLanguageCodeGoogle'],
                 targetHl:  null // add if you queue it
             );
             if ($reused) {
@@ -96,16 +96,16 @@ final class I18nTranslationQueueWorker
             }
 
             // Auto-MT gate
-            $targetIso = (string)$row['targetLanguageCodeIso'];
-            [$targetHl, $googleCode] = $this->getCodesForIso($targetIso); // HL may be null; googleCode required for MT
+            $targetGoogle = (string)$row['targetLanguageCodeGoogle'];
+            [$targetHl, $googleCode] = $this->getCodesForGoogle($targetGoogle); // HL may be null; googleCode required for MT
 
-            $isoAllowed = empty($this->autoMtAllowIso) || in_array($targetIso, $this->autoMtAllowIso, true);
-            $canMt = $this->autoMtEnabled && $isoAllowed && ($googleCode !== null && $googleCode !== '');
+            $googleAllowed = empty($this->autoMtAllowGoogle) || in_array($targetGoogle, $this->autoMtAllowGoogle, true);
+            $canMt = $this->autoMtEnabled && $googleAllowed && ($googleCode !== null && $googleCode !== '');
 
             if ($canMt) {
                 $ok = $this->mtTranslateAndUpsert(
                     stringId:      $stringId,
-                    targetIso:     $targetIso,
+                    targetGoogle:  $targetGoogle,
                     targetHl:      $targetHl, // can be null
                     googleCode:    $googleCode,
                     sourceEnglish: (string)$row['sourceText']
@@ -141,16 +141,16 @@ final class I18nTranslationQueueWorker
     private function reuseExistingIfPossible(
         int $stringId,
         string $keyHash,
-        string $targetIso,
+        string $targetGoogle,
         ?string $targetHl
     ): bool {
         $sql = "
         INSERT INTO i18n_translations
-          (stringId, languageCodeHL, languageCodeIso, translatedText, status, source, posted)
+          (stringId, languageCodeHL, languageCodeGoogle, translatedText, status, source, posted)
         SELECT
           :sid,
           t.languageCodeHL,
-          t.languageCodeIso,
+          t.languageCodeGoogle,
           t.translatedText,
           t.status,
           'import' AS source,
@@ -158,7 +158,7 @@ final class I18nTranslationQueueWorker
         FROM i18n_strings s
         JOIN i18n_translations t ON t.stringId = s.stringId
         WHERE s.keyHash = :hash
-          AND (t.languageCodeIso = :iso " . ($targetHl ? " OR t.languageCodeHL = :hl " : "") . ")
+          AND (t.languageCodeGoogle = :google " . ($targetHl ? " OR t.languageCodeHL = :hl " : "") . ")
           AND t.translatedText <> ''
         ORDER BY FIELD(t.status,'approved','review','machine','draft') ASC
         LIMIT 1
@@ -168,7 +168,7 @@ final class I18nTranslationQueueWorker
           source         = 'import',
           updatedAt      = CURRENT_TIMESTAMP
         ";
-        $params = [':sid' => $stringId, ':hash' => $keyHash, ':iso' => $targetIso];
+        $params = [':sid' => $stringId, ':hash' => $keyHash, ':google' => $targetGoogle];
         if ($targetHl) $params[':hl'] = $targetHl;
 
         $rows = $this->db->executeQuery($sql, $params);
@@ -194,15 +194,15 @@ final class I18nTranslationQueueWorker
     }
 
     /** Look up HL + Google code by ISO; returns [hl|null, google|null]. */
-    private function getCodesForIso(string $iso): array
+    private function getCodesForGoogle(string $google): array
     {
         // camelCase columns; adjust if your hl_languages differs
         $row = $this->db->fetchRow("
             SELECT languageCodeHL, languageCodeGoogle
               FROM hl_languages
-             WHERE languageCodeIso = :iso
+             WHERE languageCodeGoogle = :google
              LIMIT 1
-        ", [':iso' => $iso]);
+        ", [':google' => $google]);
 
         $hl  = is_array($row) ? (string)($row['languageCodeHL'] ?? '') : '';
         $ggl = is_array($row) ? (string)($row['languageCodeGoogle'] ?? '') : '';
@@ -216,7 +216,7 @@ final class I18nTranslationQueueWorker
     /** Call MT and upsert into i18n_translations as status='machine'. */
     private function mtTranslateAndUpsert(
         int $stringId,
-        string $targetIso,
+        string $targetGoogle,
         ?string $targetHl,
         string $googleCode,
         string $sourceEnglish
@@ -227,9 +227,9 @@ final class I18nTranslationQueueWorker
 
         $sql = "
             INSERT INTO i18n_translations
-                (stringId, languageCodeHL, languageCodeIso, translatedText, status, source, posted)
+                (stringId, languageCodeHL, languageCodeGoogle, translatedText, status, source, posted)
             VALUES
-                (:sid, :hl, :iso, :txt, 'machine', 'mt', CURDATE())
+                (:sid, :hl, :google, :txt, 'machine', 'mt', CURDATE())
             ON DUPLICATE KEY UPDATE
                 -- never downgrade approved
                 translatedText = IF(i18n_translations.status='approved',
@@ -244,7 +244,7 @@ final class I18nTranslationQueueWorker
         $this->db->executeQuery($sql, [
             ':sid' => $stringId,
             ':hl'  => $targetHl ?? '',
-            ':iso' => $targetIso,
+            ':google' => $targetGoogle,
             ':txt' => $mt,
         ]);
         return true;
