@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Services\Language;
 
+use App\Contracts\Translation\TranslationProvider;
+
 /**
  * Null/dummy translator for smoke tests. It never calls external APIs.
  * - When prefixMode=true, it prefixes each string with "[<tgt>] ".
@@ -10,13 +12,44 @@ namespace App\Services\Language;
  *
  * NOTE: TranslationBatchService is a class (not an interface), so we extend it.
  */
-final class NullTranslationBatchService extends TranslationBatchService
+final class NullTranslationBatchService implements TranslationProvider
 {
-    public function __construct(private bool $prefixMode = false) {}
+        public function __construct(private bool $prefixMode = false) {}
 
     /**
-     * @param array<int|string,string> $texts
-     * @return array<int|string,string>
+     * Translate an array of texts. In "null" mode we usually just echo
+     * input (optionally prefixing for visibility in dev).
+     *
+     * @param array<int,string> $texts
+     * @return array{0:bool,1:array<int,string>,2:int|null,3:string|null,4:int|null}
+     */
+    public function translate(
+        array $texts,
+        string $targetLanguage,
+        string $sourceLanguage = 'en',
+        string $format = 'text'
+    ): array {
+        $out = [];
+        foreach ($texts as $t) {
+            $s = (string) $t;
+            if ($this->prefixMode && $s !== '') {
+                $s = '[' . $targetLanguage . '] ' . $s;
+            }
+            $out[] = $s;
+        }
+        $respLen = 0;
+        foreach ($out as $s) {
+            $respLen = \strlen($s);
+        }
+        return [true, $out, null, null, $respLen];
+    }
+
+    /**
+     * Convenience for callers that use a batch-named method.
+     * Same contract/tuple as translate(...).
+     *
+     * @param array<int,string> $texts
+     * @return array{0:bool,1:array<int,string>,2:int|null,3:string|null,4:int|null}
      */
     public function translateBatch(
         array $texts,
@@ -24,17 +57,11 @@ final class NullTranslationBatchService extends TranslationBatchService
         string $sourceLanguage = 'en',
         string $format = 'text'
     ): array {
-        if (!$this->prefixMode) {
-            // Preserve original keys; ensure string-cast
-            foreach ($texts as $k => $v) {
-                $texts[$k] = (string)$v;
-            }
-            return $texts;
-        }
-        $out = [];
-        foreach ($texts as $k => $t) {
-            $out[$k] = '[' . $targetLanguage . '] ' . (string)$t;
-        }
-        return $out;
+        return $this->translate(
+            $texts,
+            $targetLanguage,
+            $sourceLanguage,
+            $format
+        );
     }
-}
+ }

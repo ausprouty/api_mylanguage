@@ -37,6 +37,33 @@ class GoogleTranslationBatchService implements TranslationProvider
         }
     }
 
+        /**
+     * Translate a single string via the batch endpoint.
+     *
+     * @param string $text            English text to translate.
+     * @param string $targetLanguage  Target language code (e.g., "gu").
+     * @param string $sourceLanguage  Source language code (default "en").
+     * @param string $format          "text" | "html" (default "text").
+     * @return array{0:bool,1:string,2:int|null,3:string|null,4:int|null}
+     *         Tuple: [ok, translated, httpCode, error, respBytes]
+     */
+    public function translate(
+        array $texts,
+        string $targetLanguage,
+        string $sourceLanguage = 'en',
+        string $format = 'text'
+    ): array {
+        // Delegate to the batch method to keep logic in one place.
+        [$ok, $list, $code, $err, $len] = $this->translateBatch(
+            $texts,
+            $targetLanguage,
+            $sourceLanguage,
+            $format
+        );
+        $translated = $list[0] ?? '';
+        return [$ok, $translated, $code, $err, $len];
+    }
+
     /**
      * Sends a batch of texts to Google Translate (v2).
      *

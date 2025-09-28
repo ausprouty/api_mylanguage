@@ -15,8 +15,11 @@
         "@composer dump-autoload -o",
         "@php bin/di-smoke.php"
       ],
-      "tests": "phpunit --colors=always",
-      
+      "test:failures": "php vendor/phpunit/phpunit/phpunit --fail-on-warning --display-warnings --colors=always",
+      "test:unit": "phpunit --colors=always",
+      "tests": [ "@composer dump-autoload -o",
+                 "phpunit --colors=always"
+      ],
       "migrate": "php scripts/run_migrations.php",
       "bb:cleanup": "php bin/biblebrain-cleanup-bibles.php"
     },

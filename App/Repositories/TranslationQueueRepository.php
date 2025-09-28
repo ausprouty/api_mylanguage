@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Repositories;
 
@@ -11,11 +12,12 @@ final class TranslationQueueRepository
 
     /**
      * Enqueue a job (idempotent via UNIQUE constraints).
-     * - Preferred uniqueness: (sourceStringId, targetLanguageCodeIso)
-     * - Fallback uniqueness: (clientCode, resourceType, subject, variant, sourceKeyHash, targetLanguageCodeIso)
+     * - Preferred uniqueness: (sourceStringId, targetLanguageCodeGoogle)
+     * - Fallback uniqueness: (clientCode, resourceType, subject, variant,
+     *   sourceKeyHash, targetLanguageCodeGoogle)
      */
     public function enqueue(
-        string $targetLangIso,
+        string $targetLangGoogle,
         string $sourceText,
         ?int $sourceStringId = null,
         string $clientCode = '',
@@ -24,39 +26,41 @@ final class TranslationQueueRepository
         string $variant = '',
         string $stringKey = '',
         int $priority = 0,
-        ?\DateTimeInterface $runAfter = null
+        ?\DateTimeInterface $runAfter = null,
+        string $sourceLangGoogle = 'en'
     ): bool {
-        // Use the same hashing scheme as i18n_strings.keyHash (SHA-1 hex)
+        // Same hashing scheme as i18n_strings.keyHash (SHA-1 hex)
         $sourceKeyHash = sha1($stringKey !== '' ? $stringKey : $sourceText);
 
         $sql =
             "INSERT IGNORE INTO i18n_translation_queue
-             (targetLanguageCodeIso, sourceText, status, attempts,
+             (targetLanguageCodeGoogle, sourceText, status, attempts,
               runAfter, priority, queuedAt,
-              sourceStringId, sourceLanguageCodeIso,
+              sourceStringId, sourceLanguageCodeGoogle,
               clientCode, resourceType, subject, variant, stringKey,
               sourceKeyHash)
              VALUES
              (:lang, :text, 'queued', 0,
               :runAfter, :priority, NOW(),
-              :sid, 'en',
+              :sid, :srcLang,
               :client, :rtype, :subject, :variant, :skey,
               :hash)";
 
         $params = [
-            ':lang'     => $targetLangIso,
-            ':text'     => $sourceText,
-            ':priority' => $priority,
-            ':runAfter' => $runAfter
+            ':lang'    => $targetLangGoogle,
+            ':text'    => $sourceText,
+            ':priority'=> $priority,
+            ':runAfter'=> $runAfter
                 ? $runAfter->format('Y-m-d H:i:s')
                 : date('Y-m-d H:i:s'),
-            ':sid'      => $sourceStringId,
-            ':client'   => $clientCode,
-            ':rtype'    => $resourceType,
-            ':subject'  => $subject,
-            ':variant'  => $variant,
-            ':skey'     => $stringKey,
-            ':hash'     => $sourceKeyHash,
+            ':sid'     => $sourceStringId,
+            ':srcLang' => $sourceLangGoogle,
+            ':client'  => $clientCode,
+            ':rtype'   => $resourceType,
+            ':subject' => $subject,
+            ':variant' => $variant,
+            ':skey'    => $stringKey,
+            ':hash'    => $sourceKeyHash,
         ];
 
         $stmt = $this->db->executeQuery($sql, $params);
@@ -95,7 +99,8 @@ final class TranslationQueueRepository
 
             $row = $this->db->fetchRow(
                 "SELECT id,
-                        targetLanguageCodeIso,
+                        targetLanguageCodeGoogle,
+                        sourceLanguageCodeGoogle,
                         sourceText,
                         attempts,
                         priority,
