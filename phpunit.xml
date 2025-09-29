@@ -4,6 +4,9 @@
   bootstrap="vendor/autoload.php"
   cacheResult="false"
 >
+  <php>
+    <env name="APP_ENV" value="local"/>
+  </php>
   <testsuites>
     <testsuite name="Unit">
       <directory suffix="Test.php">tests/Unit</directory>

@@ -36,7 +36,7 @@ final class I18nTranslationQueueWorker
             SELECT *
               FROM i18n_translation_queue
              WHERE status = 'queued'
-               AND runAfter <= NOW()
+               AND runAfter <= UTC_TIMESTAMP()
              ORDER BY priority DESC, id ASC
              LIMIT 1
         ");
@@ -49,7 +49,7 @@ final class I18nTranslationQueueWorker
             UPDATE i18n_translation_queue
                SET status   = 'processing',
                    lockedBy = :who,
-                   lockedAt = NOW(),
+                   lockedAt = UTC_TIMESTAMP(),
                    attempts = attempts + 1
              WHERE id = :id
                AND status = 'queued'
@@ -262,7 +262,7 @@ final class I18nTranslationQueueWorker
                SET status   = 'queued',
                    lockedBy = NULL,
                    lockedAt = NULL,
-                   runAfter = DATE_ADD(NOW(), INTERVAL :m MINUTE)
+                   runAfter = DATE_ADD(UTC_TIMESTAMP(), INTERVAL :m MINUTE)
              WHERE id = :id
         ", [':m' => $minutes, ':id' => $id]);
     }

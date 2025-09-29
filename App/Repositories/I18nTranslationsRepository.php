@@ -61,10 +61,10 @@ final class I18nTranslationsRepository
                     (stringId, languageCodeGoogle, translatedText,
                      createdAt, updatedAt)
                 VALUES
-                    (:sid, :g, :txt, NOW(), NOW())
+                    (:sid, :g, :txt, UTC_TIMESTAMP(), UTC_TIMESTAMP())
                 ON DUPLICATE KEY UPDATE
                     translatedText = VALUES(translatedText),
-                    updatedAt = NOW()";
+                    updatedAt = UTC_TIMESTAMP()";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':sid', $stringId, PDO::PARAM_INT);

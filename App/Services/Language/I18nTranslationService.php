@@ -282,7 +282,7 @@ class I18nTranslationService implements TranslationServiceContract
         $ins = $this->db->prepare(
             "INSERT INTO i18n_strings
                 (clientId, resourceId, keyHash, englishText, createdAt, updatedAt)
-            SELECT :c, :r, :h, :t, NOW(), NOW() FROM DUAL
+            SELECT :c, :r, :h, :t, UTC_TIMESTAMP(), UTC_TIMESTAMP() FROM DUAL
             WHERE NOT EXISTS (
                 SELECT 1
                 FROM i18n_strings
@@ -305,7 +305,7 @@ class I18nTranslationService implements TranslationServiceContract
         // 4) Update text only if it changed (no id burn)
         $upd = $this->db->prepare(
             "UPDATE i18n_strings
-                SET englishText = :t, updatedAt = NOW()
+                SET englishText = :t, updatedAt = UTC_TIMESTAMP()
             WHERE clientId = :c AND resourceId = :r AND keyHash = :h
                 AND englishText <> :t"
         );
@@ -504,7 +504,7 @@ class I18nTranslationService implements TranslationServiceContract
                targetLanguageCodeGoogle, sourceText, status, runAfter, priority)
             VALUES
               (:sid, :srcG, :client, :rtype, :subj, :var, :skey, :shash,
-               :tG, :stext, 'queued', NOW(), :prio)
+               :tG, :stext, 'queued', UTC_TIMESTAMP(), :prio)
             ON DUPLICATE KEY UPDATE
               runAfter = LEAST(i18n_translation_queue.runAfter, VALUES(runAfter)),
               priority = LEAST(i18n_translation_queue.priority, VALUES(priority)),
@@ -601,6 +601,9 @@ class I18nTranslationService implements TranslationServiceContract
         $devRunner  = $binDir . DIRECTORY_SEPARATOR . 'run-translation-queue.php';
         $prodRunner = $binDir . DIRECTORY_SEPARATOR . 'translation-cron.php';
 
+        $cliLog = \App\Configuration\Config::getDir('logs', '/logs') . '/queue-kick.log';
+        $base_dir = \App\Configuration\Config::get('base_dir');
+
         // Optional override: 'dev' | 'prod' | '/abs/path/to/script.php'
         if (is_string($runnerCfg) && $runnerCfg !== '') {
             if ($runnerCfg === 'dev') {
@@ -634,12 +637,17 @@ class I18nTranslationService implements TranslationServiceContract
             '--max-secs=' . max(5, $sec),
             '--batch-size=' . max(1, $batch),
         ];
-
+      
         if ($isDev && $kickDev) {
             if (file_exists($devRunner)) {
                 Log::logDebug('kickQueueWorker-640', 'devArgs',  [$devArgs]);
                 Log::logDebug('kickQueueWorker-640', 'devRuner',  [$devRunner]);
-                Async::php($devRunner, $devArgs);
+                Async::php(
+                    $devRunner,
+                    $devArgs,
+                    $cliLog,
+                    $base_dir // optional but nice
+                );
                 Log::logInfo('kickQueueWorker-643', 'Async Finished');
             }
             return;
@@ -647,19 +655,26 @@ class I18nTranslationService implements TranslationServiceContract
 
         if ($isProd && ($force || $kickProd)) {
             if (file_exists($devRunner)) {
-                Async::php($devRunner, $devArgs);
+                 Async::php(
+                    $devRunner,
+                    $devArgs,
+                    $cliLog,
+                    $base_dir // optional but nice
+                );
                 return;
             }
             if (file_exists($prodRunner)) {
-                Async::php($prodRunner, $prodArgs);
+                 Async::php(
+                    $prodRunner,
+                    $prodArgs,
+                    $cliLog,
+                    $base_dir // optional but nice
+                );
             }
             return;
         }
 
         // Default in prod: rely on cron; no-op here.
     }
-
-
-
 
 }

@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 namespace App\Cron;
-use App\Contracts\Translation\TranslationProvider;
+use App\Contracts\Translation\TranslationProvider as ProviderContract;
 use App\Services\Database\DatabaseService;
 use App\Services\LoggerService;
 use DateInterval;
@@ -50,7 +50,7 @@ final class TranslationQueueProcessor
     public function __construct(
         private DatabaseService $db,
         private LoggerService $logger,
-        private TranslationProvider $translator
+        private ProviderContract $translator
     ) {
         // Keep worker id short for UNIQUE index lengths.
         $host = php_uname('n');
@@ -67,14 +67,14 @@ final class TranslationQueueProcessor
         try {
             $jobs = $this->lockBatch();
         } catch (Throwable $e) {
-            $this->logger->error('TQP lockBatch failed', [
+            $this->logger::logError('TQP lockBatch failed', [
                 'err' => $e->getMessage(),
             ]);
             return;
         }
 
         if (!$jobs) {
-            $this->logger->info('TQP: no eligible jobs.');
+            $this->logger::logInfo(' TranslationQueProcessor-77', 'TQP: no eligible jobs.');
             return;
         }
 
@@ -83,7 +83,7 @@ final class TranslationQueueProcessor
         }
 
         $elapsedMs = (int) ((microtime(true) - $started) * 1000);
-        $this->logger->info('TQP: batch complete', [
+        $this->logger::logInfo('TQP: batch complete', [
             'picked'  => count($jobs),
             'elapsed' => $elapsedMs . 'ms',
         ]);
@@ -110,9 +110,9 @@ final class TranslationQueueProcessor
                 'SELECT id
                    FROM i18n_translation_queue
                   WHERE status = "queued"
-                    AND runAfter <= NOW()
+                    AND runAfter <= UTC_TIMESTAMP()
                     AND (lockedAt IS NULL
-                         OR lockedAt < DATE_SUB(NOW(), INTERVAL 10 MINUTE))
+                         OR lockedAt < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 10 MINUTE))
                ORDER BY priority DESC, id ASC
                   LIMIT :lim'
             );
@@ -131,12 +131,12 @@ final class TranslationQueueProcessor
                 "UPDATE i18n_translation_queue
                     SET status = 'processing',
                         lockedBy = ?,
-                        lockedAt = NOW()
+                        lockedAt = UTC_TIMESTAMP()
                   WHERE id IN ($in)
                     AND status = 'queued'
-                    AND runAfter <= NOW()
+                    AND runAfter <= UTC_TIMESTAMP()
                     AND (lockedAt IS NULL
-                         OR lockedAt < DATE_SUB(NOW(), INTERVAL 10 MINUTE))"
+                         OR lockedAt < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 10 MINUTE))"
             );
 
             $bind = [$this->workerId];
@@ -170,7 +170,7 @@ final class TranslationQueueProcessor
     }
     
 
-    public function setTranslator(TranslationProvider $translator): void
+    public function setTranslator(ProviderContract $translator): void
     {
         $this->translator = $translator;
     }
@@ -196,7 +196,12 @@ final class TranslationQueueProcessor
         }
 
         try {
-            $translated = $this->translator->translate($srcLg, $tgtLg, $text);
+            $translated = $this->translator->translate(
+                [$text],  
+                $tgtLg, 
+                $srcLg,
+                \App\Contracts\Translation\TranslationProvider::FORMAT_TEXT
+            );
             if ($translated === '') {
                 throw new Exception('Empty MT result');
             }
@@ -217,7 +222,7 @@ final class TranslationQueueProcessor
                 'tgt'    => $tgtLg,
             ]);
         } catch (Throwable $e) {
-            $this->logger->warning('TQP: job failed', [
+            $this->logger::logWarning('TQP: job failed', [
                 'id'    => $id,
                 'err'   => $e->getMessage(),
             ]);
@@ -320,7 +325,7 @@ final class TranslationQueueProcessor
               WHERE id = :id'
         );
         $upd->execute([':id' => $id]);
-        $this->logger->error('TQP: failed permanently', [
+        $this->logger::logError('TQP: failed permanently', [
             'id'     => $id,
             'reason' => $reason,
         ]);
@@ -331,22 +336,10 @@ final class TranslationQueueProcessor
         // DatabaseService should expose a PDO with ERRMODE_EXCEPTION
         return $this->db->getPdo();
     }
+
+    public function setBatchSize(int $n): void {
+        $this->batchSize = max(1, $n);
+    }
 }
 
-/**
- * TranslationProvider
- *
- * Minimal interface the cron worker depends on. Provide an implementation
- * (Google, Azure, DeepL, stub, etc.) and bind in DI.
- */
-interface TranslationProvider
-{
-    /**
-     * @throws Exception on failure
-     */
-    public function translate(
-        string $sourceLangGoogle,
-        string $targetLangGoogle,
-        string $text
-    ): string;
-}
+

@@ -83,40 +83,53 @@ class DatabaseService
      */
     private function connect(): void
     {
-        // charset in DSN ensures correct encoding; collation set just after connect
-        $dsn = "mysql:host={$this->host};port={$this->port};"
-             . "dbname={$this->database};charset={$this->charset}";
+        // Normalize/defaults
+        $host      = $this->host ?: '127.0.0.1';
+        if (strcasecmp($host, 'localhost') === 0) {
+            $host = '127.0.0.1';
+        }
+        $port      = (int) ($this->port ?: 3306);
+        $database  = (string) $this->database;
+        $username  = (string) $this->username;
+        $password  = (string) $this->password;
+
+        $charset   = $this->charset   ?: 'utf8mb4';
+        $collation = $this->collation ?: 'utf8mb4_unicode_ci';
+
+        // DSN includes charset to ensure 4-byte safety (emoji, etc.)
+        $dsn = sprintf(
+            'mysql:host=%s;port=%d;dbname=%s;charset=%s',
+            $host, $port, $database, $charset
+        );
+
+        $options = [
+            \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
+            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+            \PDO::ATTR_EMULATE_PREPARES   => false,
+        ];
+
+        // Also set collation explicitly at connect time
+        if (!empty($collation)) {
+            $options[\PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES {$charset} COLLATE {$collation}";
+        }
 
         try {
-            $pdo = new PDO(
-                $dsn,
-                $this->username,
-                $this->password,
-                [
-                    // Throwing errors simplifies error handling
-                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                    // Consistent fetches
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    // Use native prepares where possible
-                    PDO::ATTR_EMULATE_PREPARES   => false,
-                ]
-            );
-
-            // Set collation explicitly if provided (DSN covers charset only)
-            if (!empty($this->collation)) {
-                $pdo->exec(
-                    "SET NAMES {$this->charset} "
-                    . "COLLATE {$this->collation}"
-                );
-            }
-
+            $pdo = new \PDO($dsn, $username, $password, $options);
             $this->dbConnection = $pdo;
-        } catch (PDOException $e) {
-            // Log and rethrow so caller sees the real PDOException message
-            LoggerService::logError('DB connect failed', $e->getMessage());
-            throw $e;
+        } catch (\Throwable $e) {
+            // Log a concise, non-sensitive message
+            $safeMsg = sprintf('DB connect failed: %s (dsn=%s user=%s)', $e->getMessage(), $dsn, $username);
+            // Use your logger if available; fall back to error_log
+            if (class_exists(\App\Services\LoggerService::class)) {
+                \App\Services\LoggerService::logError('db.connect', ['error' => $safeMsg]);
+            } else {
+                error_log($safeMsg);
+            }
+            // Rethrow with context for upstream handlers/tests
+            throw new \RuntimeException($safeMsg, previous: $e);
         }
     }
+
 
     /**
      * Returns true if we currently hold an open PDO connection.

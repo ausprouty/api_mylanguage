@@ -1,5 +1,5 @@
-http://localhost/api_mylanguage/api/v2/translate/text/interface/wsu/frn00
 
+http://localhost/api_mylanguage/api/v2/translate/text/interface/wsu/frn00
 
 http://localhost/api_mylanguage/api/v2/translate/text/interface/wsu/eng00
 

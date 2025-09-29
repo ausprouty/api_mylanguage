@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Services\Language;
 
 use App\Contracts\Translation\TranslationProvider;
+use App\Services\LoggerService;
 
 /**
  * Null/dummy translator for smoke tests. It never calls external APIs.
@@ -30,6 +31,7 @@ final class NullTranslationBatchService implements TranslationProvider
         string $format = 'text'
     ): array {
         $out = [];
+        LoggerService::logDebug('NullTranslationBatchService', 'Ran this service for translate');
         foreach ($texts as $t) {
             $s = (string) $t;
             if ($this->prefixMode && $s !== '') {
@@ -57,11 +59,13 @@ final class NullTranslationBatchService implements TranslationProvider
         string $sourceLanguage = 'en',
         string $format = 'text'
     ): array {
+        LoggerService::logDebug('NullTranslationBatchService', 'Ran this service for translate');
+      
         return $this->translate(
             $texts,
             $targetLanguage,
             $sourceLanguage,
-            $format
+            $format = 'text'
         );
     }
  }

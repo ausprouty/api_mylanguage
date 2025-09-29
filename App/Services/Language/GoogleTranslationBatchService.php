@@ -61,6 +61,7 @@ class GoogleTranslationBatchService implements TranslationProvider
             $format
         );
         $translated = $list[0] ?? '';
+        LoggerService::logDebug('GoogleTranslationBatchService', 'Ran this service for translate');
         return [$ok, $translated, $code, $err, $len];
     }
 
@@ -79,6 +80,7 @@ class GoogleTranslationBatchService implements TranslationProvider
         string $sourceLanguage = 'en',
         string $format = 'text'
     ): array {
+        LoggerService::logDebug('GoogleTranslationBatchService', 'Ran this service for translate');
         if (empty($texts)) {
             return [];
         }

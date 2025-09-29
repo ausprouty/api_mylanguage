@@ -41,7 +41,7 @@ final class TranslationQueueRepository
               sourceKeyHash)
              VALUES
              (:lang, :text, 'queued', 0,
-              :runAfter, :priority, NOW(),
+              :runAfter, :priority, UTC_TIMESTAMP(),
               :sid, :srcLang,
               :client, :rtype, :subject, :variant, :skey,
               :hash)";
@@ -78,9 +78,9 @@ final class TranslationQueueRepository
                 "SELECT id
                    FROM i18n_translation_queue
                   WHERE status = 'queued'
-                    AND runAfter <= NOW()
+                    AND runAfter <= UTC_TIMESTAMP()
                     AND (lockedAt IS NULL
-                         OR lockedAt < NOW() - INTERVAL 5 MINUTE)
+                         OR lockedAt < UTC_TIMESTAMP() - INTERVAL 5 MINUTE)
                ORDER BY priority DESC, runAfter ASC, id ASC
                   LIMIT 1";
 
@@ -89,7 +89,7 @@ final class TranslationQueueRepository
                   JOIN ( $pickSql ) p ON p.id = q.id
                    SET q.status   = 'processing',
                        q.lockedBy = :w,
-                       q.lockedAt = NOW()";
+                       q.lockedAt = UTC_TIMESTAMP()";
 
             $updated = $this->db->executeQuery($updateSql, [':w' => $worker]);
             if (!$updated || $updated->rowCount() === 0) {
@@ -152,7 +152,7 @@ final class TranslationQueueRepository
             "UPDATE i18n_translation_queue
                 SET status   = 'queued',
                     attempts = attempts + 1,
-                    runAfter = NOW() + INTERVAL :s SECOND,
+                    runAfter = UTC_TIMESTAMP() + INTERVAL :s SECOND,
                     lockedBy = NULL,
                     lockedAt = NULL
               WHERE id = :id";
@@ -168,9 +168,9 @@ final class TranslationQueueRepository
                 SET status   = 'queued',
                     lockedBy = NULL,
                     lockedAt = NULL,
-                    runAfter = NOW()
+                    runAfter = UTC_TIMESTAMP()
               WHERE status   = 'processing'
-                AND lockedAt < NOW() - INTERVAL :m MINUTE",
+                AND lockedAt < UTC_TIMESTAMP() - INTERVAL :m MINUTE",
             [':m' => $minutes]
         );
         return $stmt ? $stmt->rowCount() : 0;

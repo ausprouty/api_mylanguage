@@ -56,10 +56,10 @@ final class I18nStringsRepository
             "INSERT INTO i18n_strings
                 (clientId, resourceId, keyHash, englishText, createdAt, updatedAt)
              VALUES
-                (:c, :r, :h, :t, NOW(), NOW())
+                (:c, :r, :h, :t, UTC_TIMESTAMP(), UTC_TIMESTAMP())
              ON DUPLICATE KEY UPDATE
                 englishText = VALUES(englishText),
-                updatedAt   = NOW()"
+                updatedAt   = UTC_TIMESTAMP()"
         );
         foreach ($hashToText as $h => $t) {
             if ($dbg){

@@ -3,74 +3,94 @@ declare(strict_types=1);
 
 namespace App\Services\Language;
 
-use App\Configuration\Config;
 use App\Contracts\Translation\ProviderSelector as Contract;
 use App\Contracts\Translation\TranslationProvider;
 
 /**
- * Chooses which TranslationProvider implementation to use based on
- * configuration and environment, without hard-coding container logic.
+ * Selects a TranslationProvider based on config/env.
  *
- * Default policy:
- *   - environment=local  -> 'null'   (no-op provider)
- *   - environment!=local -> 'google' (real MT provider)
+ * Policy:
+ * - If i18n.autoMt.enabled = false  -> 'null'
+ * - If env in ['local','dev']       -> 'google' only if provider === 'google', else 'null'
+ * - Else (remote/other)             -> honor provider; default 'google'
  *
- * You inject a key->class map so this class has no knowledge of
- * concrete provider classes. In tests, pass a custom $get callable
- * to simulate Config::get().
+ * The $get callable allows deterministic tests (defaults to Config::get).
  */
 final class TranslationProviderSelector implements Contract
 {
-    /**
-     * @var array<string, class-string<TranslationProvider>>
-     */
+    /** @var array<string, class-string<TranslationProvider>> */
     private array $map;
 
-    /**
-     * Config getter callable:
-     *   fn(string $key, mixed $default): mixed
-     *
-     * We keep this as an untyped property for broad callable support.
-     *
-     * @var callable
-     */
+    /** @var callable(string,mixed):mixed */
     private $get;
 
     /**
      * @param array<string, class-string<TranslationProvider>> $map
-     * @param callable(string, mixed):mixed|null $get
+     * @param callable(string, mixed):mixed|null $get  Usually Config::get
      */
     public function __construct(array $map, ?callable $get = null)
     {
         $this->map = $map;
-        $this->get = $get ?? static fn(string $k, mixed $d) => Config::get($k, $d);
+        $this->get = $get ?? static fn(string $k, mixed $d) => \App\Configuration\Config::get($k, $d);
+    }
+
+    /** Convenience wrapper for the injected getter */
+    private function cfg(string $key, mixed $default = null): mixed
+    {
+        return ($this->get)($key, $default);
+    }
+
+    private function cfgBool(string $key, bool $default = false): bool
+    {
+        $v = $this->cfg($key, $default);
+        if (is_bool($v)) return $v;
+        $s = strtolower((string)$v);
+        if (in_array($s, ['1','true','yes','on'], true))  return true;
+        if (in_array($s, ['0','false','no','off'], true)) return false;
+        return $default;
     }
 
     /**
-     * Returns the short key of the chosen provider (e.g., 'google' or 'null').
+     * Returns the selected provider key ('google' or 'null').
      */
     public function chosenKey(): string
     {
-        $env = strtolower((string) ($this->get)('environment', 'remote'));
+        // env is set by Config::initialize() as 'env'; fall back to 'environment'
+        $env = strtolower((string) $this->cfg('env', $this->cfg('environment', 'remote')));
 
-        // Default by environment
-        $default = ($env === 'local') ? 'null' : 'google';
+        // If disabled, always null
+        if (!$this->cfgBool('i18n.autoMt.enabled', true)) {
+            return 'null';
+        }
 
-        $key = strtolower(
-            (string) ($this->get)('i18n.autoMt.provider', $default)
-        );
+        // Base default by env
+        $defaultByEnv = in_array($env, ['local','dev'], true) ? 'null' : 'google';
+        $provider = strtolower((string) $this->cfg('i18n.autoMt.provider', $defaultByEnv));
 
-        return \array_key_exists($key, $this->map) ? $key : 'null';
+        if (in_array($env, ['local','dev'], true)) {
+            // Dev/local: explicit opt-in to Google; otherwise null for safety
+            return $provider === 'google' ? 'google' : 'null';
+        }
+
+        // Remote/other: honor configured provider; unknown -> null
+        return array_key_exists($provider, $this->map) ? $provider : 'null';
     }
 
     /**
-     * Returns the FQCN of the chosen provider class.
-     * Guaranteed to exist in $map (falls back to 'null').
-     *
      * @return class-string<TranslationProvider>
+     */
+    public function resolveProviderClass(): string
+    {
+        $key = $this->chosenKey();
+        return $this->map[$key] ?? $this->map['null'];
+    }
+
+    /**
+     * Back-compat for App\Contracts\Translation\ProviderSelector.
+     * @return class-string<\App\Contracts\Translation\TranslationProvider>
      */
     public function chosenClass(): string
     {
-        return $this->map[$this->chosenKey()];
+        return $this->resolveProviderClass();
     }
 }

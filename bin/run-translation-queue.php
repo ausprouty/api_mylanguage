@@ -19,6 +19,7 @@ use App\Services\Language\NullTranslationBatchService;
 
 $ROOT = realpath(__DIR__ . '/..') ?: dirname(__DIR__);
 require $ROOT . '/vendor/autoload.php';
+putenv('APP_ENV=local');
 Config::initialize();
 
 // absolute project root (required in your env file)
@@ -119,6 +120,10 @@ if (method_exists($proc, 'setScopeFilters')) {
     $proc->setFilters($scope);
     $stamp('Scope', $scope);
 }
+// Honor --batch if the setter exists
+if (method_exists($proc, 'setBatchSize')) {
+    $proc->setBatchSize((int)$batch);
+}
 
 try {
     $logger->logInfo('run-translation-queue.start', [
@@ -127,7 +132,14 @@ try {
     ]);
     $stamp('RUN', ['seconds' => $seconds, 'batch' => $batch]);
 
-    $proc->runCron($seconds, $batch);
+    $deadline   = microtime(true) + max(1, (int)$seconds);
+    $iterations = 0;
+
+    do {
+        $proc->runOnce();      // processes up to the class’s internal $batchSize (defaults to 25)
+        $iterations++;
+        usleep(200_000);       // tiny backoff (200ms) so we don’t spin at 100% CPU
+    } while (microtime(true) < $deadline);
 
     $logger->logInfo('run-translation-queue.done', [
         'seconds' => $seconds, 'batch' => $batch,
