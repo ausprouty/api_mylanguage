@@ -222,44 +222,86 @@ final class TranslationQueueProcessor
             return;
         }
 
-        try {
-           $translatedTexts = $this->translator->translate(
+        [$ok, $out, $httpCode, $errMsg, $respLen] = 
+           $this->translator->translate(
                 [$sourceText],                              // inputs
                 $targetLang,                                // target language
                 $sourceLang,                                // source language
                  \App\Contracts\Translation\TranslationProvider::FORMAT_TEXT 
             );
-            $translatedText = $translatedTexts[0] ?? '';
-            if ($translatedText === '') {
-                throw new \RuntimeException(
-                    'Empty MT result for job id ' . (int)$row['id']
-                );
-            }
+            // --- provider call (replace this with however you already call it) ---
 
-            // Persist the translation
+
+        // Normalize result
+        $translatedText = is_string($out) ? trim($out) : '';
+
+        // Decide outcome
+        $success = ($ok === true)
+            && $httpCode >= 200 && $httpCode < 300
+            && $translatedText !== '';
+
+        if ($success) {
+            $this->logger->logInfo('TQ-success', [
+                'stringId'  => $stringId,
+                'lang'      => $targetLang,
+                'len'       => mb_strlen($translatedText),
+                'http'      => $httpCode,
+                'jobId'     => $id,
+            ]);
+
             $this->upsertTranslation(
                 $stringId,
                 $targetLang,
-                $translatedText,
+                $translatedText,   // guaranteed string
                 'mt',
                 'cron:' . $this->workerId
             );
 
             $this->deleteQueueRow($id);
-
-            $this->logger->logInfo('TranlationQueProcessor: ok', [
-                'id'     => $id,
-                'strId'  => $stringId,
-                'tgt'    => $targetLang,
-            ]);
-        } catch (Throwable $e) {
-            $this->logger::logWarning('TranlationQueProcessor: job failed', [
-                'id'    => $id,
-                'err'   => $e->getMessage(),
-            ]);
-            $this->requeueWithBackoff($job);
+            $this->logger->logInfo('TQ-acked', ['id' => $id]);
+            return;
         }
+
+        // Not a success → classify and handle
+        $transient = $this->isTransientFailure($httpCode, $errMsg);
+
+        $diag = [
+            'jobId'     => $id,
+            'stringId'  => $stringId,
+            'lang'      => $targetLang,
+            'http'      => $httpCode,
+            'ok'        => $ok,
+            'err'       => $errMsg,
+            'respLen'   => $respLen,
+            'outType'   => gettype($out),
+            'outSample' => is_string($out) ? mb_substr($out, 0, 80) : null,
+        ];
+
+        if ($transient) {
+            $this->logger->logWarning('TQ-retry', $diag);
+            $this->requeueWithBackoff($job);
+            return;
+        }
+
+        // Permanent failure → dead-letter (or mark failed without retry)
+        $this->logger->logError('TQ-dead', $diag);
+        $this->deadLetter($job, $diag);
+        return;
+
     }
+
+    private function isTransientFailure(int $http, ?string $err): bool
+    {
+        if ($http === 0) return true;           // network/transport
+        if ($http === 408) return true;         // request timeout
+        if ($http === 429) return true;         // rate limited
+        if ($http >= 500) return true;          // server errors
+        if ($err && preg_match('/timeout|temporar|reset|quota|rate/i', $err)) {
+            return true;
+        }
+        return false; // everything else treat as permanent
+    }
+
 
     private function upsertTranslation(
         int $stringId,

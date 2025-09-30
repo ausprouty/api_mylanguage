@@ -188,6 +188,7 @@ class GoogleTranslationBatchService implements TranslationProvider
                 $this->callGoogleV2Once($texts, $targetLanguage, $sourceLanguage, $format);
 
             if ($ok) {
+                LoggerService::logDebug('GoogleTranslationBatchService-191', $translations);
                 return $translations;
             }
 
@@ -261,13 +262,14 @@ class GoogleTranslationBatchService implements TranslationProvider
 
         // Minimal logging: status + body length; avoid logging text content
         $respLen = is_string($response) ? strlen($response) : 0;
-        LoggerService::logInfo('TranslationBatchService-255', "HTTP {$httpCode}; bytes={$respLen}");
+        LoggerService::logInfo('TranslationBatchService-264', "HTTP {$httpCode}; bytes={$respLen}");
 
         if (!is_string($response) || $httpCode !== 200) {
             return [false, array_fill(0, count($texts), ''), $httpCode, $error, $respLen];
         }
 
         $data = json_decode($response, true);
+        LoggerService::logInfo('TranslationBatchService-271', [$data]);
         $items = $data['data']['translations'] ?? [];
 
         // Align translations to input order/size
