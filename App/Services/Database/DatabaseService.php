@@ -84,49 +84,56 @@ class DatabaseService
     private function connect(): void
     {
         // Normalize/defaults
-        $host      = $this->host ?: '127.0.0.1';
+        $host = $this->host ?: '127.0.0.1';
         if (strcasecmp($host, 'localhost') === 0) {
             $host = '127.0.0.1';
         }
-        $port      = (int) ($this->port ?: 3306);
-        $database  = (string) $this->database;
-        $username  = (string) $this->username;
-        $password  = (string) $this->password;
+        $port = (int) ($this->port ?: 3306);
+        $db   = (string) $this->database;
+        $user = (string) $this->username;
+        $pass = (string) $this->password;
 
         $charset   = $this->charset   ?: 'utf8mb4';
         $collation = $this->collation ?: 'utf8mb4_unicode_ci';
 
-        // DSN includes charset to ensure 4-byte safety (emoji, etc.)
+        // DSN sets charset (no separate SET NAMES)
         $dsn = sprintf(
             'mysql:host=%s;port=%d;dbname=%s;charset=%s',
-            $host, $port, $database, $charset
+            $host,
+            $port,
+            $db,
+            $charset
         );
 
-        $options = [
-            \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
-            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
-            \PDO::ATTR_EMULATE_PREPARES   => false,
+        $opts = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
         ];
 
-        // Also set collation explicitly at connect time
-        if (!empty($collation)) {
-            $options[\PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES {$charset} COLLATE {$collation}";
-        }
-
         try {
-            $pdo = new \PDO($dsn, $username, $password, $options);
+            $pdo = new PDO($dsn, $user, $pass, $opts);
+
+            // Force UTC and connection collation (no duplicate attr sets)
+            $pdo->exec(
+                "SET time_zone = '+00:00', " .
+                "collation_connection = '{$collation}'"
+            );
+
             $this->dbConnection = $pdo;
         } catch (\Throwable $e) {
-            // Log a concise, non-sensitive message
-            $safeMsg = sprintf('DB connect failed: %s (dsn=%s user=%s)', $e->getMessage(), $dsn, $username);
-            // Use your logger if available; fall back to error_log
+            $safe = sprintf(
+                'DB connect failed: %s (dsn=%s user=%s)',
+                $e->getMessage(),
+                $dsn,
+                $user
+            );
             if (class_exists(\App\Services\LoggerService::class)) {
-                \App\Services\LoggerService::logError('db.connect', ['error' => $safeMsg]);
+                \App\Services\LoggerService::logError('db.connect', ['error' => $safe]);
             } else {
-                error_log($safeMsg);
+                error_log($safe);
             }
-            // Rethrow with context for upstream handlers/tests
-            throw new \RuntimeException($safeMsg, previous: $e);
+            throw new \RuntimeException($safe, previous: $e);
         }
     }
 

@@ -249,8 +249,8 @@ final class TranslationQueueProcessor
 
             $this->logger->logInfo('TranlationQueProcessor: ok', [
                 'id'     => $id,
-                'strId'  => $srcId,
-                'tgt'    => $tgtLg,
+                'strId'  => $stringId,
+                'tgt'    => $targetLang,
             ]);
         } catch (Throwable $e) {
             $this->logger::logWarning('TranlationQueProcessor: job failed', [

@@ -93,7 +93,9 @@ class GoogleTranslationBatchService implements TranslationProvider
             'sourceLanguage'=> $sourceLanguage,
             'format'=>$format] );
         if (empty($texts)) {
-            return [];
+            LoggerService::logDebug('GoogleTranslationBatchService-96', 'No Texts' );
+           // Always return a 5-tuple: ok, list, httpCode, err, len
+            return [true, [], null, null, 0]; // httpCode=null => no request made
         }
 
         // 1) Deduplicate to save quota, but preserve original order.
@@ -154,8 +156,14 @@ class GoogleTranslationBatchService implements TranslationProvider
         foreach ($indexMap as $origIdx => $uniIdx) {
             $out[$origIdx] = $translatedByUniqueIndex[$uniIdx] ?? '';
         }
-        ksort($out);
-        return array_values($out);
+        $list = array_values($out);
+        $len  = count($list);
+         LoggerService::logDebug('GoogleTranslationBatchService-159', $list);
+        // If you have a real HTTP code from upstream, use it instead of 200.
+        // Likewise, propagate any $err message you captured earlier.
+        $httpCode = 200;
+        $err = null;
+        return [true, $list, $httpCode, $err, $len];     
     }
 
     /**

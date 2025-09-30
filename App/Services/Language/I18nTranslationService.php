@@ -42,58 +42,130 @@ class I18nTranslationService implements TranslationServiceContract
         ?string $variant,
         array $ctx = []
     ): array {
-        // ---- context --------------------------------------------------------
-        $type            = (string)($ctx['kind']            ?? 'interface');
-        $resourceSubject = (string)($ctx['resourceSubject'] ?? 'app');
-        $resourceVariant = (string)($ctx['resourceVariant'] ?? ($variant ?: 'default'));
-        $clientCode      = (string)($ctx['clientCode']      ?? 'wsu');
-        $isBase          = (bool)  ($ctx['isBase']          ?? ($languageCodeHL === $this->baseLanguage));
-        $normVariant     = (string)($ctx['variant']         ?? ($variant ?: 'default'));
-        $dbg             = (bool)  ($ctx['debug']           ?? Config::get('logging.i18n_debug', false));
-       
-       // NOTICE THE RESET HERE
-        $dbg = false;
         
-        $clientId = $this->clients->getIdByCode($clientCode);
-        if (!$clientId) {
-            throw new \RuntimeException("Unknown clientCode '{$clientCode}'");
-        }
-        $resourceId = $this->resources->getIdByTypeSubjectVariant($type, $resourceSubject, $resourceVariant);
-        if (!$resourceId) {
-            throw new \RuntimeException("Unknown resource {$type}/{$resourceSubject}/{$resourceVariant}");
-        }
+    // ---- context -----------------------------------------------------
+        $kind                = (string)($ctx['kind'] ?? 'interface');
+        $resourceSubject     = (string)($ctx['resourceSubject'] ?? 'app');
+        $ctxVariant          = (string)($ctx['resourceVariant'] ?? '');
+        $clientCode          = (string)($ctx['clientCode'] ?? 'wsu');
+        $normVariant         = (string)($ctx['variant'] ?? ($variant ?: 'default'));
+        $isBase              = (bool)($ctx['isBase']
+                                 ?? ($languageCodeHL === $this->baseLanguage));
+        $dbg                 = (bool)($ctx['debug']
+                                 ?? Config::get('logging.i18n_debug', false));
+
+        // Choose type by kind
+        $resourceType = ($kind === 'interface') ? 'interface' : 'commonContent';
+
+        // Single source of truth for variant
+        $variantCode = $this->normalizeVariant(
+            $ctx['resourceVariant'] ?? null,
+            $ctx['variant']         ?? null,
+            $variant                ?? null
+        ); 
+        // returns null for "", "default", or null
+         // Later, for meta:
+        $variantForMeta = $variantCode ?? 'default';
+
+        // Client to store under
+        $clientCodeForStorage = ($resourceType === 'commonContent') ? 'global' : $clientCode;
+
+        // Ensure FK parents exist
+        $clientId = $this->clients->ensureIdByCode(
+            $clientCodeForStorage,
+            $variantCode,
+            $clientCodeForStorage . ' (auto)',
+            1
+        );
+        $resourceId = $this->resources->ensureIdByTypeSubjectVariant(
+            $resourceType,
+            $resourceSubject,
+            $variantCode,
+            sprintf('%s %s %s (auto)',
+                $resourceType,
+                $resourceSubject,
+                $variantCode ?? 'default'
+            )
+        );
 
         if ($dbg) {
-            Log::logDebug('I18nTr-060', 'ctxids', [
-                'isBase' => $isBase,
-                'kind' => $type, 'subject' => $resourceSubject, 'variant' => $resourceVariant,
-                'clientCode' => $clientCode, 'clientId' => $clientId, 'resourceId' => $resourceId,
-                'languageCodeHL' => $languageCodeHL,
+            Log::logDebug('I18nTranslationService-095', 'ctxids', [
+                    'isBase'        => $isBase,
+                    'kind'          => $kind,
+                    'type'          => $resourceType,
+                    'subject'       => $resourceSubject,
+                    'variant'       => ($variantCode ?? 'default'),
+                    'clientCode'    => $clientCode,
+                    'clientId'      => $clientId,
+                    'resourceId'    => $resourceId,
+                    'languageCodeHL'=> $languageCodeHL,
+                ]);
+         }
+
+         
+
+      
+
+        // Choose which client to use when writing i18n_strings
+        $clientCodeForStorage = ($resourceType === 'commonContent') ? 'global' : $clientCode;
+
+        // Make sure the client & resource exist (no 1452, no 1451)
+        $clientId = $this->clients->ensureIdByCode(
+            $clientCodeForStorage,
+            $variantForMeta,
+            sprintf('%s (auto)', $clientCodeForStorage)
+        );
+
+        $resourceId = $this->resources->ensureIdByTypeSubjectVariant(
+            $resourceType,
+            $resourceSubject,
+            $variantForMeta,
+            sprintf('%s %s %s (auto)',
+                $resourceType,
+                $resourceSubject,
+                $variantForMeta ?? 'default'
+            )
+        );
+
+        if ($dbg) {
+            Log::logDebug('I18nTr-ctx', [
+                'resourceType' => $resourceType,
+                'resourceSubj' => $resourceSubject,
+                'variantForMeta' => $variantForMeta,
+                'clientCode'   => $clientCodeForStorage,
+                'clientId'     => $clientId,
+                'resourceId'   => $resourceId,
             ]);
         }
 
-        // ---- extract masters (includes "Next Video") ------------------------
-        if ($dbg) { Log::logDebug('I18nTr-076', 'bundle (pre-extract)', $bundle); }
-
-        $masters = $this->extractMasterTexts($bundle); // [['key'=>'a.b.c','text'=>'...'], ...]
-        if ($dbg) { Log::logDebug('I18nTr-077', 'masters (raw)', $masters); }
-
+         // ---- extract masters (includes "Next Video") ------------------------
+         if ($dbg) { Log::logDebug('I18nTranslationService-076', 'bundle (pre-extract)', $bundle); }
+ 
+         $masters = $this->extractMasterTexts($bundle); // [['key'=>'a.b.c','text'=>'...'], ...]
+         if ($dbg) { Log::logDebug('I18nTranslationService-077', 'masters (raw)', $masters); }
+ 
+        
         // ---- ensure masters exist in i18n_strings, then build map+ids -------
-        [$stringMap, $stringIds] = $this->ensureMastersAndMap($clientId, $resourceId, $masters, $dbg);
+        [$stringMap, $stringIds] = $this->ensureMastersAndMap(
+            $clientId,
+            $resourceId,
+            $masters,
+            $dbg
+        );
         if ($dbg) {
-            Log::logDebug('I18nTr-101', 'stringMap.keys.sample', array_slice(array_keys($stringMap), 0, 10));
-            Log::logDebug('I18nTr-102', 'stringIds.sample', array_slice($stringIds, 0, 10));
-        }
+             Log::logDebug('I18nTranslationService-124', 'stringMap.keys.sample', array_slice(array_keys($stringMap), 0, 10));
+             Log::logDebug('I18nTranslationService-125', 'stringIds.sample', array_slice($stringIds, 0, 10));
+         }
 
         // Base language short-circuit: keep English, but we keep the catalog in sync.
         if ($isBase) {
             return $this->withMeta($bundle, [
                 'resourceSubject'      => $resourceSubject,
-                'resourceVariant'      => $resourceVariant,
+                'resourceVariant'      => $variantCode,
                 'clientCode'           => $clientCode,
                 'languageCodeHL'       => $languageCodeHL,
                 'languageCodeGoogle'   => 'en',
-                'variant'              => $normVariant,
+                'variant'              => ($variantCode ?? 'default'),
                 'keysTotal'            => count($stringIds),
                 'keysMissing'          => 0,
                 'keysFuzzy'            => $bundle['meta']['keysFuzzy'] ?? 0,
@@ -102,16 +174,18 @@ class I18nTranslationService implements TranslationServiceContract
         }
 
         // ---- resolve Google code from HL -----------------------------------
-        $google = $this->languages->getCodeGoogleFromCodeHL($languageCodeHL) ?? '';
-        if ($google === '') { $google = strtolower(substr($languageCodeHL, 0, 2)); }
-
+        $languageCodeGoogle = $this->languages
+            ->getCodeGoogleFromCodeHL($languageCodeHL) ?? '';
+        if ($languageCodeGoogle === '') {
+            $languageCodeGoogle = strtolower(substr($languageCodeHL, 0, 2));
+        }
         if (empty($stringIds)) {
             return $this->withMeta($bundle, [
                 'resourceSubject'      => $resourceSubject,
-                'resourceVariant'      => $resourceVariant,
+                'resourceVariant'      => ($variantCode ?? 'default'),
                 'clientCode'           => $clientCode,
                 'languageCodeHL'       => $languageCodeHL,
-                'languageCodeGoogle'   => $google,
+                'languageCodeGoogle'   => $languageCodeGoogle,
                 'variant'              => $normVariant,
                 'keysTotal'            => 0,
                 'keysMissing'          => 0,
@@ -120,11 +194,12 @@ class I18nTranslationService implements TranslationServiceContract
             ]);
         }
 
-        if ($dbg) { Log::logDebug('I18nTr-121', 'stringIds', $stringIds); }
+        if ($dbg) { Log::logDebug('I18nTranslationService-121', 'stringIds', $stringIds); }
 
         // ---- fetch translations (Google-only) -------------------------------
-        $rowsGoogle = $this->translations->fetchByStringIdsAndLanguageGoogle($stringIds, $google);
-        if ($dbg) { Log::logDebug('I18nTr-126', 'rowsGoogle', $rowsGoogle); }
+         $rowsGoogle = $this->translations
+            ->fetchByStringIdsAndLanguageGoogle($stringIds, $languageCodeGoogle);
+        if ($dbg) { Log::logDebug('I18nTranslationService-170', 'rowsGoogle', $rowsGoogle); }
 
         $trById = [];
         foreach ($rowsGoogle as $r) {
@@ -169,15 +244,6 @@ class I18nTranslationService implements TranslationServiceContract
                 ];
             }
         }
-        foreach ($masters as $m) {
-            if (($m['key'] ?? '') === 'interface.nextVideo') {
-                Log::logDebug('probe.master.nextVideo', [
-                    'present' => true,
-                    'text'    => $m['text'],
-                    'sha1'    => sha1((string)$m['text']),
-                ]);
-            }
-        }
 
         $keysMissing = max(0, $keysTotal - $translatedCnt);
 
@@ -185,14 +251,14 @@ class I18nTranslationService implements TranslationServiceContract
             foreach ($missingRows as $mr) {
                 $this->enqueueMissing(
                     clientCode:            $clientCode,
-                    resourceType:          $type,
+                    resourceType:          $resourceType,  
                     subject:               $resourceSubject,
-                    variant:               $resourceVariant,
+                    variantCode:           $variant ?? 'default',
                     stringKey:             $mr['stringKey'],
                     sourceKeyHash:         $mr['keyHash'],
                     sourceStringId:        $mr['sid'],
                     sourceLanguageGoogle:  'en',
-                    targetLanguageGoogle:  $google,
+                    targetLanguageGoogle:  $languageCodeGoogle,
                     sourceText:            $mr['text'],
                     priority:              0
                 );
@@ -202,10 +268,10 @@ class I18nTranslationService implements TranslationServiceContract
             // FEATURE_KICK_QUEUE=1.
             $this->kickQueueWorker(
                 client:   $clientCode,
-                type:     $type,
+                type:     $resourceType, 
                 subject:  $resourceSubject,
-                variant:  $resourceVariant,
-                lang:     $google
+                variant:  $variantCode ?? 'default',
+                lang:     $languageCodeGoogle
             );
         }
             
@@ -216,10 +282,10 @@ class I18nTranslationService implements TranslationServiceContract
         // ---- meta -----------------------------------------------------------
         $out = $this->withMeta($out, [
             'resourceSubject'      => $resourceSubject,
-            'resourceVariant'      => $resourceVariant,
+            'resourceVariant'      => $variantForMeta,
             'clientCode'           => $clientCode,
             'languageCodeHL'       => $languageCodeHL,
-            'languageCodeGoogle'   => $google,
+            'languageCodeGoogle'   => $languageCodeGoogle,
             'variant'              => $normVariant,
             'keysTotal'            => $keysTotal,
             'keysMissing'          => $keysMissing,
@@ -236,14 +302,14 @@ class I18nTranslationService implements TranslationServiceContract
     // ---------------------------------------------------------------------
 
     /**
- * Ensure every master line exists in i18n_strings (by clientId, resourceId, keyHash),
- * then return [$stringMap, $stringIds].
- *
- * $stringMap is keyed by:
- *   - dot key (e.g. "interface.nextVideo")
- *   - "sha1:<hex>"
- *   - "<hex>"
- */
+     * Ensure every master line exists in i18n_strings (by clientId, resourceId, keyHash),
+     * then return [$stringMap, $stringIds].
+     *
+     * $stringMap is keyed by:
+     *   - dot key (e.g. "interface.nextVideo")
+     *   - "sha1:<hex>"
+     *   - "<hex>"
+     */
     private function ensureMastersAndMap(
         int $clientId,
         int $resourceId,
@@ -261,15 +327,23 @@ class I18nTranslationService implements TranslationServiceContract
             return [[], []];
         }
 
+        if ($dbg) { Log::logDebug('I18nTranslationService-309', 'hashToText', $hashToText); }
+
+
         // 2) Read existing rows for these hashes (scope by clientId/resourceId)
         [$in, $params] = $this->buildInParams(array_keys($hashToText), 'h');
+        if ($dbg) { Log::logDebug('I18nTranslationService-313', 'in', [$in]); }
+
         $sel = $this->db->prepare(
             "SELECT stringId, keyHash, englishText
             FROM i18n_strings
             WHERE clientId = :c AND resourceId = :r AND keyHash IN ($in)"
         );
-        $sel->execute([':c' => $clientId, ':r' => $resourceId] + $params);
-
+        $sel->execute(array_merge(
+            ['c' => $clientId, 'r' => $resourceId],
+            $params
+        ));
+       if ($dbg) { Log::logDebug('I18nTranslationService-324', 'params', [$params]); }
         $haveId   = []; // keyHash => stringId
         $haveText = []; // keyHash => englishText
         while ($row = $sel->fetch(\PDO::FETCH_ASSOC)) {
@@ -277,22 +351,36 @@ class I18nTranslationService implements TranslationServiceContract
             $haveId[$kh]   = (int)$row['stringId'];
             $haveText[$kh] = (string)$row['englishText'];
         }
-
+       if ($dbg) { Log::logDebug('I18nTranslationService-332', 'params', [$params]); }
         // 3) Insert truly missing rows (no ON DUPLICATE to avoid burning AUTO_INCREMENT)
         $ins = $this->db->prepare(
             "INSERT INTO i18n_strings
                 (clientId, resourceId, keyHash, englishText, createdAt, updatedAt)
-            SELECT :c, :r, :h, :t, UTC_TIMESTAMP(), UTC_TIMESTAMP() FROM DUAL
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM i18n_strings
-                WHERE clientId = :c AND resourceId = :r AND keyHash = :h
-            )"
+             SELECT :c_ins, :r_ins, :h_ins, :t_ins,
+                    UTC_TIMESTAMP(), UTC_TIMESTAMP()
+               FROM DUAL
+              WHERE NOT EXISTS (
+                    SELECT 1
+                      FROM i18n_strings
+                     WHERE clientId = :c_chk
+                       AND resourceId = :r_chk
+                       AND keyHash = :h_chk
+              )"
         );
+        if ($dbg) { Log::logDebug('I18nTranslationService-344', 'params', [$params]); }
         foreach ($hashToText as $h => $t) {
             if (isset($haveId[$h])) { continue; }
             try {
-                $ins->execute([':c' => $clientId, ':r' => $resourceId, ':h' => $h, ':t' => $t]);
+                $ins->execute([
+                    'c_ins' => $clientId,
+                    'r_ins' => $resourceId,
+                    'h_ins' => $h,
+                    't_ins' => $t,
+                    'c_chk' => $clientId,
+                    'r_chk' => $resourceId,
+                    'h_chk' => $h,
+                ]);
+              
             } catch (\Throwable $e) {
                 // If two requests race, a duplicate can still occur; ignore that only.
                 $msg = (string)$e->getMessage();
@@ -301,18 +389,26 @@ class I18nTranslationService implements TranslationServiceContract
                 }
             }
         }
-
+        if ($dbg) { Log::logDebug('I18nTranslationService-361', 'resourceId', [$resourceId]); }
         // 4) Update text only if it changed (no id burn)
         $upd = $this->db->prepare(
             "UPDATE i18n_strings
-                SET englishText = :t, updatedAt = UTC_TIMESTAMP()
-            WHERE clientId = :c AND resourceId = :r AND keyHash = :h
-                AND englishText <> :t"
+                SET englishText = :t_set, updatedAt = UTC_TIMESTAMP()
+              WHERE clientId = :c
+                AND resourceId = :r
+                AND keyHash = :h
+                AND englishText <> :t_cmp"
         );
         foreach ($hashToText as $h => $t) {
             if (!isset($haveId[$h])) { continue; } // just inserted; skip redundant update
             if (isset($haveText[$h]) && $haveText[$h] === $t) { continue; }
-            $upd->execute([':c' => $clientId, ':r' => $resourceId, ':h' => $h, ':t' => $t]);
+             $upd->execute([
+                'c'     => $clientId,
+                'r'     => $resourceId,
+                'h'     => $h,
+                't_set' => $t,
+                't_cmp' => $t,
+            ]);
         }
 
         // 5) Re-select mapping to pick up any newly inserted ids
@@ -345,7 +441,7 @@ class I18nTranslationService implements TranslationServiceContract
         $stringIds = array_values(array_unique(array_values($stringMap)));
 
         if ($dbg) {
-            Log::logDebug('I18nTr-ensure', [
+            Log::logDebug('I18nTranslationService-ensure', [
                 'masters'   => count($masters),
                 'hashes'    => count($hashToText),
                 'mapped'    => count($stringIds),
@@ -370,7 +466,7 @@ class I18nTranslationService implements TranslationServiceContract
             ];
         }
 
-           // Log::logDebug('I18nTr-319', 'ensureMastersAndMap', [
+           // Log::logDebug('I18nTranslationService-319', 'ensureMastersAndMap', [
             //    'bundle'   => $bundle,
             //    'out'    => $out,
             //]);
@@ -488,7 +584,7 @@ class I18nTranslationService implements TranslationServiceContract
         string $clientCode,
         string $resourceType,
         string $subject,
-        string $variant,
+        string $variantCode,
         string $stringKey,
         string $sourceKeyHash,
         ?int   $sourceStringId,
@@ -519,7 +615,7 @@ class I18nTranslationService implements TranslationServiceContract
             ':client'=> $clientCode,
             ':rtype' => $resourceType,
             ':subj'  => $subject,
-            ':var'   => $variant,
+            ':var'   => $variantCode,
             ':skey'  => $stringKey,
             ':shash' => $sourceKeyHash,
             ':tG'    => strtolower($targetLanguageGoogle),
@@ -675,6 +771,19 @@ class I18nTranslationService implements TranslationServiceContract
         }
 
         // Default in prod: rely on cron; no-op here.
+    }
+    /**
+     * Map "default", "", null to NULL; otherwise trimmed lowercase code.
+     */
+    private function normalizeVariant(?string ...$candidates): ?string
+    {
+        foreach ($candidates as $v) {
+            if ($v === null) { continue; }
+            $v = trim((string)$v);
+            if ($v === '' || strcasecmp($v, 'default') === 0) { continue; }
+            return $v; // use as-is (keep case if you prefer)
+        }
+        return null; // default slot
     }
 
 }
