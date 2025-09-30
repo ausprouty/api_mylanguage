@@ -126,7 +126,7 @@ if (method_exists($proc, 'setBatchSize')) {
 }
 
 try {
-    $logger->logInfo('run-translation-queue.start', [
+    $logger::logInfo('run-translation-queue.start', [
         'seconds' => $seconds, 'batch' => $batch, 'scope' => $scope,
         'env' => Config::get('environment'),
     ]);
@@ -141,7 +141,7 @@ try {
         usleep(200_000);       // tiny backoff (200ms) so we don’t spin at 100% CPU
     } while (microtime(true) < $deadline);
 
-    $logger->logInfo('run-translation-queue.done', [
+    $logger::logInfo('run-translation-queue.done', [
         'seconds' => $seconds, 'batch' => $batch,
     ]);
     $stamp('END');
@@ -150,7 +150,7 @@ try {
 
 } catch (\Throwable $e) {
     $stamp('ERROR', ['type' => get_class($e), 'msg' => $e->getMessage()]);
-    $logger->logInfo('run-translation-queue.error', [
+    $logger::logInfo('run-translation-queue.error', [
         'type' => get_class($e), 'msg' => $e->getMessage(),
     ]);
     fwrite(STDERR, $e->getMessage() . PHP_EOL);

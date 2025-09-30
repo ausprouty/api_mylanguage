@@ -17,6 +17,10 @@
       ],
       "test:failures": "php vendor/phpunit/phpunit/phpunit --fail-on-warning --display-warnings --colors=always",
       "test:unit": "phpunit --colors=always",
+      "test:translate":[
+        "php bin/reset-translation-queue.php",
+        "set APP_ENV=local && php bin/run-translation-queue.php --seconds=10 --batch=25"
+      ],
       "tests": [ "@composer dump-autoload -o",
                  "phpunit --colors=always"
       ],

@@ -1,0 +1,42 @@
+unstick
+
+
+UPDATE i18n_translation_queue
+SET status='queued', lockedAt=NULL, lockedBy=NULL, attempts=0, runAfter=UTC_TIMESTAMP()
+WHERE status='processing'
+  AND (lockedAt IS NULL
+       OR lockedAt <= UTC_TIMESTAMP() - INTERVAL 10 MINUTE
+       OR lockedAt >  UTC_TIMESTAMP() + INTERVAL 5 MINUTE);
+
+UPDATE i18n_translation_queue
+SET status='queued', attempts=0, runAfter=UTC_TIMESTAMP()
+WHERE status='failed';
+
+
+check
+
+SELECT
+  SUM(status='queued'
+      AND runAfter<=UTC_TIMESTAMP()
+      AND (lockedAt IS NULL
+        OR lockedAt <= UTC_TIMESTAMP() - INTERVAL 10 MINUTE
+        OR lockedAt >  UTC_TIMESTAMP() + INTERVAL 5 MINUTE)) AS eligible,
+  SUM(status='queued')     AS queued,
+  SUM(status='processing') AS processing,
+  SUM(status='failed')     AS failed
+FROM i18n_translation_queue;
+
+
+run:
+
+set APP_ENV=local && php bin\run-translation-queue.php --seconds=10 --batch=25
+
+add later:
+
+ALTER TABLE i18n_translation_queue
+  MODIFY sourceStringId BIGINT(20) UNSIGNED NOT NULL;
+
+ALTER TABLE i18n_translation_queue
+  ADD CONSTRAINT fk_queue_string
+  FOREIGN KEY (sourceStringId) REFERENCES i18n_strings(id)
+  ON DELETE CASCADE;

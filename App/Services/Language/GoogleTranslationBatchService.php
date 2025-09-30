@@ -5,6 +5,7 @@ namespace App\Services\Language;
 use App\Configuration\Config;
 use App\Contracts\Translation\TranslationProvider;
 use App\Services\LoggerService;
+use Throwable;
 
 
 /*
@@ -32,7 +33,7 @@ class GoogleTranslationBatchService implements TranslationProvider
     {
         $this->apiKey = (string) Config::get('api.google_translate_apiKey');
         if ($this->apiKey === '') {
-            LoggerService::logError('GoogleTranslationBatchService', 'Missing Google API key.');
+            LoggerService::logError('GoogleTranslationBatchService-36', 'Missing Google API key.');
             throw new \RuntimeException('Google API key is required.');
         }
     }
@@ -53,6 +54,12 @@ class GoogleTranslationBatchService implements TranslationProvider
         string $sourceLanguage = 'en',
         string $format = 'text'
     ): array {
+        LoggerService::logDebug('GoogleTranslateService-56', [
+            'texts' => $texts,
+            'targetLanguage' => $targetLanguage,
+            'sourceLanguage' => $sourceLanguage,
+            'format'=> $format
+        ]);
         // Delegate to the batch method to keep logic in one place.
         [$ok, $list, $code, $err, $len] = $this->translateBatch(
             $texts,
@@ -61,7 +68,7 @@ class GoogleTranslationBatchService implements TranslationProvider
             $format
         );
         $translated = $list[0] ?? '';
-        LoggerService::logDebug('GoogleTranslationBatchService', 'Ran this service for translate');
+        LoggerService::logDebug('GoogleTranslationBatchService-70', $translated);
         return [$ok, $translated, $code, $err, $len];
     }
 
@@ -80,7 +87,11 @@ class GoogleTranslationBatchService implements TranslationProvider
         string $sourceLanguage = 'en',
         string $format = 'text'
     ): array {
-        LoggerService::logDebug('GoogleTranslationBatchService', 'Ran this service for translate');
+        LoggerService::logDebug('GoogleTranslationBatchService-90', 
+            ['texts' =>$texts,
+            'targetLanguage' => $targetLanguage,
+            'sourceLanguage'=> $sourceLanguage,
+            'format'=>$format] );
         if (empty($texts)) {
             return [];
         }
@@ -125,6 +136,11 @@ class GoogleTranslationBatchService implements TranslationProvider
         $translatedByUniqueIndex = array_fill(0, count($uniqueList), '');
 
         foreach ($chunks as $chunk) {
+            LoggerService::logDebug('GoogleTranslationBatchService-139', 
+                ['chunk' =>$chunk,
+                'targetLanguage' => $targetLanguage,
+                'sourceLanguage'=> $sourceLanguage,
+                'format'=>$format] );
             $res = $this->callGoogleV2WithRetries($chunk, $targetLanguage, $sourceLanguage, $format);
             // Map back to the unique indices
             foreach ($chunk as $i => $src) {
@@ -204,7 +220,7 @@ class GoogleTranslationBatchService implements TranslationProvider
         string $format
     ): array {
         $url = 'https://translation.googleapis.com/language/translate/v2?key=' . urlencode($this->apiKey);
-
+        LoggerService::logInfo('GoogleTranslationBatchService-224',$url);
         $payload = [
             'q'      => array_values($texts), // preserves order
             'source' => $sourceLanguage,
@@ -212,6 +228,7 @@ class GoogleTranslationBatchService implements TranslationProvider
             'format' => $format,              // "text" or "html"
             'model'  => 'nmt',                // be explicit
         ];
+         LoggerService::logInfo('GoogleTranslationBatchService-231',$payload);
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -236,7 +253,7 @@ class GoogleTranslationBatchService implements TranslationProvider
 
         // Minimal logging: status + body length; avoid logging text content
         $respLen = is_string($response) ? strlen($response) : 0;
-        LoggerService::logInfo('TranslationBatchService', "HTTP {$httpCode}; bytes={$respLen}");
+        LoggerService::logInfo('TranslationBatchService-255', "HTTP {$httpCode}; bytes={$respLen}");
 
         if (!is_string($response) || $httpCode !== 200) {
             return [false, array_fill(0, count($texts), ''), $httpCode, $error, $respLen];

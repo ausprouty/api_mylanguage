@@ -176,53 +176,84 @@ final class TranslationQueueProcessor
     }
 
     /**
-     * Process a single locked job row.
+     * Process a single locked  row.
+     * /**
+    * @param array{
+    *   id:int,
+    *   sourceStringId:int|null,
+    *   sourceLanguageCodeGoogle:string,
+    *   targetLanguageCodeGoogle:string,
+    *   clientCode:string,
+    *   resourceType:string,
+    *   subject:string,
+    *   variant:string,
+    *   stringKey:string,
+    *   sourceKeyHash:string,
+    *   sourceText:string,
+    *   status:string,
+    *   attempts:int,
+    *   runAfter:string,
+    *   priority:int,
+    *   lockedBy?:string|null,
+    *   lockedAt?:string|null
+    * } $row
+    *
      *
-     * @param array<string,mixed> $job
+     * @param array<string,mixed> $row
      */
-    private function processOne(array $job): void
+    private function processOne(array $row): void
     {
-        $id     = (int) $job['id'];
-        $srcId  = $job['sourceStringId'] ? (int) $job['sourceStringId'] : null;
-        $srcLg  = (string) $job['sourceLanguageCodeGoogle'];
-        $tgtLg  = (string) $job['targetLanguageCodeGoogle'];
-        $text   = (string) $job['sourceText'];
+        $this->logger::logDebug('TranslationQueueProceessor-206', $row);
+        $id     = (int) $row['id'];
+        $this->logger::logDebug('TranslationQueueProceessor-208', $id);
+        $sourceLang = $row['sourceLanguageCodeGoogle'] ?: 'en';
+        $targetLang = $row['targetLanguageCodeGoogle'];
+        $sourceText = (string)$row['sourceText'];
+
+        $stringId = (int)($row['sourceStringId'] ?? 0);
+        if ($stringId === 0) {
+            $stringId = $this->ensureStringId($row);
+        }
 
         // Guard: need a target and text; sourceStringId is required for the
         // translations table schema.
-        if ($srcId === null || $tgtLg === '' || $text === '') {
+        if ($stringId === null || $targetLang === '' ||  $sourceText === '') {
             $this->failPermanently($id, 'invalid-queue-row');
             return;
         }
 
         try {
-            $translated = $this->translator->translate(
-                [$text],  
-                $tgtLg, 
-                $srcLg,
-                \App\Contracts\Translation\TranslationProvider::FORMAT_TEXT
+           $translatedTexts = $this->translator->translate(
+                [$sourceText],                              // inputs
+                $targetLang,                                // target language
+                $sourceLang,                                // source language
+                 \App\Contracts\Translation\TranslationProvider::FORMAT_TEXT 
             );
-            if ($translated === '') {
-                throw new Exception('Empty MT result');
+            $translatedText = $translatedTexts[0] ?? '';
+            if ($translatedText === '') {
+                throw new \RuntimeException(
+                    'Empty MT result for job id ' . (int)$row['id']
+                );
             }
 
+            // Persist the translation
             $this->upsertTranslation(
-                $srcId,
-                $tgtLg,
-                $translated,
+                $stringId,
+                $targetLang,
+                $translatedText,
                 'mt',
                 'cron:' . $this->workerId
             );
 
             $this->deleteQueueRow($id);
 
-            $this->logger->info('TQP: ok', [
+            $this->logger->logInfo('TranlationQueProcessor: ok', [
                 'id'     => $id,
                 'strId'  => $srcId,
                 'tgt'    => $tgtLg,
             ]);
         } catch (Throwable $e) {
-            $this->logger::logWarning('TQP: job failed', [
+            $this->logger::logWarning('TranlationQueProcessor: job failed', [
                 'id'    => $id,
                 'err'   => $e->getMessage(),
             ]);
@@ -238,17 +269,20 @@ final class TranslationQueueProcessor
         string $translator
     ): void {
         $pdo = $this->pdo();
-        $sql = 'INSERT INTO i18n_translations
-                   (stringId, languageCodeGoogle, translatedText, status,
-                    source, translator, reviewedBy, posted)
-                VALUES
-                   (:sid, :lang, :txt, :status, :src, :who, NULL, NULL)
-                ON DUPLICATE KEY UPDATE
-                   translatedText = VALUES(translatedText),
-                   status = VALUES(status),
-                   source = VALUES(source),
-                   translator = VALUES(translator),
-                   updatedAt = CURRENT_TIMESTAMP';
+        $pdo = $this->pdo();
+
+        $sql = <<<SQL
+            INSERT INTO i18n_translations
+            (stringId, languageCodeGoogle, translatedText, status, source, translator, posted)
+            VALUES
+            (:sid,     :lang,              :txt,            :status, :src,   :who,       UTC_TIMESTAMP())
+            ON DUPLICATE KEY UPDATE
+            translatedText = VALUES(translatedText),
+            status         = VALUES(status),
+            source         = VALUES(source),
+            translator     = VALUES(translator),
+            updatedAt      = UTC_TIMESTAMP()
+            SQL;
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
@@ -340,6 +374,153 @@ final class TranslationQueueProcessor
     public function setBatchSize(int $n): void {
         $this->batchSize = max(1, $n);
     }
+
+    private function ensureStringId(array $row): int
+    {
+        $this->logger::logInfo('TQP ensureStringId -- 380', $row);
+        $pdo = $this->pdo();
+        $pdo->beginTransaction();
+
+        try {
+            // 0) Resolve FKs from human-friendly fields
+            $clientId   = $this->resolveClientId($pdo, (string)$row['clientCode']);
+            $this->logger::logInfo('TQP ensureStringId -- 387', $clientId);
+            $resourceId = $this->resolveResourceId(
+                $pdo,
+                (string)$row['resourceType'],
+                (string)$row['subject'],
+                (string)$row['variant']
+            );
+            $this->logger::logInfo('TQP ensureStringId -- 395', $resourceId);
+
+            $keyHash     = (string)$row['sourceKeyHash'];  // 40-char sha1
+            $englishText = (string)$row['sourceText'];     // queue has the source text
+
+            // 1) Find existing string by (clientId, resourceId, keyHash)
+            $sel = $pdo->prepare(
+                "SELECT stringId
+                FROM i18n_strings
+                WHERE clientId = ? AND resourceId = ? AND keyHash = ?"
+            );
+            $sel->execute([$clientId, $resourceId, $keyHash]);
+            $stringId = (int) ($sel->fetchColumn() ?: 0);
+            $this->logger::logInfo('TQP ensureStringId -- 407',  $stringId );
+
+            // 2) If not found, insert it
+            if ($stringId === 0) {
+                $ins = $pdo->prepare(
+                    "INSERT INTO i18n_strings
+                    (clientId, resourceId, keyHash, englishText, developerNote, isActive, createdAt)
+                    VALUES
+                    (:cid, :rid, :kh, :en, NULL, 1, CURRENT_TIMESTAMP)"
+                );
+                $ins->execute([
+                    ':cid' => $clientId,
+                    ':rid' => $resourceId,
+                    ':kh'  => $keyHash,
+                    ':en'  => $englishText,
+                ]);
+                $stringId = (int)$pdo->lastInsertId();
+            }
+
+            // 3) Persist back to queue (note: queue table has no updatedAt column)
+            $upd = $pdo->prepare(
+                "UPDATE i18n_translation_queue
+                    SET sourceStringId = :sid
+                WHERE id = :qid"
+            );
+            $upd->execute([
+                ':sid' => $stringId,
+                ':qid' => (int)$row['id'],
+            ]);
+
+            $pdo->commit();
+
+            $this->logger::logInfo('TQP ensureStringId.out', [
+                'queueId'  => (int)$row['id'],
+                'stringId' => $stringId,
+                'clientId' => $clientId,
+                'resourceId' => $resourceId,
+            ]);
+
+            return $stringId;
+
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+}
+
+/**
+ * Resolve or create a clientId from clientCode.
+ */
+private function resolveClientId(PDO $pdo, string $clientCode): int
+{
+    // Try existing
+    $sel = $pdo->prepare("SELECT clientId FROM i18n_clients WHERE clientCode = ?");
+    $sel->execute([$clientCode]);
+    $id = (int) ($sel->fetchColumn() ?: 0);
+    if ($id > 0) return $id;
+
+    // Insert-or-select for race-safety
+    $ins = $pdo->prepare("INSERT IGNORE INTO i18n_clients (clientCode) VALUES (?)");
+    $ins->execute([$clientCode]);
+
+    if ($pdo->lastInsertId() !== '0') {
+        return (int)$pdo->lastInsertId();
+    }
+
+    // Someone else inserted between our SELECT and INSERT
+    $sel->execute([$clientCode]);
+    $id = (int) ($sel->fetchColumn() ?: 0);
+    if ($id > 0) return $id;
+
+    throw new \RuntimeException("Failed to resolve clientId for clientCode={$clientCode}");
+}
+
+/*
+ * Resolve or create a resourceId from (type, subject, variant).
+ * `variant` may be NULL (unique key is on (type, subject, variant)).
+ */
+private function resolveResourceId(
+    PDO $pdo,
+    string $type,
+    string $subject,
+    ?string $variant
+): int {
+    // SELECT with NULL-safe match for variant
+    $sel = $pdo->prepare(
+        "SELECT resourceId
+           FROM i18n_resources
+          WHERE type = ?
+            AND subject = ?
+            AND ( ( ? IS NULL AND variant IS NULL ) OR variant = ? )"
+    );
+    $sel->execute([$type, $subject, $variant, $variant]);
+    $id = (int)($sel->fetchColumn() ?: 0);
+    if ($id > 0) return $id;
+
+    // INSERT (resourceId is auto-increment; createdAt has DEFAULT)
+    $ins = $pdo->prepare(
+        "INSERT IGNORE INTO i18n_resources (type, subject, variant, description)
+         VALUES (?, ?, ?, NULL)"
+    );
+    $ins->execute([$type, $subject, $variant]);
+
+    // If we inserted, return the new id
+    $newId = (int)$pdo->lastInsertId();
+    if ($newId > 0) return $newId;
+
+    // Race-safe fallback re-select
+    $sel->execute([$type, $subject, $variant, $variant]);
+    $id = (int)($sel->fetchColumn() ?: 0);
+    if ($id > 0) return $id;
+
+    throw new \RuntimeException("Failed to resolve resourceId for {$type}/{$subject}/" . ($variant ?? 'NULL'));
+}
+
+
+
 }
 
 
