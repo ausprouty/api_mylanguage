@@ -1,0 +1,107 @@
+DTO = Data Transfer Object.
+
+It’s a small, dumb data container you use to move data across
+boundaries (service → controller → API response) without exposing your
+domain models or leaking internal structure. Think: “the exact shape I
+want to return (or accept), nothing more, nothing less.”
+
+Why use a DTO (vs arrays or models)?
+
+Stable API shape — you control exactly what leaves your service.
+
+No domain leakage — callers can’t mutate your models or rely on
+internal fields.
+
+Type-safety & autocompletion — better than loose assoc arrays.
+
+Easy versioning — add a new DTO or fields without touching models.
+
+Testable — DTO equality/assertions are straightforward.
+
+<?php
+declare(strict_types=1);
+
+namespace App\Dto;
+
+use JsonSerializable;
+
+final class BiblePassageDto implements JsonSerializable
+{
+    public function __construct(
+        public readonly string $reference,   // e.g. "Luke 15:11–24"
+        /** @var list<array{v:int,t:string}> */
+        public readonly array $verses,       // [{v:11,t:"..."}]
+        public readonly string $bibleCode,   // e.g. "ENGESV"
+        public readonly ?string $copyright,  // optional
+        public readonly ?string $footnotes   // optional
+    ) {}
+
+    /** @return array<string,mixed> */
+    public function toArray(): array
+    {
+        return [
+            'reference' => $this->reference,
+            'verses'    => $this->verses,
+            'bibleCode' => $this->bibleCode,
+            'copyright' => $this->copyright,
+            'footnotes' => $this->footnotes,
+        ];
+    }
+
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
+}
+
+A small mapper keeps domain separate from DTO shape:
+
+<?php
+declare(strict_types=1);
+
+namespace App\Mappers;
+
+use App\Dto\BiblePassageDto;
+use App\Models\Bible\PassageModel;
+
+final class BiblePassageMapper
+{
+    public static function fromModel(
+        PassageModel $model,
+        string $bibleCode
+    ): BiblePassageDto {
+        // Convert your model into the exact outbound shape.
+        $verses = [];
+        foreach ($model->getVerses() as $v) {
+            $verses[] = ['v' => (int)$v->number, 't' => (string)$v->text];
+        }
+
+        return new BiblePassageDto(
+            reference: $model->getReference(),
+            verses:    $verses,
+            bibleCode: $bibleCode,
+            copyright: $model->getCopyright(),
+            footnotes: $model->getFootnotes()
+        );
+    }
+}
+
+Then your service returns a DTO (not a model, not a raw array):
+
+$passageModel = $this->biblePassageService->getPassage(
+    $this->primaryBibleModel,
+    $this->passageReferenceInfo
+);
+
+$passageDto = BiblePassageMapper::fromModel(
+    $passageModel,
+    $this->primaryBibleModel->getCode()
+);
+
+return [
+    'bibleBlock' => [
+        'template'       => $template,
+        'primaryPassage' => $passageDto->toArray(), // or return $passageDto and let controller serialize
+    ],
+];
+

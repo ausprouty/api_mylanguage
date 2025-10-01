@@ -1,236 +1,100 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Models\Bible;
 
-use ReflectionClass;
+use JsonSerializable;
 
-/**
- * Represents a Bible Passage model with related data and methods.
- */
-class PassageModel
+class PassageModel implements JsonSerializable
 {
-    /**
-     * @var string The Bible passage ID.
-     */
-    public $bpid;
+    private string  $bpid = '';
+    private ?string $dateChecked = null;   // YYYY-MM-DD
+    private ?string $dateLastUsed = null;  // YYYY-MM-DD
+    private string  $passageText = '';
+    private string  $passageUrl  = '';
+    private string  $referenceLocalLanguage = '';
+    private int     $timesUsed = 0;
 
-    /**
-     * @var string|null The date when the passage was last checked.
-     */
-    private $dateChecked;
-
-    /**
-     * @var string|null The date when the passage was last used.
-     */
-    private $dateLastUsed;
-
-    /**
-     * @var string The text of the Bible passage.
-     */
-    private $passageText;
-
-    /**
-     * @var string The URL of the Bible passage.
-     */
-    private $passageUrl;
-
-    /**
-     * @var string The reference of the passage in the local language.
-     */
-    private $referenceLocalLanguage;
-
-    /**
-     * @var int The number of times the passage has been used.
-     */
-    private $timesUsed;
-
-    /**
-     * Initializes a new instance of the PassageModel class.
-     */
-    public function __construct()
+    /** Hydrate from an associative array (keys must match properties). */
+    public function populate(array $data): self
     {
-        $this->bpid = '';
-        $this->dateChecked = null;
-        $this->dateLastUsed = null;
-        $this->passageText = '';
-        $this->passageUrl = '';
-        $this->referenceLocalLanguage = '';
-        $this->timesUsed = 0;
-    }
-
-    /**
-     * Gets the Bible passage ID.
-     *
-     * @return string The Bible passage ID.
-     */
-    public function getBpid(): string
-    {
-        return $this->bpid;
-    }
-
-    /**
-     * Gets the date when the passage was last checked.
-     *
-     * @return string|null The date last checked.
-     */
-    public function getDateChecked(): ?string
-    {
-        return $this->dateChecked;
-    }
-
-    /**
-     * Gets the date when the passage was last used.
-     *
-     * @return string|null The date last used.
-     */
-    public function getDateLastUsed(): ?string
-    {
-        return $this->dateLastUsed;
-    }
-
-    /**
-     * Gets the text of the Bible passage.
-     *
-     * @return string The passage text.
-     */
-    public function getPassageText(): string
-    {
-        return $this->passageText;
-    }
-
-    /**
-     * Gets the URL of the Bible passage.
-     *
-     * @return string The passage URL.
-     */
-    public function getPassageUrl(): string
-    {
-        return $this->passageUrl;
-    }
-
-    /**
-     * Returns the properties as an associative array.
-     *
-     * @return array
-     */
-    public function getProperties(): array
-    {
-        $reflection = new ReflectionClass($this);
-        $properties = $reflection->getProperties();
-        $propsArray = [];
-
-        foreach ($properties as $property) {
-            $property->setAccessible(true); // Allows access to private property
-            $propsArray[$property->getName()] = $property->getValue($this);
+        foreach ($data as $k => $v) {
+            if (\property_exists($this, $k)) {
+                $this->$k = $v;
+            }
         }
-
-        return $propsArray;
+        return $this;
     }
 
-    /**
-     * Gets the reference of the passage in the local language.
-     *
-     * @return string The local language reference.
-     */
+    /** Canonical array representation. */
+    public function toArray(): array
+    {
+        return [
+            'bpid'                   => $this->bpid,
+            'dateChecked'            => $this->dateChecked,
+            'dateLastUsed'           => $this->dateLastUsed,
+            'passageText'            => $this->passageText,
+            'passageUrl'             => $this->passageUrl,
+            'referenceLocalLanguage' => $this->referenceLocalLanguage,
+            'timesUsed'              => $this->timesUsed,
+        ];
+    }
+
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
+
+    // Getters
+    public function getBpid(): string { return $this->bpid; }
+    public function getDateChecked(): ?string { return $this->dateChecked; }
+    public function getDateLastUsed(): ?string { return $this->dateLastUsed; }
+    public function getPassageText(): string { return $this->passageText; }
+    public function getPassageUrl(): string { return $this->passageUrl; }
     public function getReferenceLocalLanguage(): string
-    {
-        return $this->referenceLocalLanguage;
-    }
+    { return $this->referenceLocalLanguage; }
+    public function getTimesUsed(): int { return $this->timesUsed; }
 
-    /**
-     * Gets the number of times the passage has been used.
-     *
-     * @return int The usage count.
-     */
-    public function getTimesUsed(): int
-    {
-        return $this->timesUsed;
-    }
+    // Setters
+    public function setBpid(string $bpid): void { $this->bpid = $bpid; }
 
-    /**
-     * Sets the Bible passage ID.
-     *
-     * @param string $bpid The Bible passage ID to set.
-     */
-    public function setBpid(string $bpid): void
-    {
-        $this->bpid = $bpid;
-    }
-
-    /**
-     * Sets the date when the passage was last checked.
-     *
-     * @param string|null $date The date to set.
-     */
     public function setDateChecked(?string $date): void
     {
+        $this->assertDateOrNull($date, 'dateChecked');
         $this->dateChecked = $date;
     }
 
-    /**
-     * Sets the date when the passage was last used.
-     *
-     * @param string|null $date The date to set.
-     * @throws \InvalidArgumentException If the date format is invalid.
-     */
     public function setDateLastUsed(?string $date): void
     {
-        if ($date && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            throw new \InvalidArgumentException('Invalid date format');
-        }
+        $this->assertDateOrNull($date, 'dateLastUsed');
         $this->dateLastUsed = $date;
     }
 
-    /**
-     * Sets the text of the Bible passage.
-     *
-     * @param string $passageText The passage text to set.
-     */
-    public function setPassageText(string $passageText): void
-    {
-        $this->passageText = $passageText;
-    }
+    public function setPassageText(string $text): void
+    { $this->passageText = $text; }
 
-    /**
-     * Sets the URL of the Bible passage.
-     *
-     * @param string $passageUrl The passage URL to set.
-     */
-    public function setPassageUrl(string $passageUrl): void
-    {
-        $this->passageUrl = $passageUrl;
-    }
+    public function setPassageUrl(string $url): void
+    { $this->passageUrl = $url; }
 
-    /**
-     * Sets the reference of the passage in the local language.
-     *
-     * @param string $reference The local language reference to set.
-     */
-    public function setReferenceLocalLanguage(string $reference): void
-    {
-        $this->referenceLocalLanguage = $reference;
-    }
+    public function setReferenceLocalLanguage(string $ref): void
+    { $this->referenceLocalLanguage = $ref; }
 
-    /**
-     * Sets the number of times the passage has been used.
-     *
-     * @param int $times The usage count to set.
-     */
     public function setTimesUsed(int $times): void
-    {
-        $this->timesUsed = $times;
-    }
+    { $this->timesUsed = $times; }
 
-    /**
-     * Updates the usage statistics for the passage.
-     */
+    /** Increment usage and stamp today’s date (YYYY-MM-DD). */
     public function updateUsage(): void
     {
-        $this->dateLastUsed = date("Y-m-d");
+        $this->dateLastUsed = (new \DateTimeImmutable('today'))->format('Y-m-d');
         $this->timesUsed++;
     }
+
+    /** Build an ID like "John:3:16-18". */
     public static function createBiblePassageId(
-        string $book, int $chapter, ?int $verseStart = null, ?int $verseEnd = null
+        string $book,
+        int $chapter,
+        ?int $verseStart = null,
+        ?int $verseEnd = null
     ): string {
         $parts = [$book, (string) $chapter];
         if ($verseStart !== null) {
@@ -240,7 +104,17 @@ class PassageModel
             }
             $parts[] = $range;
         }
-        return implode(':', $parts);
+        return \implode(':', $parts);
     }
 
+    // Internal
+    private function assertDateOrNull(?string $date, string $field): void
+    {
+        if ($date === null) return;
+        if (!\preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            throw new \InvalidArgumentException(
+                "Invalid date format for {$field}; expected YYYY-MM-DD"
+            );
+        }
+    }
 }

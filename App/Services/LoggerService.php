@@ -141,6 +141,38 @@ class LoggerService
     ): void {
         self::log('DEBUG', $ctxName, $msg, $ctx);
     }
+    /**
+     * Shortcut for exception logging with consistent structure.
+     *
+     * @param array<string,mixed> $ctx
+     */
+       public static function logException(
+        string $ctxName,
+        mixed $e,
+        array $ctx = []
+    ): void {
+        if ($e instanceof \Throwable) {
+            $msg = get_class($e) . ': ' . $e->getMessage();
+            $ctx = array_merge([
+                'exception' => get_class($e),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+                'trace'     => $e->getTraceAsString(),
+            ], $ctx);
+            self::log('ERROR', $ctxName, $msg, $ctx);
+            return;
+        }
+        // Back-compat: allow array or string payloads from legacy handlers.
+        if (is_array($e)) {
+            $msg = (string)($e['message'] ?? 'Exception (array payload)');
+            // Don’t clobber caller-supplied keys if present.
+            $ctx = array_merge($e, $ctx);
+            self::log('ERROR', $ctxName, $msg, $ctx);
+            return;
+        }
+        // Fallback: treat as string-like message.
+        self::log('ERROR', $ctxName, (string) $e, $ctx);
+    }
 
     // ------------------------------- Core --------------------------------
 
@@ -175,13 +207,19 @@ class LoggerService
             'path'    => $_SERVER['REQUEST_URI'] ?? null,
             'ip'      => $_SERVER['REMOTE_ADDR'] ?? null,
         ], $ctx);
-
-        $ts   = date('Y-m-d H:i:s');
+        // Add caller (class::method) if not provided explicitly by the caller
+        if (!isset($ctx['class']) || !isset($ctx['method'])) {
+            $ctx = self::enrichWithCaller($ctx);
+        }
+ 
+        // Timestamp with timezone abbreviation for clarity in multi-host setups
+        $ts   = (new \DateTimeImmutable('now'))
+                    ->format('Y-m-d H:i:s T');
         $line = '[' . $ts . ']'
-              . ' [' . strtoupper($level) . ']'
-              . ' [' . $context . '] '
-              . self::compactOneLine($msg)
-              . ' ' . self::encodeJsonSafe($ctx);
+            . ' [' . strtoupper($level) . ']'
+            . ' [' . $context . '] '
+            . self::compactOneLine($msg)
+            . ' ' . self::encodeJsonSafe($ctx);
         // Determine separator: newline + optional blank line
         $sep = PHP_EOL . (self::extraBlankLineEnabled() ? PHP_EOL : '');
         try {
@@ -315,6 +353,30 @@ class LoggerService
         $s = preg_replace('/\s+/', ' ', $s);
         return trim($s);
     }
+
+        /**
+     * Infer the immediate non-LoggerService caller (class & method) from the
+     * stack. Best-effort, inexpensive trace (limit few frames).
+     *
+     * @param array<string,mixed> $ctx
+     * @return array<string,mixed>
+     */
+    private static function enrichWithCaller(array $ctx): array
+    {
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 6);
+        foreach ($trace as $frame) {
+            $cls = $frame['class']  ?? null;
+            $fun = $frame['function'] ?? null;
+            if (!$cls || $cls === __CLASS__) {
+                continue;
+            }
+            $ctx['class']  = $ctx['class']  ?? $cls;
+            $ctx['method'] = $ctx['method'] ?? ($cls . '::' . (string) $fun);
+            break;
+        }
+        return $ctx;
+    }
+
 
     /**
      * Safe JSON encode for context; never throws.

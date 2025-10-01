@@ -1,126 +1,147 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Services\BibleStudy;
 
 use App\Factories\BibleStudyReferenceFactory;
 use App\Factories\PassageReferenceFactory;
-
+use App\Models\Bible\BibleModel;
 use App\Models\Bible\PassageModel;
-
+use App\Models\Bible\PassageReferenceModel;
+use App\Models\BibleStudy\StudyReferenceModel;
+use App\Models\Language\LanguageModel;
 use App\Repositories\BibleRepository;
 use App\Repositories\LanguageRepository;
 use App\Services\BiblePassage\BiblePassageService;
-use App\Services\Database\DatabaseService;
-use App\Services\Language\TranslationService;
 use App\Services\LoggerService;
+use InvalidArgumentException;
+use Throwable;
 
-class BiblePassageJsonService
+final class BiblePassageJsonService
 {
-    // Properties remain the same
-    protected $study;
-    protected $language;
-    protected $lesson;
-    protected $languageCodeHL;
-    protected $primaryLanguage;
-    protected $primaryBible;
-    public $primaryBiblePassage;
-    protected $studyReferenceInfo;
-    public $passageReferenceInfo;
-    protected $commonContent;
+    private string $study;
+    private int $lesson;
+    private string $languageCodeHL;
+    private ?LanguageModel $primaryLanguageModel = null;
+    private ?BibleModel $primaryBibleModel = null;
+    
+    /** @var array<string,mixed> */
+    private ?StudyReferenceModel $studyReferenceModel = null;
 
-    protected $biblePassageService;
-    protected $bibleRepository;
-    protected $bibleStudyReferenceFactory;
-    protected $databaseService;
-    protected $languageRepository;
-    protected $loggerService;
-    protected $passageReferenceFactory;
-    protected $translationService;
+    /** @var array<string,mixed> */
+    private ?PassageReferenceModel $passageReferenceModel = null;
 
+    public array $primaryBiblePassagePayload = [];
 
     public function __construct(
-        BiblePassageService $biblePassageService,
-        BibleRepository $bibleRepository,
-        BibleStudyReferenceFactory $bibleStudyReferenceFactory,
-        DatabaseService $databaseService,
-        LanguageRepository $languageRepository,
-        LoggerService $loggerService,
-        PassageReferenceFactory $passageReferenceFactory,
-        TranslationService $translationService,
-    ) {
-        $this->biblePassageService = $biblePassageService;
-        $this->bibleRepository = $bibleRepository;
-        $this->bibleStudyReferenceFactory = $bibleStudyReferenceFactory;
-        $this->databaseService = $databaseService;
-        $this->languageRepository = $languageRepository;
-        $this->loggerService = $loggerService;
-        $this->passageReferenceFactory = $passageReferenceFactory;
-        $this->translationService = $translationService;
-    }
-
+        private BiblePassageService $biblePassageService,
+        private BibleRepository $bibleRepository,
+        private BibleStudyReferenceFactory $bibleStudyReferenceFactory,
+        private LanguageRepository $languageRepository,
+        private PassageReferenceFactory $passageReferenceFactory
+    ) {}
 
     /**
-     * Generate the JSON output containing videoBlock and bibleBlock.
+     * Build a bible passage block for a lesson.
      *
-     * @param string $study The study type.
-     * @param string $format The output format.
-     * @param int $lesson The lesson number.
-     * @param string $languageCodeHL1 Primary language code.
-     * @param string|null $languageCodeHL2 Secondary language code (optional).
-     * @return string JSON output containing videoBlock and bibleBlock.
+     * @return array{
+     *   passage: array<string,mixed>|PassageModel|null,
+     * }
      */
     public function generateBiblePassageJsonBlock(
-        $study,
-        $lesson,
-        $languageCodeHL,
+        string $study,
+        int $lesson,
+        string $languageCodeHL
     ): array {
         try {
-            $this->initializeParameters($study, $lesson, $languageCodeHL);
-            $this->loadLanguageAndBibleInfo();
+            $this->initialize($study, $lesson, $languageCodeHL);
+            $this->loadLanguageAndBible();
+            $this->loadPassageRefs();
             $this->loadBibleText();
-            $this->loadTemplatesAndTranslation();
-            $block = $this->generateBlock();
-            return $block;
-        } catch (\Exception $e) {
-            $this->loggerService->logError('Error generating JSON blocks', $e->getMessage());
-            return ['error' => 'Failed to generate blocks: ' . $e->getMessage()];
+
+            return $this->makeBlock();
+        } catch (Throwable $e) {
+            LoggerService::logException(
+                'BiblePassageJsonService: generation failed',
+                $e,
+                [
+                    'study'   => $study,
+                    'lesson'  => $lesson,
+                    'langHL'  => $languageCodeHL,
+                ]
+            );
+
+            return [
+                'passage'  => null,
+            ];
         }
     }
 
-    private function initializeParameters($study, $lesson, $languageCodeHL): void
-    {
-        if (empty($study) || empty($lesson) || empty($languageCodeHL)) {
-            throw new \InvalidArgumentException('Study, format, and lesson must all be provided.');
+    private function initialize(
+        string $study,
+        int $lesson,
+        string $languageCodeHL
+    ): void {
+        if ($study === '') {
+            throw new InvalidArgumentException('Study must be provided.');
         }
+        if ($lesson < 0) {
+            throw new InvalidArgumentException('Lesson must be >= 0.');
+        }
+        if ($languageCodeHL === '') {
+            throw new InvalidArgumentException('Language code is required.');
+        }
+
         $this->study = $study;
         $this->lesson = $lesson;
         $this->languageCodeHL = $languageCodeHL;
     }
 
-    private function loadLanguageAndBibleInfo(): void
+    private function loadLanguageAndBible(): void
     {
-        $this->primaryLanguage = $this->languageRepository->findOneLanguageByLanguageCodeHL($this->languageCodeHL);
-        $this->primaryBible = $this->bibleRepository->findBestBibleByLanguageCodeHL($this->languageCodeHL);
+        $this->primaryLanguageModel =
+            $this->languageRepository
+                 ->findOneLanguageByLanguageCodeHL($this->languageCodeHL);
+
+        $this->primaryBibleModel = $this->bibleRepository
+            ->findBestBibleByLanguageCodeHL($this->languageCodeHL);
+
+        if ($this->primaryBibleModel === null) {
+            throw new InvalidArgumentException(
+                'No primary Bible found for language ' . $this->languageCodeHL
+            );
+        }
+    }
+
+    private function loadPassageRefs(): void
+    {
+        // e.g., returns model
+        $this->studyReferenceModel = $this->bibleStudyReferenceFactory
+            ->createModel($this->study, $this->lesson);
+
+        // Derive concrete passage range(s) for this lesson.
+        $this->passageReferenceModel = $this->passageReferenceFactory
+            ->createFromStudy($this->studyReferenceModel);
     }
 
     private function loadBibleText(): void
     {
-        $this->studyReferenceInfo = $this->bibleStudyReferenceFactory->createModel($this->study, $this->lesson);
-        $this->passageReferenceInfo = $this->passageReferenceFactory->createFromStudy($this->studyReferenceInfo);
-        $this->primaryBiblePassage = $this->biblePassageService->getPassage($this->primaryBible, $this->passageReferenceInfo);
+        $primaryBiblePassagePayload = $this->biblePassageService->getPassage(
+             $this->primaryBibleModel,
+             $this->passageReferenceModel
+        );
     }
 
-    private function loadTemplatesAndTranslation(): void
+    /**
+     * @return array{
+     *   passage: array<string,mixed>|PassageModel|null,
+     * }
+     */
+    private function makeBlock(): array
     {
-        $this->commonContent =
-            $this->translationService->getTranslatedContent('commonContent', 'bible', $this->languageCodeHL);
-    }
-
-    private function generateBlock(): array
-    {
-        $result = $this->commonContent ?? [];
-        $result ['passage'] = $this->primaryBiblePassage ?? ['message' => 'No passage available'];
-        $result ['template'] = $this->bibleTemplateName ?? 'No template specified';
-        return $result;
+        return [
+            'passage'  => $this->primaryBiblePassagePayload,
+            
+        ];
     }
 }

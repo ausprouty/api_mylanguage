@@ -1,89 +1,156 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Models\Language;
 
-use ReflectionClass;
+use JsonSerializable;
 
 /**
  * Represents a Language entity with associated properties and methods.
  */
-class LanguageModel
+class LanguageModel implements JsonSerializable
 {
-    private $id;
-    private $name;
-    private $ethnicName;
-    private $languageCodeBibleBrain;
-    private $languageCodeBing;
-    private $languageCodeBrowser;
-    private $languageCodeDrupal;
-    private $languageCodeGoogle;
-    private $languageCodeHL;
-    private $languageCodeIso;
-    private $languageCodeJF;
-    private $languageCodeTracts;
-    private $direction;
-    private $numeralSet;
-    private $isChinese;
-    private $isHindu;
-    private $font;
-    private $fontData;
-    private $mylanguage;
-    private $requests;
-    private $checkedBBBibles;
+    private ?int $id = null;
+    private ?string $name = null;
+    private ?string $ethnicName = null;
+
+    // Many code fields are identifiers; store as string.
+    private ?string $languageCodeBibleBrain = null;
+    private ?string $languageCodeBing = null;
+    private ?string $languageCodeBrowser = null;
+    private ?string $languageCodeDrupal = null;
+    private ?string $languageCodeGoogle = null;
+    private ?string $languageCodeHL = null;
+    private ?string $languageCodeIso = null;
+    private ?string $languageCodeJF = null;
+    private ?string $languageCodeTracts = null;
+
+    private ?string $direction = null;
+    private ?string $numeralSet = null;
+    private ?bool $isChinese = null;
+    private ?bool $isHindu = null;
+    private ?string $font = null;
+    private ?string $fontData = null;
+    private ?string $mylanguage = null;
+    private ?int $requests = null;
+    private ?string $checkedBBBibles = null;
 
     /**
-     * Populates the model with data from an associative array.
-     *
-     * @param array $data Associative array with keys matching property names.
+     * Populate the model from an associative array. Keys must match properties.
      */
     public function populate(array $data): void
     {
         foreach ($data as $key => $value) {
-            if (property_exists($this, $key)) {
+            if (\property_exists($this, $key)) {
                 $this->$key = $value;
             }
         }
     }
 
     /**
-     * Returns the language properties as an associative array.
-     *
-     * @return array
+     * Canonical array representation for logging/JSON/etc.
      */
-    public function getProperties(): array
+    public function toArray(): array
     {
-        $reflection = new ReflectionClass($this);
-        $properties = $reflection->getProperties();
-        $propsArray = [];
+        return [
+            'id'                     => $this->id,
+            'name'                   => $this->name,
+            'ethnicName'             => $this->ethnicName,
+            'languageCodeBibleBrain' => $this->languageCodeBibleBrain,
+            'languageCodeBing'       => $this->languageCodeBing,
+            'languageCodeBrowser'    => $this->languageCodeBrowser,
+            'languageCodeDrupal'     => $this->languageCodeDrupal,
+            'languageCodeGoogle'     => $this->languageCodeGoogle,
+            'languageCodeHL'         => $this->languageCodeHL,
+            'languageCodeIso'        => $this->languageCodeIso,
+            'languageCodeJF'         => $this->languageCodeJF,
+            'languageCodeTracts'     => $this->languageCodeTracts,
+            'direction'              => $this->direction,
+            'numeralSet'             => $this->numeralSet,
+            'isChinese'              => $this->isChinese,
+            'isHindu'                => $this->isHindu,
+            'font'                   => $this->font,
+            'fontData'               => $this->fontData,
+            'mylanguage'             => $this->mylanguage,
+            'requests'               => $this->requests,
+            'checkedBBBibles'        => $this->checkedBBBibles,
+        ];
+    }
 
-        foreach ($properties as $property) {
-            $property->setAccessible(true); // Allows access to private property
-            $propsArray[$property->getName()] = $property->getValue($this);
-        }
+    /**
+     * JsonSerializable implementation delegates to toArray().
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
+    }
 
-        return $propsArray;
+    /**
+     * Debug-only: safe property dump without deprecated setAccessible().
+     * Note: only includes visible state via getters + known fields.
+     */
+    public function debugProperties(): array
+    {
+        // Prefer explicit toArray; this method exists for quick dev inspection.
+        return $this->toArray();
     }
 
     // Getters
     public function getId(): ?int { return $this->id; }
     public function getName(): ?string { return $this->name; }
     public function getEthnicName(): ?string { return $this->ethnicName; }
-    public function getLanguageCodeBibleBrain(): ?int { return $this->languageCodeBibleBrain; }
-    public function getLanguageCodeBing(): ?string { return $this->languageCodeBing; }
-    public function getLanguageCodeBrowser(): ?string { return $this->languageCodeBrowser; }
-    public function getLanguageCodeDrupal(): ?string { return $this->languageCodeDrupal; }
-    public function getLanguageCodeGoogle(): ?string { return $this->languageCodeGoogle; }
-    public function getLanguageCodeHL(): ?string { return $this->languageCodeHL; }
-    public function getLanguageCodeIso(): ?string { return $this->languageCodeIso; }
-    public function getLanguageCodeJF(): ?int { return $this->languageCodeJF; }
-    public function getLanguageCodeTracts(): ?string { return $this->languageCodeTracts; }
-    public function getDirection(): ?string { return $this->direction; }
-    public function getNumeralSet(): ?string { return $this->numeralSet; }
-    public function getIsChinese(): ?bool { return $this->isChinese; }
-    public function getIsHindu(): ?bool { return $this->isHindu; }
-    public function getFont(): ?string { return $this->font; }
-    public function getFontData(): ?string { return $this->fontData; }
-    public function getMyLanguage(): ?string { return $this->mylanguage; }
-    public function getRequests(): ?int { return $this->requests; }
-    public function getCheckedBBBibles(): ?string { return $this->checkedBBBibles; }
+
+    public function getLanguageCodeBibleBrain(): ?string
+    { return $this->languageCodeBibleBrain; }
+
+    public function getLanguageCodeBing(): ?string
+    { return $this->languageCodeBing; }
+
+    public function getLanguageCodeBrowser(): ?string
+    { return $this->languageCodeBrowser; }
+
+    public function getLanguageCodeDrupal(): ?string
+    { return $this->languageCodeDrupal; }
+
+    public function getLanguageCodeGoogle(): ?string
+    { return $this->languageCodeGoogle; }
+
+    public function getLanguageCodeHL(): ?string
+    { return $this->languageCodeHL; }
+
+    public function getLanguageCodeIso(): ?string
+    { return $this->languageCodeIso; }
+
+    public function getLanguageCodeJF(): ?string
+    { return $this->languageCodeJF; }
+
+    public function getLanguageCodeTracts(): ?string
+    { return $this->languageCodeTracts; }
+
+    public function getDirection(): ?string
+    { return $this->direction; }
+
+    public function getNumeralSet(): ?string
+    { return $this->numeralSet; }
+
+    public function getIsChinese(): ?bool
+    { return $this->isChinese; }
+
+    public function getIsHindu(): ?bool
+    { return $this->isHindu; }
+
+    public function getFont(): ?string
+    { return $this->font; }
+
+    public function getFontData(): ?string
+    { return $this->fontData; }
+
+    public function getMyLanguage(): ?string
+    { return $this->mylanguage; }
+
+    public function getRequests(): ?int
+    { return $this->requests; }
+
+    public function getCheckedBBBibles(): ?string
+    { return $this->checkedBBBibles; }
 }

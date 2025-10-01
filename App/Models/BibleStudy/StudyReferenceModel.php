@@ -1,47 +1,39 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Models\BibleStudy;
 
-use ReflectionClass;
+use JsonSerializable;
 use App\Interfaces\ArclightVideoInterface;
 
-final class StudyReferenceModel implements ArclightVideoInterface
+final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializable
 {
-    protected string $study;
-    protected int    $lesson;
-    protected string $description;
-    protected string $descriptionTwigKey;
-    protected string $reference;
-    protected string $testament;
-    protected string $passageReferenceInfo;
-    protected ?string $bookName = null;
-    protected ?string $bookID = null;
-    protected int     $bookNumber;
-    protected ?string $chapterStart = null;
-    protected ?string $chapterEnd = null;
-    protected ?string $verseStart = null;
-    protected ?string $verseEnd = null;
-    protected ?string $passageID = null;
+    protected string  $study               = '';
+    protected int     $lesson              = 0;
+    protected string  $description         = '';
+    protected string  $descriptionTwigKey  = '';
+    protected string  $reference           = '';
+    protected string  $testament           = '';
+    protected string  $passageReferenceInfo = '';
+
+    protected ?string $bookName       = null;
+    protected ?string $bookID         = null;
+    protected int     $bookNumber     = 0;
+    protected ?string $chapterStart   = null;
+    protected ?string $chapterEnd     = null;
+    protected ?string $verseStart     = null;
+    protected ?string $verseEnd       = null;
+    protected ?string $passageID      = null;
     protected ?string $uversionBookID = null;
-    protected ?string $videoSource = null;
-    protected ?string $videoPrefix = null;
-    protected ?string $videoCode = null;
+
+    protected ?string $videoSource  = null;
+    protected ?string $videoPrefix  = null;
+    protected ?string $videoCode    = null;
     protected ?string $videoSegment = null;
-    protected ?string $startTime = null;
-    protected ?string $endTime = null;
+    protected ?string $startTime    = null;
+    protected ?string $endTime      = null;
 
-    public function __construct()
-    {
-        $this->study = '';
-        $this->lesson = 0;
-        $this->bookNumber = 0;
-        $this->description = '';
-        $this->descriptionTwigKey = '';
-        $this->reference = '';
-        $this->testament = '';
-        $this->passageReferenceInfo = '';
-    }
-
+    // --- Getters/Setters ---
     public function getStudy(): string { return $this->study; }
     public function setStudy(string $study): void { $this->study = $study; }
 
@@ -108,24 +100,50 @@ final class StudyReferenceModel implements ArclightVideoInterface
     public function getEndTime(): ?string { return $this->endTime; }
     public function setEndTime(?string $endTime): void { $this->endTime = $endTime; }
 
+    // --- Hydration ---
     public function populate(array $data): self
     {
         foreach ($data as $key => $value) {
-            if (property_exists($this, $key)) {
+            if (\property_exists($this, $key)) {
                 $this->$key = $value;
             }
         }
         return $this;
     }
 
-    public function getProperties(): array
+    // --- Serialization ---
+    public function toArray(): array
     {
-        $reflection = new ReflectionClass($this);
-        $propsArray = [];
-        foreach ($reflection->getProperties() as $property) {
-            $property->setAccessible(true);
-            $propsArray[$property->getName()] = $property->getValue($this);
-        }
-        return $propsArray;
+        return [
+            'study'               => $this->study,
+            'lesson'              => $this->lesson,
+            'description'         => $this->description,
+            'descriptionTwigKey'  => $this->descriptionTwigKey,
+            'reference'           => $this->reference,
+            'testament'           => $this->testament,
+            'passageReferenceInfo'=> $this->passageReferenceInfo,
+
+            'bookName'       => $this->bookName,
+            'bookID'         => $this->bookID,
+            'bookNumber'     => $this->bookNumber,
+            'chapterStart'   => $this->chapterStart,
+            'chapterEnd'     => $this->chapterEnd,
+            'verseStart'     => $this->verseStart,
+            'verseEnd'       => $this->verseEnd,
+            'passageID'      => $this->passageID,
+            'uversionBookID' => $this->uversionBookID,
+
+            'videoSource'  => $this->videoSource,
+            'videoPrefix'  => $this->videoPrefix,
+            'videoCode'    => $this->videoCode,
+            'videoSegment' => $this->videoSegment,
+            'startTime'    => $this->startTime,
+            'endTime'      => $this->endTime,
+        ];
+    }
+
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 }
