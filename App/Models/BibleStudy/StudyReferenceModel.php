@@ -34,8 +34,8 @@ final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializa
     protected ?string $videoPrefix = null;
     protected ?string $videoCode = null;
     protected ?string $videoSegment = null;
-    protected ?string $startTime = null;
-    protected ?string $endTime = null;
+    protected ?int $startTime = 0;
+    protected ?int $endTime = 0;
 
     // --- Getters/Setters ---
     public function getStudy(): string { return $this->study; }
@@ -98,12 +98,34 @@ final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializa
     public function getVideoSegment(): ?string { return $this->videoSegment; }
     public function setVideoSegment(?string $videoSegment): void { $this->videoSegment = $videoSegment; }
 
-    public function getStartTime(): ?string { return $this->startTime; }
-    public function setStartTime(?string $startTime): void { $this->startTime = $startTime; }
+    public function getStartTime(): ?int { return $this->startTime; }
+    public function getEndTime(): ?int { return $this->endTime; }
+    /**
+     * Accepts int seconds, "SS", "MM:SS", "HH:MM:SS", "start", "", null.
+     * Also tolerates accidental double colons like "MM::SS".
+     * Always stores a non-negative integer.
+     */
+    public function setStartTime(int|string|null $value): void
+    {
+        if (is_string($value)) {
+            // Collapse any accidental multiple colons (e.g., "MM::SS" -> "MM:SS")
+            $value = preg_replace('/:+/', ':', trim($value));
+        }
+        $this->startTime = Caster::toSecondsOrZero($value);
+    }
 
-    public function getEndTime(): ?string { return $this->endTime; }
-    public function setEndTime(?string $endTime): void { $this->endTime = $endTime; }
-
+    /**
+     * Accepts int seconds, "SS", "MM:SS", "HH:MM:SS", "", null.
+     * Also tolerates accidental double colons like "MM::SS".
+     * Always stores a non-negative integer.
+     */
+    public function setEndTime(int|string|null $value): void
+    {
+        if (is_string($value)) {
+            $value = preg_replace('/:+/', ':', trim($value));
+        }
+        $this->endTime = Caster::toSecondsOrZero($value);
+    }
     // --- Hydration ---
     public function populate(array $data): self
     {
@@ -139,7 +161,7 @@ final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializa
         // times
         foreach (['startTime','endTime'] as $k) {
             if (array_key_exists($k, $data)) {
-                $this->$k = Caster::normalizeTimeOrNull($data[$k]);
+                $this->$k = Caster::toIntOrZero($data[$k]);
             }
         }
 

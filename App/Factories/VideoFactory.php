@@ -4,16 +4,17 @@ declare(strict_types=1);
 namespace App\Factories;
 
 use App\Models\Bible\PassageReferenceModel;
+use App\Models\Study\StudyReferenceModel;
 use App\Models\Video\VideoModel;
 use App\Support\Caster;
 
 /**
  * VideoFactory
  *
- * Adapts various sources (DB rows, study arrays, PassageReferenceModel)
+ * Adapts various sources (DB rows, StudyReferenceModel, PassageReferenceModel)
  * into a clean VideoModel with:
- *  - seconds stored in startTimeInSeconds / stopTimeInSeconds
- *  - trimmed/lower-cased codes handled in the model setters
+ *  - seconds stored as integers in startTime / stopTime
+ *  - codes/strings trimmed & cased by VideoModel setters
  *  - segment token normalized (no leading ?/& or "segment=")
  */
 final class VideoFactory
@@ -26,6 +27,7 @@ final class VideoFactory
      *  - endTime / stop (string/int)
      *  - startTime / start (string/int)
      *  - segment (older name) or videoSegment (current)
+     *  - startTimeInSeconds / stopTimeInSeconds (already normalized)
      */
     public static function fromDbRow(array $db): VideoModel
     {
@@ -38,93 +40,71 @@ final class VideoFactory
 
         $stop = Caster::toSecondsOrZero(
             $db['stopTimeInSeconds']
-                ?? $db['stopTime']   // from SQL dump (char(6))
+                ?? $db['stopTime']   // SQL dump stores "MM:SS" in char(6)
                 ?? $db['endTime']
                 ?? $db['stop']
                 ?? 0
         );
 
-        $segment = self::normalizeSegment(
-            $db['videoSegment'] ?? $db['segment'] ?? null
-        );
+        $segment = self::normalizeSegment($db['videoSegment'] ?? $db['segment'] ?? null);
 
         return (new VideoModel())->populate([
-            'id'                 => $db['id']          ?? 0,
-            'title'              => $db['title']       ?? '',
-            'verses'             => $db['verses']      ?? '',
-            'videoSource'        => $db['videoSource'] ?? 'arclight',
-            'videoPrefix'        => $db['videoPrefix'] ?? '',
-            'videoCode'          => $db['videoCode']   ?? '-jf',
-            'videoSegment'       => $segment,
-            'startTimeInSeconds' => $start,
-            'stopTimeInSeconds'  => $stop,
+            'id'         => $db['id']          ?? 0,
+            'title'      => $db['title']       ?? '',
+            'verses'     => $db['verses']      ?? '',
+            'videoSource'=> $db['videoSource'] ?? 'arclight',
+            'videoPrefix'=> $db['videoPrefix'] ?? '',
+            'videoCode'  => $db['videoCode']   ?? '-jf',
+            'videoSegment' => $segment,
+            'startTime'    => $start,
+            'stopTime'     => $stop,
         ]);
     }
 
     /**
-     * Study array -> VideoModel
-     *
-     * Accepts keys like:
-     *  - startTime/start, endTime/stop (string/int/"MM:SS"/"HH:MM:SS")
-     *  - videoSegment/segment (query-ish or raw)
+     * StudyReferenceModel -> VideoModel
      */
-    public static function fromStudyArray(array $study): VideoModel
+    public static function fromStudyReference(StudyReferenceModel $study): VideoModel
     {
-        $start = Caster::toSecondsOrZero(
-            $study['startTime'] ?? $study['start'] ?? 0
-        );
+        $start = Caster::toSecondsOrZero($study->getStartTime());
+        $stop  = Caster::toSecondsOrZero($study->getEndTime());
 
-        $stop = Caster::toSecondsOrZero(
-            $study['endTime'] ?? $study['stop'] ?? 0
-        );
-
-        $segment = self::normalizeSegment(
-            $study['videoSegment'] ?? $study['segment'] ?? null
-        );
+        $segment = self::normalizeSegment($study->getVideoSegment());
 
         return (new VideoModel())->populate([
-            'id'                 => $study['id']           ?? 0,
-            'title'              => $study['title']        ?? '',
-            'verses'             => $study['verses']       ?? '',
-            'videoSource'        => $study['videoSource']  ?? 'arclight',
-            'videoPrefix'        => $study['videoPrefix']  ?? '',
-            'videoCode'          => $study['videoCode']    ?? '-jf',
-            'videoSegment'       => $segment,
-            'startTimeInSeconds' => $start,
-            'stopTimeInSeconds'  => $stop,
+            // StudyReferenceModel doesn't define title/verses; leave defaults
+            'videoSource'   => (string)($study->getVideoSource() ?? 'arclight'),
+            'videoPrefix'   => (string)($study->getVideoPrefix() ?? ''),
+            'videoCode'     => (string)($study->getVideoCode()   ?? '-jf'),
+            'videoSegment'  => $segment,
+            'startTime'     => $start,
+            'stopTime'      => $stop,
         ]);
     }
 
     /**
      * PassageReferenceModel -> VideoModel
-     *
-     * Title/verses are optional: if getters don't exist, they’re skipped.
      */
-    public static function fromPassageReference(
-        PassageReferenceModel $ref
-    ): VideoModel {
+    public static function fromPassageReference(PassageReferenceModel $ref): VideoModel
+    {
         $start = Caster::toSecondsOrZero($ref->getStartTime() ?? 0);
         $stop  = Caster::toSecondsOrZero($ref->getEndTime()   ?? 0);
 
         $segment = self::normalizeSegment($ref->getVideoSegment());
 
         // Some PassageReferenceModel implementations may not expose title/verses
-        $title  = \method_exists($ref, 'getTitle')
-            ? (string)($ref->getTitle() ?? '')
-            : '';
-        $verses = \method_exists($ref, 'getVerses')
-            ? (string)($ref->getVerses() ?? '')
-            : '';
+        $title  = \method_exists($ref, 'getTitle')  ? (string)($ref->getTitle()  ?? '') : '';
+        $verses = \method_exists($ref, 'getVerses') ? (string)($ref->getVerses() ?? '') : '';
 
         return (new VideoModel())->populate([
-            'title'              => $title,
-            'verses'             => $verses,
-            'videoSource'        => $ref->getVideoSource() ?? 'arclight',
-            'videoPrefix'        => $ref->getVideoPrefix() ?? '',
-            'videoCode'          => $ref->getVideoCode()   ?? '-jf',
-            'videoSegment'       => $segment,
-            'startTimeInSeconds' => $start,
-            'stopTimeInSeconds'  => $stop,
+            'title'        => $title,
+            'verses'       => $verses,
+            'videoSource'  => (string)($ref->getVideoSource() ?? 'arclight'),
+            'videoPrefix'  => (string)($ref->getVideoPrefix() ?? ''),
+            'videoCode'    => (string)($ref->getVideoCode()   ?? '-jf'),
+            'videoSegment' => $segment,
+            'startTime'    => $start,
+            'stopTime'     => $stop,
         ]);
     }
 
@@ -137,10 +117,10 @@ final class VideoFactory
      *
      * Accepts:
      *   "?segment=JESUS-123" | "&segment=JESUS-123" -> "JESUS-123"
-     *   "?JESUS-123"                                   -> "JESUS-123"
-     *   "segment=JESUS-123&foo=bar"                    -> "JESUS-123"
-     *   "JESUS-123"                                    -> "JESUS-123"
-     *   null/''                                        -> ''
+     *   "?JESUS-123"                                 -> "JESUS-123"
+     *   "segment=JESUS-123&foo=bar"                  -> "JESUS-123"
+     *   "JESUS-123"                                  -> "JESUS-123"
+     *   null/''                                      -> ''
      */
     private static function normalizeSegment(mixed $raw): string
     {

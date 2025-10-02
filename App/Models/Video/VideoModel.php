@@ -19,8 +19,8 @@ final class VideoModel implements JsonSerializable
     private string $videoCode   = '-jf';      // <= 100 chars
     private string $videoSegment = '';        // <= 15 chars (raw token)
 
-    private int $startTimeInSeconds = 0; // 0 = start
-    private int $stopTimeInSeconds  = 0; // 0 = no end
+    private int $startTime = 0; // 0 = start
+    private int $stopTime  = 0; // 0 = no end
 
     // -------- Hydration (canonical/clean only) --------
 
@@ -52,14 +52,14 @@ final class VideoModel implements JsonSerializable
             // Accept raw token only (factory strips ?/&/segment=)
             $this->setVideoSegment(Caster::toText($data['videoSegment']));
         }
-        if (\array_key_exists('startTimeInSeconds', $data)) {
-            $this->setStartTimeInSeconds(
-                Caster::toNonNegativeIntOrZeroOrZero($data['startTimeInSeconds'])
+        if (\array_key_exists('startTime', $data)) {
+            $this->setStartTime(
+                Caster::toNonNegativeIntOrZero($data['startTime'])
             );
         }
-        if (\array_key_exists('stopTimeInSeconds', $data)) {
-            $this->setStopTimeInSeconds(
-                Caster::toNonNegativeIntOrZeroOrZero($data['stopTimeInSeconds'])
+        if (\array_key_exists('stopTime', $data)) {
+            $this->setStopTime(
+                Caster::toNonNegativeIntOrZero($data['stopTime'])
             );
         }
         return $this;
@@ -77,8 +77,8 @@ final class VideoModel implements JsonSerializable
             'videoPrefix'         => $this->videoPrefix,
             'videoCode'           => $this->videoCode,
             'videoSegment'        => $this->videoSegment,
-            'startTimeInSeconds'  => $this->startTimeInSeconds,
-            'stopTimeInSeconds'   => $this->stopTimeInSeconds,
+            'startTime'           => $this->startTime,
+            'stopTime'            => $this->stopTime,
         ];
     }
 
@@ -98,11 +98,11 @@ final class VideoModel implements JsonSerializable
     public function getVideoCode(): string { return $this->videoCode; }
     public function getVideoSegment(): string { return $this->videoSegment; }
 
-    public function getStartTimeInSeconds(): int
-    { return $this->startTimeInSeconds; }
+    public function getStartTime(): int
+    { return $this->startTime; }
 
-    public function getStopTimeInSeconds(): int
-    { return $this->stopTimeInSeconds; }
+    public function getStopTime(): int
+    { return $this->stopTime; }
 
     // -------- Setters (normalize/guard at boundary) --------
 
@@ -146,13 +146,30 @@ final class VideoModel implements JsonSerializable
         $this->videoSegment = Caster::toText($segment);
     }
 
-    public function setStartTimeInSeconds(int $seconds): void
+    /**
+     * Accepts int seconds, "SS", "MM:SS", "HH:MM:SS", "start", "", null.
+     * Also tolerates accidental double colons like "MM::SS".
+     * Always stores a non-negative integer.
+     */
+    public function setStartTime(int|string|null $value): void
     {
-        $this->startTimeInSeconds = \max(0, $seconds);
+        if (is_string($value)) {
+            // Collapse any accidental multiple colons (e.g., "MM::SS" -> "MM:SS")
+            $value = preg_replace('/:+/', ':', trim($value));
+        }
+        $this->startTime = Caster::toSecondsOrZero($value);
     }
 
-    public function setStopTimeInSeconds(int $seconds): void
+    /**
+     * Accepts int seconds, "SS", "MM:SS", "HH:MM:SS", "", null.
+     * Also tolerates accidental double colons like "MM::SS".
+     * Always stores a non-negative integer.
+     */
+    public function setStopTime(int|string|null $value): void
     {
-        $this->stopTimeInSeconds = \max(0, $seconds);
+        if (is_string($value)) {
+            $value = preg_replace('/:+/', ':', trim($value));
+        }
+        $this->stopTime = Caster::toSecondsOrZero($value);
     }
 }
