@@ -7,19 +7,23 @@ use JsonSerializable;
 
 class DbsLanguageModel implements JsonSerializable
 {
-    private ?string $languageCodeHL = null;
-    private ?string $collectionCode = null;
-    private ?string $format = null;
+    private ?string $languageCodeHL = null; //lowercased
+    private ?string $collectionCode = null; //lowercased
+    private ?string $format = null;  //lowercased
 
     /**
      * Populate from an associative array. Keys must match properties.
      */
     public function populate(array $data): void
     {
-        foreach ($data as $key => $value) {
-            if (\property_exists($this, $key)) {
-                $this->$key = $value;
-            }
+        if (\array_key_exists('languageCodeHL', $data)) {
+            $this->setLanguageCodeHL(Caster::toLowerTextOrNull($data['languageCodeHL']));
+        }  
+        if (\array_key_exists('collectionCode', $data)) {
+            $this->setCollectionCode(Caster::toLowerTextOrNull($data['collectionCode']));
+        }
+        if (\array_key_exists('format', $data)) {
+            $this->setFormat(Caster::toLowerTextOrNull($data['format']));
         }
     }
 
@@ -62,16 +66,16 @@ class DbsLanguageModel implements JsonSerializable
     // Setters
     public function setLanguageCodeHL(?string $languageCodeHL): void
     {
-        $this->languageCodeHL = $languageCodeHL;
+        $this->languageCodeHL = Caster::toLowerTextOrNull($languageCodeHL);
     }
 
     public function setCollectionCode(?string $collectionCode): void
     {
-        $this->collectionCode = $collectionCode;
+       $this->collectionCode = Caster::toLowerTextOrNull($collectionCode);
     }
 
     public function setFormat(?string $format): void
     {
-        $this->format = $format;
+        $this->format = Caster::toLowerTextOrNull($format);
     }
 }

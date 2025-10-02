@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models\Bible;
 
 use JsonSerializable;
+use App\Support\Caster;
 use App\Interfaces\ArclightVideoInterface;
 
 class PassageReferenceModel implements ArclightVideoInterface, JsonSerializable
@@ -29,13 +30,45 @@ class PassageReferenceModel implements ArclightVideoInterface, JsonSerializable
 
     public function populate(array $data): self
     {
-        foreach ($data as $k => $v) {
-            if (\property_exists($this, $k)) {
-                $this->$k = $v;
+        // Buckets used for casting
+        $intKeys  = ['bookNumber','chapterStart','verseStart','chapterEnd','verseEnd'];
+        $strKeys  = [
+            'entry','bookName','bookID','uversionBookID','testament','passageID',
+            'videoSource','videoPrefix','videoCode','videoSegment'
+        ];
+        $timeKeys = ['startTime','endTime']; // stored as strings (e.g., "MM:SS", "0")
+
+        // Strings
+        foreach ($strKeys as $k) {
+            if (\array_key_exists($k, $data) && \property_exists($this, $k)) {
+                $this->$k = Caster::toNullableString($data[$k]);
             }
         }
+
+        // Ints (null or >= 0)
+        foreach ($intKeys as $k) {
+            if (\array_key_exists($k, $data) && \property_exists($this, $k)) {
+                $this->$k = Caster::toNullableInt($data[$k]);
+            }
+        }
+
+        // Times -> canonical string or null
+        foreach ($timeKeys as $k) {
+            if (\array_key_exists($k, $data) && \property_exists($this, $k)) {
+                $this->$k = Caster::normalizeTimeOrNull($data[$k]);
+            }
+        }
+
+        // Light normalization for specific fields
+        if ($this->bookID !== null)         { $this->bookID = \strtoupper($this->bookID); }
+        if ($this->uversionBookID !== null) { $this->uversionBookID = \strtoupper($this->uversionBookID); }
+        if ($this->videoSource !== null)    { $this->videoSource = \strtolower($this->videoSource); }
+        if ($this->testament !== null)      { $this->testament = \strtoupper(\trim($this->testament)); }
+
         return $this;
     }
+
+    
 
     public function toArray(): array
     {

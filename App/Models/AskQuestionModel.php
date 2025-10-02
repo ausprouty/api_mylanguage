@@ -4,53 +4,69 @@ declare(strict_types=1);
 namespace App\Models;
 
 use JsonSerializable;
+use App\Support\Caster;
 
-class AskQuestionModel implements JsonSerializable
+/**
+ * AskQuestionModel
+ *
+ * Canonical, constructor-less model with normalization at the boundaries.
+ * Use populate(array $data) or individual setters. All string fields are
+ * trimmed; language codes are lowercased; weight is clamped to >= 0.
+ */
+final class AskQuestionModel implements JsonSerializable
 {
     private ?int $id = null;
-    private string $languageCodeHL = '';
-    private string $name = '';
-    private string $ethnicName = '';
-    private string $url = '';
-    private string $contactPage = '';
-    private string $languageCodeTracts = '';
-    private string $promoText = '';
-    private string $promoImage = '';
-    private string $tagline = '';
-    private int $weight = 0;
 
-    public function __construct(
-        string $languageCodeHL = '',
-        string $name = '',
-        string $ethnicName = '',
-        string $url = '',
-        string $contactPage = '',
-        string $languageCodeTracts = '',
-        string $promoText = '',
-        string $promoImage = '',
-        string $tagline = '',
-        int $weight = 0
-    ) {
-        $this->languageCodeHL   = $languageCodeHL;
-        $this->name             = $name;
-        $this->ethnicName       = $ethnicName;
-        $this->url              = $url;
-        $this->contactPage      = $contactPage;
-        $this->languageCodeTracts = $languageCodeTracts;
-        $this->promoText        = $promoText;
-        $this->promoImage       = $promoImage;
-        $this->tagline          = $tagline;
-        $this->weight           = $weight;
-    }
+    private string $languageCodeHL     = ''; // lower
+    private string $name               = '';
+    private string $ethnicName         = '';
+    private string $url                = '';
+    private string $contactPage        = '';
+    private string $languageCodeTracts = ''; // lower
+    private string $promoText          = '';
+    private string $promoImage         = '';
+    private string $tagline            = '';
+    private int    $weight             = 0;
 
-    /** Hydrate from assoc array (keys must match properties). */
+    /**
+     * Hydrate from associative array (normalizes via setters).
+     */
     public function populate(array $data): self
     {
-        foreach ($data as $k => $v) {
-            if (\property_exists($this, $k)) {
-                $this->$k = $v;
-            }
+        if (\array_key_exists('id', $data)) {
+            $this->setId(Caster::toIntOrNull($data['id']));
         }
+        if (\array_key_exists('languageCodeHL', $data)) {
+            $this->setLanguageCodeHL(Caster::toLowerText((string)$data['languageCodeHL']));
+        }
+        if (\array_key_exists('name', $data)) {
+            $this->setName(Caster::toText($data['name']));
+        }
+        if (\array_key_exists('ethnicName', $data)) {
+            $this->setEthnicName(Caster::toText($data['ethnicName']));
+        }
+        if (\array_key_exists('url', $data)) {
+            $this->setUrl(Caster::toText($data['url']));
+        }
+        if (\array_key_exists('contactPage', $data)) {
+            $this->setContactPage(Caster::toText($data['contactPage']));
+        }
+        if (\array_key_exists('languageCodeTracts', $data)) {
+            $this->setLanguageCodeTracts(Caster::toLowerText((string)$data['languageCodeTracts']));
+        }
+        if (\array_key_exists('promoText', $data)) {
+            $this->setPromoText(Caster::toText($data['promoText']));
+        }
+        if (\array_key_exists('promoImage', $data)) {
+            $this->setPromoImage(Caster::toText($data['promoImage']));
+        }
+        if (\array_key_exists('tagline', $data)) {
+            $this->setTagline(Caster::toText($data['tagline']));
+        }
+        if (\array_key_exists('weight', $data)) {
+            $this->setWeight(Caster::toNonNegativeIntOrZero($data['weight']));
+        }
+
         return $this;
     }
 
@@ -60,7 +76,7 @@ class AskQuestionModel implements JsonSerializable
      */
     public function setValues(object|array $data): void
     {
-        $arr = \is_array($data) ? $data : (array) $data;
+        $arr = \is_array($data) ? $data : (array)$data;
         $this->populate($arr);
     }
 
@@ -87,31 +103,75 @@ class AskQuestionModel implements JsonSerializable
         return $this->toArray();
     }
 
-    // Getters
+    // ---------------- Getters ----------------
+
     public function getId(): ?int { return $this->id; }
     public function getLanguageCodeHL(): string { return $this->languageCodeHL; }
     public function getName(): string { return $this->name; }
     public function getEthnicName(): string { return $this->ethnicName; }
     public function getUrl(): string { return $this->url; }
     public function getContactPage(): string { return $this->contactPage; }
-    public function getLanguageCodeTracts(): string
-    { return $this->languageCodeTracts; }
+    public function getLanguageCodeTracts(): string { return $this->languageCodeTracts; }
     public function getPromoText(): string { return $this->promoText; }
     public function getPromoImage(): string { return $this->promoImage; }
     public function getTagline(): string { return $this->tagline; }
     public function getWeight(): int { return $this->weight; }
 
-    // Setters
-    public function setId(?int $id): void { $this->id = $id; }
-    public function setLanguageCodeHL(string $v): void { $this->languageCodeHL = $v; }
-    public function setName(string $v): void { $this->name = $v; }
-    public function setEthnicName(string $v): void { $this->ethnicName = $v; }
-    public function setUrl(string $v): void { $this->url = $v; }
-    public function setContactPage(string $v): void { $this->contactPage = $v; }
+    // ---------------- Setters (normalized) ----------------
+
+    public function setId(?int $id): void
+    {
+        // Accept null or int; ignore non-numeric elsewhere via populate().
+        $this->id = $id;
+    }
+
+    public function setLanguageCodeHL(string $v): void
+    {
+        $this->languageCodeHL = Caster::toLowerText($v);
+    }
+
+    public function setName(string $v): void
+    {
+        $this->name = Caster::toText($v);
+    }
+
+    public function setEthnicName(string $v): void
+    {
+        $this->ethnicName = Caster::toText($v);
+    }
+
+    public function setUrl(string $v): void
+    {
+        $this->url = Caster::toText($v);
+    }
+
+    public function setContactPage(string $v): void
+    {
+        $this->contactPage = Caster::toText($v);
+    }
+
     public function setLanguageCodeTracts(string $v): void
-    { $this->languageCodeTracts = $v; }
-    public function setPromoText(string $v): void { $this->promoText = $v; }
-    public function setPromoImage(string $v): void { $this->promoImage = $v; }
-    public function setTagline(string $v): void { $this->tagline = $v; }
-    public function setWeight(int $v): void { $this->weight = $v; }
+    {
+        $this->languageCodeTracts = Caster::toLowerText($v);
+    }
+
+    public function setPromoText(string $v): void
+    {
+        $this->promoText = Caster::toText($v);
+    }
+
+    public function setPromoImage(string $v): void
+    {
+        $this->promoImage = Caster::toText($v);
+    }
+
+    public function setTagline(string $v): void
+    {
+        $this->tagline = Caster::toText($v);
+    }
+
+    public function setWeight(int $v): void
+    {
+        $this->weight = \max(0, $v);
+    }
 }

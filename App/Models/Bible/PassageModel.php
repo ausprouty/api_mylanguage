@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models\Bible;
 
 use JsonSerializable;
+use App\Support\Caster;
 
 class PassageModel implements JsonSerializable
 {
@@ -17,14 +18,31 @@ class PassageModel implements JsonSerializable
 
     /** Hydrate from an associative array (keys must match properties). */
     public function populate(array $data): self
-    {
-        foreach ($data as $k => $v) {
-            if (\property_exists($this, $k)) {
-                $this->$k = $v;
-            }
+{
+    // Non-nullable strings
+    foreach (['bpid','passageText','passageUrl','referenceLocalLanguage'] as $k) {
+        if (array_key_exists($k, $data)) {
+            $this->$k = Caster::toString($data[$k]);
         }
-        return $this;
     }
+
+    // Dates (nullable, strict YYYY-MM-DD or DateTimeInterface)
+    foreach (['dateChecked','dateLastUsed'] as $k) {
+        if (array_key_exists($k, $data)) {
+            $this->$k = Caster::toNullableYmd($data[$k]);
+        }
+    }
+
+    // Non-negative int
+    if (array_key_exists('timesUsed', $data)) {
+        $this->timesUsed = Caster::toNonNegativeInt($data['timesUsed']);
+    }
+
+    return $this;
+}
+
+
+
 
     /** Canonical array representation. */
     public function toArray(): array

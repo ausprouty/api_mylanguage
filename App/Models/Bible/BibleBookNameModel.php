@@ -3,7 +3,10 @@ declare(strict_types=1);
 
 namespace App\Models\Bible;
 
+
 use JsonSerializable;
+use App\Support\Caster;
+
 
 /**
  * Model for the `bible_book_names` table.
@@ -19,13 +22,27 @@ class BibleBookNameModel implements JsonSerializable
     /** Hydrate from an associative array (keys must match properties). */
     public function populate(array $data): self
     {
-        foreach ($data as $k => $v) {
-            if (\property_exists($this, $k)) {
-                $this->$k = $v;
-            }
+        if (\array_key_exists('id', $data)) {
+            $this->id = Caster::toNullableInt($data['id']);
         }
+        if (\array_key_exists('bookId', $data)) {
+            // e.g., "GEN" — keep uppercase for consistency
+            $this->bookId = Caster::toStringNonNullUpper($data['bookId']);
+        }
+        if (\array_key_exists('languageCodeIso', $data)) {
+            $this->languageCodeIso = Caster::toNullableString($data['languageCodeIso']);
+        }
+        if (\array_key_exists('languageCodeHL', $data)) {
+            $this->languageCodeHL = Caster::toNullableString($data['languageCodeHL']);
+        }
+        if (\array_key_exists('name', $data)) {
+            $this->name = Caster::toStringNonNull($data['name']);
+        }
+
         return $this;
     }
+
+    
 
     /** Canonical array representation. */
     public function toArray(): array

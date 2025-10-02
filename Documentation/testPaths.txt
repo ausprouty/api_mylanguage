@@ -6,5 +6,5 @@ http://localhost/api_mylanguage/api/v2/translate/text/interface/wsu/eng00
 http://localhost/api_mylanguage/api/v2/translate/text/commonContent/hope/eng00
 
 
-http://localhost/api_mylanguage//api/v2/translate/lessonContent/eng00/hope/1?jf=529
+http://localhost/api_mylanguage/api/v2/translate/lessonContent/eng00/hope/1?jf=529
 

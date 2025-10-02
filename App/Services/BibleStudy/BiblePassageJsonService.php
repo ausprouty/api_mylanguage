@@ -102,9 +102,19 @@ final class BiblePassageJsonService
         $this->primaryLanguageModel =
             $this->languageRepository
                  ->findOneLanguageByLanguageCodeHL($this->languageCodeHL);
+        LoggerService::logDebug(
+            'LanguageModel',
+            'state',
+            ['model' => $this->primaryLanguageModel->toArray()]
+        );
 
         $this->primaryBibleModel = $this->bibleRepository
             ->findBestBibleByLanguageCodeHL($this->languageCodeHL);
+        LoggerService::logDebug(
+             'BibleModel',
+            'state',
+            [$this->primaryBibleModel->toArray()]
+        );
 
         if ($this->primaryBibleModel === null) {
             throw new InvalidArgumentException(

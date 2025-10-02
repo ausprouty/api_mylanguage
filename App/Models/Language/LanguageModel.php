@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Models\Language;
 
 use JsonSerializable;
+use App\Support\Caster;
 
 /**
  * Represents a Language entity with associated properties and methods.
@@ -15,20 +16,20 @@ class LanguageModel implements JsonSerializable
     private ?string $ethnicName = null;
 
     // Many code fields are identifiers; store as string.
-    private ?string $languageCodeBibleBrain = null;
+    private ?int $languageCodeBibleBrain = null;
     private ?string $languageCodeBing = null;
     private ?string $languageCodeBrowser = null;
     private ?string $languageCodeDrupal = null;
     private ?string $languageCodeGoogle = null;
-    private ?string $languageCodeHL = null;
+    private ?string $languageCodeHL = null;  
     private ?string $languageCodeIso = null;
-    private ?string $languageCodeJF = null;
+    private ?int $languageCodeJF = null;
     private ?string $languageCodeTracts = null;
-
     private ?string $direction = null;
     private ?string $numeralSet = null;
-    private ?bool $isChinese = null;
-    private ?bool $isHindu = null;
+    private ?bool $isChinese = false;
+    private ?bool $isHindu = false;
+    private ?bool $celebrateLunarNewYear = false;
     private ?string $font = null;
     private ?string $fontData = null;
     private ?string $mylanguage = null;
@@ -40,10 +41,25 @@ class LanguageModel implements JsonSerializable
      */
     public function populate(array $data): void
     {
+        // which keys need special casting
+        $boolKeys = ['isChinese','isHindu','celebrateLunarNewYear'];
+        $intKeys  = ['id','languageCodeBibleBrain','languageCodeJF','requests'];
+
         foreach ($data as $key => $value) {
-            if (\property_exists($this, $key)) {
-                $this->$key = $value;
+            if (!\property_exists($this, $key)) {
+                continue;
             }
+            if (\in_array($key, $boolKeys, true)) {
+                // Accept 0/1 or '0'/'1' from DB and cast to bool
+                $this->$key = (bool)$value;
+                continue;
+            }
+            if (\in_array($key, $intKeys, true)) {
+                $this->$key = ($value === null ? null : (int)$value);
+                continue;
+            }
+            // everything else as-is
+            $this->$key = $value;
         }
     }
 
@@ -69,6 +85,7 @@ class LanguageModel implements JsonSerializable
             'numeralSet'             => $this->numeralSet,
             'isChinese'              => $this->isChinese,
             'isHindu'                => $this->isHindu,
+            'celebrateLunarNewYear'  => $this->celebrateLunarNewYear,
             'font'                   => $this->font,
             'fontData'               => $this->fontData,
             'mylanguage'             => $this->mylanguage,
@@ -100,7 +117,7 @@ class LanguageModel implements JsonSerializable
     public function getName(): ?string { return $this->name; }
     public function getEthnicName(): ?string { return $this->ethnicName; }
 
-    public function getLanguageCodeBibleBrain(): ?string
+    public function getLanguageCodeBibleBrain(): ?int
     { return $this->languageCodeBibleBrain; }
 
     public function getLanguageCodeBing(): ?string
@@ -121,7 +138,7 @@ class LanguageModel implements JsonSerializable
     public function getLanguageCodeIso(): ?string
     { return $this->languageCodeIso; }
 
-    public function getLanguageCodeJF(): ?string
+    public function getLanguageCodeJF(): ?int
     { return $this->languageCodeJF; }
 
     public function getLanguageCodeTracts(): ?string
@@ -138,6 +155,9 @@ class LanguageModel implements JsonSerializable
 
     public function getIsHindu(): ?bool
     { return $this->isHindu; }
+
+    public function getCelebrateLunarNewYear(): ?bool
+    { return $this->celebrateLunarNewYear; }
 
     public function getFont(): ?string
     { return $this->font; }

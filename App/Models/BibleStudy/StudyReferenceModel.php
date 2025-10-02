@@ -4,34 +4,38 @@ declare(strict_types=1);
 namespace App\Models\BibleStudy;
 
 use JsonSerializable;
+use App\Support\Caster;
 use App\Interfaces\ArclightVideoInterface;
 
 final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializable
 {
-    protected string  $study               = '';
-    protected int     $lesson              = 0;
-    protected string  $description         = '';
-    protected string  $descriptionTwigKey  = '';
-    protected string  $reference           = '';
-    protected string  $testament           = '';
-    protected string  $passageReferenceInfo = '';
+    // Required strings / ints
+    protected string $study = '';
+    protected int    $lesson = 0;
+    protected string $description = '';
+    protected string $descriptionTwigKey = '';
+    protected string $reference = '';
+    protected string $testament = '';
+    protected string $passageReferenceInfo = '';
 
-    protected ?string $bookName       = null;
-    protected ?string $bookID         = null;
-    protected int     $bookNumber     = 0;
-    protected ?string $chapterStart   = null;
-    protected ?string $chapterEnd     = null;
-    protected ?string $verseStart     = null;
-    protected ?string $verseEnd       = null;
-    protected ?string $passageID      = null;
+    // Optional passage fields
+    protected ?string $bookName = null;
+    protected ?string $bookID = null;
+    protected int     $bookNumber = 0;
+    protected ?int    $chapterStart = 1;
+    protected ?int    $chapterEnd   = 999;
+    protected ?int    $verseStart   = 1;
+    protected ?int    $verseEnd     = 999;
+    protected ?string $passageID = null;
     protected ?string $uversionBookID = null;
 
-    protected ?string $videoSource  = null;
-    protected ?string $videoPrefix  = null;
-    protected ?string $videoCode    = null;
+    // Video metadata
+    protected ?string $videoSource = null;
+    protected ?string $videoPrefix = null;
+    protected ?string $videoCode = null;
     protected ?string $videoSegment = null;
-    protected ?string $startTime    = null;
-    protected ?string $endTime      = null;
+    protected ?string $startTime = null;
+    protected ?string $endTime = null;
 
     // --- Getters/Setters ---
     public function getStudy(): string { return $this->study; }
@@ -64,17 +68,17 @@ final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializa
     public function getBookNumber(): int { return $this->bookNumber; }
     public function setBookNumber(int $bookNumber): void { $this->bookNumber = $bookNumber; }
 
-    public function getChapterStart(): ?string { return $this->chapterStart; }
-    public function setChapterStart(?string $chapterStart): void { $this->chapterStart = $chapterStart; }
+    public function getChapterStart(): ?int { return $this->chapterStart; }
+    public function setChapterStart(?int $chapterStart): void { $this->chapterStart = $chapterStart; }
 
-    public function getChapterEnd(): ?string { return $this->chapterEnd; }
-    public function setChapterEnd(?string $chapterEnd): void { $this->chapterEnd = $chapterEnd; }
+    public function getChapterEnd(): ?int { return $this->chapterEnd; }
+    public function setChapterEnd(?int $chapterEnd): void { $this->chapterEnd = $chapterEnd; }
 
-    public function getVerseStart(): ?string { return $this->verseStart; }
-    public function setVerseStart(?string $verseStart): void { $this->verseStart = $verseStart; }
+    public function getVerseStart(): ?int { return $this->verseStart; }
+    public function setVerseStart(?int $verseStart): void { $this->verseStart = $verseStart; }
 
-    public function getVerseEnd(): ?string { return $this->verseEnd; }
-    public function setVerseEnd(?string $verseEnd): void { $this->verseEnd = $verseEnd; }
+    public function getVerseEnd(): ?int { return $this->verseEnd; }
+    public function setVerseEnd(?int $verseEnd): void { $this->verseEnd = $verseEnd; }
 
     public function getPassageID(): ?string { return $this->passageID; }
     public function setPassageID(?string $passageID): void { $this->passageID = $passageID; }
@@ -103,11 +107,48 @@ final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializa
     // --- Hydration ---
     public function populate(array $data): self
     {
-        foreach ($data as $key => $value) {
-            if (\property_exists($this, $key)) {
-                $this->$key = $value;
+        // required strings
+        foreach (['study','description','descriptionTwigKey','reference','testament','passageReferenceInfo'] as $k) {
+            if (array_key_exists($k, $data)) {
+                $this->$k = Caster::toStringNonNull($data[$k]);
             }
         }
+
+        // required ints
+        if (array_key_exists('lesson', $data)) {
+            $this->lesson = Caster::toNonNegativeInt($data['lesson']);
+        }
+        if (array_key_exists('bookNumber', $data)) {
+            $this->bookNumber = Caster::toNonNegativeInt($data['bookNumber']);
+        }
+
+        // optional strings
+        foreach (['bookName','bookID','passageID','uversionBookID','videoSource','videoPrefix','videoCode','videoSegment'] as $k) {
+            if (array_key_exists($k, $data)) {
+                $this->$k = Caster::toNullableString($data[$k]);
+            }
+        }
+
+        // optional ints
+        foreach (['chapterStart','chapterEnd','verseStart','verseEnd'] as $k) {
+            if (array_key_exists($k, $data)) {
+                $this->$k = Caster::toNullableInt($data[$k]);
+            }
+        }
+
+        // times
+        foreach (['startTime','endTime'] as $k) {
+            if (array_key_exists($k, $data)) {
+                $this->$k = Caster::normalizeTimeOrNull($data[$k]);
+            }
+        }
+
+        // light normalization
+        if ($this->bookID !== null)         { $this->bookID = strtoupper($this->bookID); }
+        if ($this->uversionBookID !== null) { $this->uversionBookID = strtoupper($this->uversionBookID); }
+        if ($this->videoSource !== null)    { $this->videoSource = strtolower($this->videoSource); }
+        if ($this->testament !== '')        { $this->testament = strtoupper(trim($this->testament)); }
+
         return $this;
     }
 
@@ -142,8 +183,8 @@ final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializa
         ];
     }
 
-    public function jsonSerialize(): array
-    {
-        return $this->toArray();
-    }
+    public function jsonSerialize(): array { return $this->toArray(); }
+
+  
+   
 }
