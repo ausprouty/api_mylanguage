@@ -41,14 +41,14 @@ class PassageReferenceModel implements ArclightVideoInterface, JsonSerializable
         // Strings
         foreach ($strKeys as $k) {
             if (\array_key_exists($k, $data) && \property_exists($this, $k)) {
-                $this->$k = Caster::toNullableString($data[$k]);
+                $this->$k = Caster::toTextOrNull($data[$k]);
             }
         }
 
         // Ints (null or >= 0)
         foreach ($intKeys as $k) {
             if (\array_key_exists($k, $data) && \property_exists($this, $k)) {
-                $this->$k = Caster::toNullableInt($data[$k]);
+                $this->$k = Caster::toIntOrNull($data[$k]);
             }
         }
 

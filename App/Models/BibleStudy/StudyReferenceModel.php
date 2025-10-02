@@ -110,29 +110,29 @@ final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializa
         // required strings
         foreach (['study','description','descriptionTwigKey','reference','testament','passageReferenceInfo'] as $k) {
             if (array_key_exists($k, $data)) {
-                $this->$k = Caster::toStringNonNull($data[$k]);
+                $this->$k = Caster::toText($data[$k]);
             }
         }
 
         // required ints
         if (array_key_exists('lesson', $data)) {
-            $this->lesson = Caster::toNonNegativeInt($data['lesson']);
+            $this->lesson = Caster::toNonNegativeIntOrNull($data['lesson']);
         }
         if (array_key_exists('bookNumber', $data)) {
-            $this->bookNumber = Caster::toNonNegativeInt($data['bookNumber']);
+            $this->bookNumber = Caster::toNonNegativeIntOrNull($data['bookNumber']);
         }
 
         // optional strings
         foreach (['bookName','bookID','passageID','uversionBookID','videoSource','videoPrefix','videoCode','videoSegment'] as $k) {
             if (array_key_exists($k, $data)) {
-                $this->$k = Caster::toNullableString($data[$k]);
+                $this->$k = Caster::toTextOrNull($data[$k]);
             }
         }
 
         // optional ints
         foreach (['chapterStart','chapterEnd','verseStart','verseEnd'] as $k) {
             if (array_key_exists($k, $data)) {
-                $this->$k = Caster::toNullableInt($data[$k]);
+                $this->$k = Caster::toIntOrNull($data[$k]);
             }
         }
 

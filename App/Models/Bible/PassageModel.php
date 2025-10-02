@@ -29,13 +29,13 @@ class PassageModel implements JsonSerializable
     // Dates (nullable, strict YYYY-MM-DD or DateTimeInterface)
     foreach (['dateChecked','dateLastUsed'] as $k) {
         if (array_key_exists($k, $data)) {
-            $this->$k = Caster::toNullableYmd($data[$k]);
+            $this->$k = Caster::toDateYmdOrNull($data[$k]);
         }
     }
 
     // Non-negative int
     if (array_key_exists('timesUsed', $data)) {
-        $this->timesUsed = Caster::toNonNegativeInt($data['timesUsed']);
+        $this->timesUsed = Caster::toNonNegativeIntOrZero($data['timesUsed']);
     }
 
     return $this;

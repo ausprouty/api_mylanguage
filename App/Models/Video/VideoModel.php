@@ -31,7 +31,7 @@ final class VideoModel implements JsonSerializable
     public function populate(array $data): self
     {
         if (\array_key_exists('id', $data)) {
-            $this->setId(Caster::toNonNegativeIntOrZero($data['id']));
+            $this->setId(Caster::toNonNegativeIntOrZeroOrZero($data['id']));
         }
         if (\array_key_exists('title', $data)) {
             $this->setTitle(Caster::toText($data['title']));
@@ -54,12 +54,12 @@ final class VideoModel implements JsonSerializable
         }
         if (\array_key_exists('startTimeInSeconds', $data)) {
             $this->setStartTimeInSeconds(
-                Caster::toNonNegativeIntOrZero($data['startTimeInSeconds'])
+                Caster::toNonNegativeIntOrZeroOrZero($data['startTimeInSeconds'])
             );
         }
         if (\array_key_exists('stopTimeInSeconds', $data)) {
             $this->setStopTimeInSeconds(
-                Caster::toNonNegativeIntOrZero($data['stopTimeInSeconds'])
+                Caster::toNonNegativeIntOrZeroOrZero($data['stopTimeInSeconds'])
             );
         }
         return $this;

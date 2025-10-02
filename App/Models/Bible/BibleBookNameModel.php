@@ -23,20 +23,20 @@ class BibleBookNameModel implements JsonSerializable
     public function populate(array $data): self
     {
         if (\array_key_exists('id', $data)) {
-            $this->id = Caster::toNullableInt($data['id']);
+            $this->id = Caster::toIntOrNull($data['id']);
         }
         if (\array_key_exists('bookId', $data)) {
             // e.g., "GEN" — keep uppercase for consistency
-            $this->bookId = Caster::toStringNonNullUpper($data['bookId']);
+            $this->bookId = Caster::toTextUpper($data['bookId']);
         }
         if (\array_key_exists('languageCodeIso', $data)) {
-            $this->languageCodeIso = Caster::toNullableString($data['languageCodeIso']);
+            $this->languageCodeIso = Caster::toTextOrNull($data['languageCodeIso']);
         }
         if (\array_key_exists('languageCodeHL', $data)) {
-            $this->languageCodeHL = Caster::toNullableString($data['languageCodeHL']);
+            $this->languageCodeHL = Caster::toTextOrNull($data['languageCodeHL']);
         }
         if (\array_key_exists('name', $data)) {
-            $this->name = Caster::toStringNonNull($data['name']);
+            $this->name = Caster::toText($data['name']);
         }
 
         return $this;
