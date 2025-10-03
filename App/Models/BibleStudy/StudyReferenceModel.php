@@ -150,11 +150,10 @@ final class StudyReferenceModel implements ArclightVideoInterface, JsonSerializa
                 $this->$k = Caster::toTextOrNull($data[$k]);
             }
         }
-
         // optional ints
         foreach (['chapterStart','chapterEnd','verseStart','verseEnd'] as $k) {
             if (array_key_exists($k, $data)) {
-                $this->$k = Caster::toIntOrNull($data[$k]);
+                $this->$k = Caster::toNonNegativeIntOrZero($data[$k]);
             }
         }
 

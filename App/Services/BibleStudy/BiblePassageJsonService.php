@@ -31,6 +31,9 @@ final class BiblePassageJsonService
     /** @var array<string,mixed> */
     private ?PassageReferenceModel $passageReferenceModel = null;
 
+     /** @var array<string,mixed> */
+    private ?PassageModel $passageModel = null;
+
     public array $primaryBiblePassagePayload = [];
 
     public function __construct(
@@ -38,7 +41,7 @@ final class BiblePassageJsonService
         private BibleRepository $bibleRepository,
         private BibleStudyReferenceFactory $bibleStudyReferenceFactory,
         private LanguageRepository $languageRepository,
-        private PassageReferenceFactory $passageReferenceFactory
+        private PassageReferenceFactory $passageReferenceFactory,
     ) {}
 
     /**
@@ -128,17 +131,46 @@ final class BiblePassageJsonService
         // e.g., returns model
         $this->studyReferenceModel = $this->bibleStudyReferenceFactory
             ->createModel($this->study, $this->lesson);
+        LoggerService::logDebug(
+            'StudyReferenceModel',
+            'state',
+            ['model' => $this->studyReferenceModel->toArray()]
+        );
 
         // Derive concrete passage range(s) for this lesson.
         $this->passageReferenceModel = $this->passageReferenceFactory
             ->createFromStudy($this->studyReferenceModel);
+        LoggerService::logDebug(
+            'PassageReferenceModel',
+            'state',
+            ['model' => $this->passageReferenceModel->toArray()]
+        );
     }
+
+    /* Returns object with the following
+    {
+       "bpid": "1259-Luke-7-36-50",
+        "dateChecked": "2025-08-14",
+        "dateLastUsed": "2025-10-03",
+        "passageText": "<div class=\"passage-text\">        "passageUrl": "https://biblegateway.com/passage/?search=Luke%207:36–50&version=NIVUK",
+        "referenceLocalLanguage": "Luke 7:36-50 New International Version - UK",
+        "timesUsed": 83
+    }
+   
+}
+
+    */
 
     private function loadBibleText(): void
     {
-        $primaryBiblePassagePayload = $this->biblePassageService->getPassage(
+        $this->passageModel = $this->biblePassageService->getPassage(
              $this->primaryBibleModel,
              $this->passageReferenceModel
+        );
+         LoggerService::logDebug(
+            'PassageModel',
+            'state',
+            ['model' => $this->passageModel->toArray()]
         );
     }
 
@@ -150,8 +182,11 @@ final class BiblePassageJsonService
     private function makeBlock(): array
     {
         return [
-            'passage'  => $this->primaryBiblePassagePayload,
-            
+            'passage'  => [
+                'passageText'            => $this->passageModel->getPassageText(),
+                'passageUrl'             => $this->passageModel->getPassageUrl(),
+                'referenceLocalLanguage' => $this->passageModel->getReferenceLocalLanguage()
+            ]
         ];
     }
 }

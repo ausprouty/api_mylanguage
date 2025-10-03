@@ -25,12 +25,20 @@ class LessonJsonService
         $languageCodeJF // ✅ removed trailing comma
     ): array {
         try {
-            $bibleOutput = $this->biblePassageJsonService->generateBiblePassageJsonBlock($study, $lesson, $languageCodeHL);
+            $bibleOutput = $this->biblePassageJsonService->generateBiblePassageJsonBlock(
+                $study, 
+                $lesson, 
+                $languageCodeHL
+            );
             if (!$languageCodeJF){
                 return $bibleOutput;
             }
             if ($languageCodeJF){
-                $videoOutput = $this->videoJsonService->generateVideoJsonBlock($study, $lesson, $languageCodeJF);
+                $videoOutput = $this->videoJsonService->generateVideoJsonBlock(
+                    $study, 
+                    $lesson, 
+                    $languageCodeJF
+                );
                 $mergedOutput = array_merge($bibleOutput, $videoOutput);
                 return $mergedOutput; 
             }

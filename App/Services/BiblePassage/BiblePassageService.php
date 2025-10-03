@@ -7,8 +7,13 @@ use App\Models\Bible\BibleModel;
 use App\Models\Bible\PassageModel;
 use App\Models\Bible\PassageReferenceModel;
 use App\Repositories\PassageRepository;
-use App\Services\Database\DatabaseService;
 use App\Services\LoggerService;
+use App\Services\Database\DatabaseService;
+use App\Services\Passage\AbstractBiblePassageService;
+use App\Services\Passage\BibleBrainPassageService;
+use App\Services\Passage\BibleGatewayPassageService;
+use App\Services\Passage\BibleWordPassageService;
+use App\Services\Passage\YouVersionPassageService;
 
 /**
  * Service to manage Bible passages. This class checks if a passage exists in the
@@ -54,7 +59,7 @@ class BiblePassageService
      * @param PassageReferenceModel $passageReference The passage reference model.
      * @return array The properties of the retrieved passage.
      */
-    public function getPassage(BibleModel $bible, PassageReferenceModel $passageReference)
+    public function getPassage(BibleModel $bible, PassageReferenceModel $passageReference) :PassageModel
     {
         $this->bible = $bible;
         $this->passageReference = $passageReference;
@@ -64,13 +69,13 @@ class BiblePassageService
 
         // Check if the passage is in the database or fetch it externally.
         if ($this->inDatabase()) {
-            $passage = $this->retrieveStoredData();
+            $passageModel = $this->retrieveStoredData();
         } else {
-            $passage = $this->retrieveExternalPassage();
+            $passageModel = $this->retrieveExternalPassage();
         }
 
         // Return the passage properties.
-        return $passage->getProperties();
+        return $passageModel;
     }
 
     public function getPassageModel(BibleModel $bible, PassageReferenceModel $passageReference) :PassageModel
@@ -107,18 +112,22 @@ class BiblePassageService
      *
      * @return PassageModel The retrieved passage model.
      */
-    private function retrieveStoredData()
+    private function retrieveStoredData() : PassageModel
     {
         // Fetch the stored data from the database.
         $data = $this->passageRepository->findStoredById($this->bpid);
 
+        if ($data === null) {
+            throw new \RuntimeException("Passage not found: {$this->bpid}");
+        }
+
         // Create a PassageModel from the retrieved data.
-        $passage = PassageFactory::createFromData($data);
+        $passageModel = PassageFactory::createFromData($data);
 
         // Update the usage statistics for the passage.
-        $this->updateUsage($passage);
+        $this->updateUsage($passageModel);
 
-        return $passage;
+        return $passageModel;
     }
 
     /**
@@ -127,73 +136,54 @@ class BiblePassageService
      * @param PassageModel $passage The passage model to update.
      * @return void
      */
-    private function updateUsage(PassageModel $passage): void
+    private function updateUsage(PassageModel $passageModel): void
     {
-        $passage->setDateLastUsed(date('Y-m-d'));
-        $passage->setTimesUsed($passage->getTimesUsed() + 1);
+        $passageModel->setDateLastUsed(date('Y-m-d'));
+        $passageModel->setTimesUsed($passageModel->getTimesUsed() + 1);
 
         // Save the updated usage information to the database.
-        $this->passageRepository->updatePassageUse($passage);
+        $this->passageRepository->updatePassageUse($passageModel);
     }
-
     /**
      * Retrieves the passage from an external source using the appropriate service.
-     *
-     * @return PassageModel The retrieved passage model.
      */
-    private function retrieveExternalPassage()
+    private function retrieveExternalPassage(PassageReferenceModel $reference): PassageModel
     {
-        // Determine the correct service based on the Bible source.
         $service = $this->getPassageService();
-
-        // Use the service to create and store the passage model.
-        $passage = $service->createPassageModel();
-
-        return $passage;
+        return $service->createPassageModel($reference);
     }
 
     /**
      * Determines the appropriate service to use for fetching the passage.
      *
-     * @return AbstractBiblePassageService The service instance.
      * @throws \InvalidArgumentException If the source is unsupported.
      */
     private function getPassageService(): AbstractBiblePassageService
     {
-        LoggerService::logInfo('BiblePassageService-163',$this->bible->getSource());
-        switch ($this->bible->getSource()) {
-            case 'bible_brain':
-                return new BibleBrainPassageService(
-                    $this->bible,
-                    $this->passageReference,
-                    $this->databaseService
-                );
+        $source = (string)$this->bible->getSource();
+        LoggerService::logInfo('BiblePassageService-163', $source);
 
-            case 'bible_gateway':
-                return new BibleGatewayPassageService(
-                    $this->bible,
-                    $this->passageReference,
-                    $this->databaseService
-                );
+        // Strategy map instead of a switch
+        $map = [
+            'bible_brain'  => BibleBrainPassageService::class,
+            'bible_gateway'=> BibleGatewayPassageService::class,
+            'youversion'   => YouVersionPassageService::class,
+            'word'         => BibleWordPassageService::class,
+        ];
 
-            case 'youversion':
-                return new YouVersionPassageService(
-                    $this->bible,
-                    $this->passageReference,
-                    $this->databaseService
-                );
-
-            case 'word':
-                return new BibleWordPassageService(
-                    $this->bible,
-                    $this->passageReference,
-                    $this->databaseService
-                );
-
-            default:
-                throw new \InvalidArgumentException(
-                    "Unsupported source: " . $this->bible->getSource()
-                );
+        $class = $map[$source] ?? null;
+        if ($class === null) {
+            throw new \InvalidArgumentException("Unsupported source: {$source}");
         }
+
+        // Construct the service with shared dependencies (no reference here).
+        // If your concrete services currently require the reference in the constructor,
+        // keep passing it — but still ALSO pass $reference to createPassageModel()
+        // so we don’t rely on hidden state.
+        return new $class($this->bible, $this->databaseService);
+        // If needed for BC:
+        // return new $class($this->bible, $this->passageReference, $this->databaseService);
     }
+
+   
 }

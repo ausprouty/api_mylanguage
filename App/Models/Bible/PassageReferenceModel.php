@@ -25,8 +25,8 @@ class PassageReferenceModel implements ArclightVideoInterface, JsonSerializable
     private ?string $videoPrefix = null;
     private ?string $videoCode = null;
     private ?string $videoSegment = null;
-    private ?string $startTime = null;
-    private ?string $endTime = null;
+    private ?int $startTime = 0;
+    private ?int $endTime = 0;
 
     public function populate(array $data): self
     {
@@ -55,7 +55,7 @@ class PassageReferenceModel implements ArclightVideoInterface, JsonSerializable
         // Times -> canonical string or null
         foreach ($timeKeys as $k) {
             if (\array_key_exists($k, $data) && \property_exists($this, $k)) {
-                $this->$k = Caster::normalizeTimeOrNull($data[$k]);
+                $this->$k = Caster::toSecondsOrZero($data[$k]);
             }
         }
 
@@ -114,8 +114,8 @@ class PassageReferenceModel implements ArclightVideoInterface, JsonSerializable
     public function getVideoPrefix(): ?string { return $this->videoPrefix; }
     public function getVideoCode(): ?string { return $this->videoCode; }
     public function getVideoSegment(): ?string { return $this->videoSegment; }
-    public function getStartTime(): ?string { return $this->startTime; }
-    public function getEndTime(): ?string { return $this->endTime; }
+    public function getStartTime(): ?int { return $this->startTime; }
+    public function getEndTime(): ?int { return $this->endTime; }
 
     // Setters
     public function setEntry(?string $v): void { $this->entry = $v; }
@@ -134,6 +134,31 @@ class PassageReferenceModel implements ArclightVideoInterface, JsonSerializable
     public function setVideoPrefix(?string $v): void { $this->videoPrefix = $v; }
     public function setVideoCode(?string $v): void { $this->videoCode = $v; }
     public function setVideoSegment(?string $v): void { $this->videoSegment = $v; }
-    public function setStartTime(?string $v): void { $this->startTime = $v; }
-    public function setEndTime(?string $v): void { $this->endTime = $v; }
+
+    /**
+     * Accepts int seconds, "SS", "MM:SS", "HH:MM:SS", "start", "", null.
+     * Also tolerates accidental double colons like "MM::SS".
+     * Always stores a non-negative integer.
+     */
+    public function setStartTime(int|string|null $value): void
+    {
+        if (is_string($value)) {
+            // Collapse any accidental multiple colons (e.g., "MM::SS" -> "MM:SS")
+            $value = preg_replace('/:+/', ':', trim($value));
+        }
+        $this->startTime = Caster::toSecondsOrZero($value);
+    }
+
+    /**
+     * Accepts int seconds, "SS", "MM:SS", "HH:MM:SS", "", null.
+     * Also tolerates accidental double colons like "MM::SS".
+     * Always stores a non-negative integer.
+     */
+    public function setEndTime(int|string|null $value): void
+    {
+        if (is_string($value)) {
+            $value = preg_replace('/:+/', ':', trim($value));
+        }
+        $this->endTime = Caster::toSecondsOrZero($value);
+    }
 }
