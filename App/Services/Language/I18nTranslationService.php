@@ -736,8 +736,8 @@ class I18nTranslationService implements TranslationServiceContract
       
         if ($isDev && $kickDev) {
             if (file_exists($devRunner)) {
-                Log::logDebug('kickQueueWorker-640', 'devArgs',  [$devArgs]);
-                Log::logDebug('kickQueueWorker-640', 'devRuner',  [$devRunner]);
+                Log::logDebug('i18nTranslationService-740', 'devArgs',  [$devArgs]);
+                Log::logDebug('i18nTranslationService-741', 'devRuner',  [$devRunner]);
                 $pid = \App\Support\Async::php(
                     $devRunner,     // e.g., C:\ampp82\htdocs\api_mylanguage\bin\run-translation-queue.php
                     $devArgs,       // e.g., ['--max-secs=30','--batch-size=50']
@@ -745,8 +745,8 @@ class I18nTranslationService implements TranslationServiceContract
                     $base_dir       // working dir (optional)
                 );
                 // optional: log PID if returned
-                if ($pid) { Log::logInfo('queue-kick', ['pid' => $pid]); }
-                Log::logInfo('kickQueueWorker-643', 'Async Finished');
+                if ($pid) { Log::logInfo('i18nTranslationService-748', ['pid' => $pid]); }
+                Log::logInfo('i18nTranslationService-749', 'Async Finished');
             }
             return;
         }

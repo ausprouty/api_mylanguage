@@ -9,18 +9,19 @@ use App\Models\Bible\PassageReferenceModel;
 use App\Repositories\PassageRepository;
 use App\Services\LoggerService;
 use App\Services\Database\DatabaseService;
-use App\Services\Passage\AbstractBiblePassageService;
-use App\Services\Passage\BibleBrainPassageService;
-use App\Services\Passage\BibleGatewayPassageService;
-use App\Services\Passage\BibleWordPassageService;
-use App\Services\Passage\YouVersionPassageService;
+use App\Services\BiblePassage\AbstractBiblePassageService;
+use App\Services\BiblePassage\BibleBrainPassageService;
+use App\Services\BiblePassage\BibleGatewayPassageService;
+use App\Services\BiblePassage\BibleWordPassageService;
+use App\Services\BiblePassage\YouVersionPassageService;
+use Psr\Container\ContainerInterface;
 
 /**
  * Service to manage Bible passages. This class checks if a passage exists in the
  * database and, if not, determines the appropriate service to retrieve and store
  * the passage from an external source.
  */
-class BiblePassageService
+final class BiblePassageService
 {
     /** @var DatabaseService The database service for interacting with the database. */
     private $databaseService;
@@ -68,10 +69,10 @@ class BiblePassageService
         $this->bpid = $this->bible->getBid() . '-' . $this->passageReference->getPassageID();
 
         // Check if the passage is in the database or fetch it externally.
-        if ($this->inDatabase()) {
-            $passageModel = $this->retrieveStoredData();
+        if ($this->inDatabase($this->bpid)) {
+            $passageModel = $this->retrieveStoredData($this->bpid);
         } else {
-            $passageModel = $this->retrieveExternalPassage();
+            $passageModel = $this->retrieveExternalPassage( $this->passageReference);
         }
 
         // Return the passage properties.
@@ -88,9 +89,9 @@ class BiblePassageService
 
         // Check if the passage is in the database or fetch it externally.
         if ($this->inDatabase()) {
-            $passageModel = $this->retrieveStoredData();
+            $passageModel = $this->retrieveStoredData($this->bpid);
         } else {
-            $passageModel = $this->retrieveExternalPassage();
+            $passageModel = $this->retrieveExternalPassage($this->passageReference);
         }
 
         // Return the passage properties.
@@ -102,9 +103,9 @@ class BiblePassageService
      *
      * @return bool True if the passage exists, false otherwise.
      */
-    private function inDatabase()
+    private function inDatabase($bpid)
     {
-        return $this->passageRepository->existsById($this->bpid);
+        return $this->passageRepository->existsById($bpid);
     }
 
     /**
@@ -112,13 +113,13 @@ class BiblePassageService
      *
      * @return PassageModel The retrieved passage model.
      */
-    private function retrieveStoredData() : PassageModel
+    private function retrieveStoredData($bpid) : PassageModel
     {
         // Fetch the stored data from the database.
-        $data = $this->passageRepository->findStoredById($this->bpid);
+        $data = $this->passageRepository->findStoredById($bpid);
 
         if ($data === null) {
-            throw new \RuntimeException("Passage not found: {$this->bpid}");
+            throw new \RuntimeException("Passage not found: {$bpid}");
         }
 
         // Create a PassageModel from the retrieved data.

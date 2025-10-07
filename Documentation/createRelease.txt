@@ -1,5 +1,7 @@
 run as Bash.  This will create a zip.
 
+from root
+
 chmod +x make-release.sh
 ./make-release.sh
 

@@ -2,16 +2,22 @@
 
 namespace App\Services\BiblePassage;
 
-use App\Factories\BibleWordConnectionFactory;           // ⬅ inject factory
-use App\Services\BiblePassage\AbstractBiblePassageService;
-use App\Services\LoggerService;
 use App\Configuration\Config;
+use App\Factories\BibleWordConnectionFactory; 
+use App\Models\Bible\BibleModel;
+use App\Services\LoggerService;
+use App\Services\Database\DatabaseService;         
 
 class BibleWordPassageService extends AbstractBiblePassageService
 {
+    
     public function __construct(
-        private BibleWordConnectionFactory $word   // ⬅ factory, not the connection
-    ) {}
+        BibleModel $bible,
+        DatabaseService $databaseService,
+        private BibleWordConnectionFactory $word
+    ) {
+        parent::__construct($bible, $databaseService);
+    }
 
     /** Resolve base URL (DI param key: endpoints.wordproject) */
     private function baseUrl(): string
@@ -80,7 +86,12 @@ class BibleWordPassageService extends AbstractBiblePassageService
     /** "42/7" */
     private function formatChapterPage(): string
     {
-        $book = str_pad((string)(int)$this->passageReference->getBookNumber(), 2, '0', STR_PAD_LEFT);
+        $book = str_pad(
+            (string) (int) $this->passageReference->getBookNumber(),
+            2,
+            '0',
+            STR_PAD_LEFT
+        );
         $chapter = (int) $this->passageReference->getChapterStart();
         return $book . '/' . $chapter;
     }

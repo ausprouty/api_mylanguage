@@ -14,6 +14,7 @@ final class StudyTextController
 
     private const KINDS = [
         'common'    => 'commonContent',
+        'commoncontent' =>'commonContent',
         'interface' => 'interface',
     ];
 
@@ -35,7 +36,7 @@ final class StudyTextController
             $var  = $this->arg($args, 'variant', [$this, 'normId']);
 
             if (!isset(self::KINDS[$kind])) {
-                JsonResponse::error('Invalid kind. Use: common | interface');
+                JsonResponse::error('Invalid kind. Use: coMmon | interface');
                 return;
             }
 

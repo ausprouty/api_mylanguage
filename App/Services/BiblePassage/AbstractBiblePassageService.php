@@ -16,46 +16,31 @@ use stdClass;
  */
 abstract class AbstractBiblePassageService
 {
-    /** @var PassageReferenceModel The passage reference model instance */
-    protected $passageReference;
+    /** @var PassageReferenceModel|null */
+    protected ?PassageReferenceModel $passageReference = null;
 
-    /** @var BibleModel The Bible model instance */
-    protected $bible;
-
-    /** @var DatabaseService The database service for data interaction */
-    protected $databaseService;
-
-    /** @var PassageRepository The repository to manage passage records */
-    protected $passageRepository;
-
-    /** @var array Webpage content fetched for the passage */
-    protected $webpage;
-
-    /** @var string Bible passage identifier */
-    protected $bpid;
-
-    /** @var string The text of the Bible passage */
-    protected $passageText;
-
-    /** @var string The local language reference for the passage */
-    protected $referenceLocalLanguage;
-
-    /** @var string The URL for the Bible passage */
-    protected $passageUrl;
+    protected BibleModel $bible;
+    protected DatabaseService $databaseService;
+    protected PassageRepository $passageRepository;
+    /** @var array<string,mixed>|null */
+    protected ?array $webpage = null;
+    protected ?string $bpid = null;
+    protected ?string $passageText = null;
+    protected ?string $referenceLocalLanguage = null;
+    protected ?string $passageUrl = null;
 
     /**
      * Constructor for initializing the BiblePassageService.
      *
-     * @param BibleModel $bible The Bible model instance.
-     * @param PassageReferenceModel $passageReference The passage reference model instance.
-     * @param DatabaseService $databaseService The database service instance.
-     */
+     * @param BibleModel $bible
+     * @param DatabaseService $databaseService
+    */
+
     public function __construct(
         BibleModel $bible,
-        PassageReferenceModel $passageReference,
         DatabaseService $databaseService
     ) {
-        $this->passageReference = $passageReference;
+
         $this->bible = $bible;
         $this->databaseService = $databaseService;
 
@@ -100,8 +85,13 @@ abstract class AbstractBiblePassageService
      *
      * @return PassageModel The created passage model.
      */
-    public function createPassageModel(): PassageModel
+    public function createPassageModel(
+         PassageReferenceModel $reference
+    ): PassageModel
     {
+       // Bind the reference to this instance for downstream abstract methods.
+        $this->passageReference = $reference;
+
         // Fetch necessary data by calling abstract methods.
         $this->passageUrl = $this->getPassageUrl();
         $this->webpage = $this->getWebpage();
@@ -116,14 +106,17 @@ abstract class AbstractBiblePassageService
         $data->bpid = $bpid;
         $data->dateChecked = date('Y-m-d');
         $data->dateLastUsed = date('Y-m-d');
-        $data->passageText = $this->passageText;
-        $data->passageUrl = $this->passageUrl;
-        $data->referenceLocalLanguage = $this->referenceLocalLanguage;
+        $data->passageText = (string) $this->passageText;
+        $data->passageUrl = (string) $this->passageUrl;
+        $data->referenceLocalLanguage = (string) $this->referenceLocalLanguage;
         $data->timesUsed = 1;
 
         // Create a PassageModel instance using the factory and save it to the repository if it has data
         $passageModel = PassageFactory::createFromData($data);
-        if (!empty($data->passageText) && strlen(trim($data->passageText)) >= 5) {
+        if (
+            $data->passageText !== '' &&
+            strlen(trim($data->passageText)) >= 5
+        ) {
             $this->passageRepository->savePassageRecord($passageModel);
         }
         
