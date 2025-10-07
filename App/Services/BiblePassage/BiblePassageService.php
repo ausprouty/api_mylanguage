@@ -4,16 +4,16 @@ namespace App\Services\BiblePassage;
 
 use App\Factories\PassageFactory;
 use App\Models\Bible\BibleModel;
-use App\Models\Bible\PassageModel;
 use App\Models\Bible\PassageReferenceModel;
-use App\Repositories\PassageRepository;
-use App\Services\LoggerService;
+use App\Models\Bible\PassageModel;
 use App\Services\Database\DatabaseService;
+use App\Repositories\PassageRepository;
 use App\Services\BiblePassage\AbstractBiblePassageService;
 use App\Services\BiblePassage\BibleBrainPassageService;
 use App\Services\BiblePassage\BibleGatewayPassageService;
 use App\Services\BiblePassage\BibleWordPassageService;
 use App\Services\BiblePassage\YouVersionPassageService;
+use App\Services\LoggerService;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -38,6 +38,9 @@ final class BiblePassageService
     /** @var string The unique Bible Passage ID (BPID). */
     private $bpid;
 
+    /** PSR-11 container for building concrete passage services */
+    private ?ContainerInterface $container = null;
+
     /**
      * Constructor to initialize dependencies.
      *
@@ -45,11 +48,13 @@ final class BiblePassageService
      * @param PassageRepository $passageRepository The passage repository instance.
      */
     public function __construct(
+        ContainerInterface $container,
         DatabaseService $databaseService,
         PassageRepository $passageRepository
     ) {
         $this->databaseService = $databaseService;
         $this->passageRepository = $passageRepository;
+        $this->container = $container;
     }
 
     /**
@@ -58,7 +63,7 @@ final class BiblePassageService
      *
      * @param BibleModel $bible The Bible model instance.
      * @param PassageReferenceModel $passageReference The passage reference model.
-     * @return array The properties of the retrieved passage.
+     * @return Models/Bible/PassageModel properties of the retrieved passage.
      */
     public function getPassage(BibleModel $bible, PassageReferenceModel $passageReference) :PassageModel
     {
@@ -154,6 +159,12 @@ final class BiblePassageService
         return $service->createPassageModel($reference);
     }
 
+    /** Optional setter if you can’t change the constructor right now */
+    public function setContainer(ContainerInterface $container): void
+    {
+        $this->container = $container;
+    }
+
     /**
      * Determines the appropriate service to use for fetching the passage.
      *
@@ -164,7 +175,7 @@ final class BiblePassageService
         $source = (string)$this->bible->getSource();
         LoggerService::logInfo('BiblePassageService-163', $source);
 
-        // Strategy map instead of a switch
+        // Strategy map (source -> concrete class). No per-service branches below.
         $map = [
             'bible_brain'  => BibleBrainPassageService::class,
             'bible_gateway'=> BibleGatewayPassageService::class,
@@ -177,13 +188,15 @@ final class BiblePassageService
             throw new \InvalidArgumentException("Unsupported source: {$source}");
         }
 
-        // Construct the service with shared dependencies (no reference here).
-        // If your concrete services currently require the reference in the constructor,
-        // keep passing it — but still ALSO pass $reference to createPassageModel()
-        // so we don’t rely on hidden state.
-        return new $class($this->bible, $this->databaseService);
-        // If needed for BC:
-        // return new $class($this->bible, $this->passageReference, $this->databaseService);
+        // Ask the container to build the concrete. We provide the runtime args that
+        // vary per request; the container autowires any extra deps (e.g. factories).
+        /** @var AbstractBiblePassageService $svc */
+        $svc = $this->container->make($class, [
+            'bible'            => $this->bible,
+            'databaseService'  => $this->databaseService,
+        ]);
+        return $svc;
+  
     }
 
    

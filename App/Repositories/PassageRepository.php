@@ -82,7 +82,7 @@ class PassageRepository extends BaseRepository
                   (:bpid, :referenceLocalLanguage, :passageText, :passageUrl, 
                    :dateLastUsed,:dateChecked, :timesUsed)';
         $params = [
-            ':bpid' => $biblePassage->bpid,
+            ':bpid' => $biblePassage->getBpid(),
             ':referenceLocalLanguage' => $biblePassage->getReferenceLocalLanguage(),
             ':passageText' => $biblePassage->getPassageText(),
             ':passageUrl' => $biblePassage->getPassageUrl(),
