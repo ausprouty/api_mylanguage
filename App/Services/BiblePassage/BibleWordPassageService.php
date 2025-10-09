@@ -10,12 +10,23 @@ use App\Services\Database\DatabaseService;
 
 class BibleWordPassageService extends AbstractBiblePassageService
 {
-    
+    /*
+     * NOTE: Only inject the factory here so PHP-DI can autowire safely.
+     * BibleModel + DatabaseService are runtime and will be passed via parent.
+     */
     public function __construct(
-        BibleModel $bible,
-        DatabaseService $databaseService,
-        private BibleWordConnectionFactory $word
-    ) {
+        
+        private BibleWordConnectionFactory $wordConnectionService) 
+    {}
+    /**
+     * Helper invoked right after construction to pass runtime deps.
+     * (Inherits protected init() from AbstractBiblePassageService if you have it;
+     * otherwise keep parent::__construct signature and call it here.)
+     */
+    public function initRuntime(
+        \App\Models\Bible\BibleModel $bible,
+        \App\Services\Database\DatabaseService $databaseService
+    ): void {
         parent::__construct($bible, $databaseService);
     }
 
@@ -54,7 +65,7 @@ class BibleWordPassageService extends AbstractBiblePassageService
                 . '/' . $this->formatChapterPage() . '.htm';
 
             // ✅ use factory (autoFetch=true, salvageJson=false for HTML pages)
-            $conn = $this->word->fromPath($endpoint, autoFetch: true, salvageJson: false);
+            $conn = $this->wordConnectionService->fromPath($endpoint, autoFetch: true, salvageJson: false);
             $body = $conn->getBody();
 
             if ($body === '') {

@@ -1,0 +1,4 @@
+
+Finding a Set of Verses
+
+https://4.dbt.io/api/bibles/filesets/:fileset_id/:book/:chapter?verse_start=5&verse_end=5&v=4

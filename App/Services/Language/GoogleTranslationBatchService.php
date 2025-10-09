@@ -28,6 +28,7 @@ class GoogleTranslationBatchService implements TranslationProvider
     private const TIMEOUT_SECS         = 20;
 
     protected string $apiKey;
+    private bool $debugService = false;
 
     public function __construct()
     {
@@ -54,12 +55,14 @@ class GoogleTranslationBatchService implements TranslationProvider
         string $sourceLanguage = 'en',
         string $format = 'text'
     ): array {
-        LoggerService::logDebug('GoogleTranslateService-56', [
-            'texts' => $texts,
-            'targetLanguage' => $targetLanguage,
-            'sourceLanguage' => $sourceLanguage,
-            'format'=> $format
-        ]);
+        if ($this->debugService){
+            LoggerService::logDebug('GoogleTranslateService-56', [
+                'texts' => $texts,
+                'targetLanguage' => $targetLanguage,
+                'sourceLanguage' => $sourceLanguage,
+                'format'=> $format
+            ]);
+        }
         // Delegate to the batch method to keep logic in one place.
         [$ok, $list, $code, $err, $len] = $this->translateBatch(
             $texts,
@@ -68,7 +71,9 @@ class GoogleTranslationBatchService implements TranslationProvider
             $format
         );
         $translated = $list[0] ?? '';
-        LoggerService::logDebug('GoogleTranslationBatchService-70', $translated);
+        if ($this->debugService){
+            LoggerService::logDebug('GoogleTranslationBatchService-70', $translated);
+        }
         return [$ok, $translated, $code, $err, $len];
     }
 
@@ -87,11 +92,11 @@ class GoogleTranslationBatchService implements TranslationProvider
         string $sourceLanguage = 'en',
         string $format = 'text'
     ): array {
-        LoggerService::logDebug('GoogleTranslationBatchService-90', 
-            ['texts' =>$texts,
-            'targetLanguage' => $targetLanguage,
-            'sourceLanguage'=> $sourceLanguage,
-            'format'=>$format] );
+        //LoggerService::logDebug('GoogleTranslationBatchService-90', 
+        //    ['texts' =>$texts,
+       //     'targetLanguage' => $targetLanguage,
+        //    'sourceLanguage'=> $sourceLanguage,
+        //    'format'=>$format] );
         if (empty($texts)) {
             LoggerService::logDebug('GoogleTranslationBatchService-96', 'No Texts' );
            // Always return a 5-tuple: ok, list, httpCode, err, len
@@ -138,11 +143,13 @@ class GoogleTranslationBatchService implements TranslationProvider
         $translatedByUniqueIndex = array_fill(0, count($uniqueList), '');
 
         foreach ($chunks as $chunk) {
-            LoggerService::logDebug('GoogleTranslationBatchService-139', 
-                ['chunk' =>$chunk,
-                'targetLanguage' => $targetLanguage,
-                'sourceLanguage'=> $sourceLanguage,
-                'format'=>$format] );
+            if ($this->debugService){
+                LoggerService::logDebug('GoogleTranslationBatchService-139', 
+                    ['chunk' =>$chunk,
+                    'targetLanguage' => $targetLanguage,
+                    'sourceLanguage'=> $sourceLanguage,
+                    'format'=>$format] );
+            }
             $res = $this->callGoogleV2WithRetries($chunk, $targetLanguage, $sourceLanguage, $format);
             // Map back to the unique indices
             foreach ($chunk as $i => $src) {
@@ -158,7 +165,9 @@ class GoogleTranslationBatchService implements TranslationProvider
         }
         $list = array_values($out);
         $len  = count($list);
+        if ($this->debugService){
          LoggerService::logDebug('GoogleTranslationBatchService-159', $list);
+        }
         // If you have a real HTTP code from upstream, use it instead of 200.
         // Likewise, propagate any $err message you captured earlier.
         $httpCode = 200;
@@ -188,7 +197,9 @@ class GoogleTranslationBatchService implements TranslationProvider
                 $this->callGoogleV2Once($texts, $targetLanguage, $sourceLanguage, $format);
 
             if ($ok) {
+                if ($this->debugService){
                 LoggerService::logDebug('GoogleTranslationBatchService-191', $translations);
+                }
                 return $translations;
             }
 
@@ -207,11 +218,12 @@ class GoogleTranslationBatchService implements TranslationProvider
             // Non-retryable error
             break;
         }
-
-        LoggerService::logError(
-            'GoogleTranslationBatchService',
-            "Google v2 failed after {$attempt} attempts; http={$lastCode}; err=" . ($lastErr ?? 'n/a') . "; respLen=" . ($lastBody ?? 0)
-        );
+        if ($this->debugService){
+            LoggerService::logError(
+                'GoogleTranslationBatchService',
+                "Google v2 failed after {$attempt} attempts; http={$lastCode}; err=" . ($lastErr ?? 'n/a') . "; respLen=" . ($lastBody ?? 0)
+            );
+        }
 
         return array_fill(0, count($texts), '');
     }
@@ -229,7 +241,7 @@ class GoogleTranslationBatchService implements TranslationProvider
         string $format
     ): array {
         $url = 'https://translation.googleapis.com/language/translate/v2?key=' . urlencode($this->apiKey);
-        LoggerService::logInfo('GoogleTranslationBatchService-224',$url);
+        //LoggerService::logInfo('GoogleTranslationBatchService-224',$url);
         $payload = [
             'q'      => array_values($texts), // preserves order
             'source' => $sourceLanguage,
@@ -237,7 +249,7 @@ class GoogleTranslationBatchService implements TranslationProvider
             'format' => $format,              // "text" or "html"
             'model'  => 'nmt',                // be explicit
         ];
-         LoggerService::logInfo('GoogleTranslationBatchService-231',$payload);
+         //LoggerService::logInfo('GoogleTranslationBatchService-231',$payload);
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
@@ -262,14 +274,14 @@ class GoogleTranslationBatchService implements TranslationProvider
 
         // Minimal logging: status + body length; avoid logging text content
         $respLen = is_string($response) ? strlen($response) : 0;
-        LoggerService::logInfo('TranslationBatchService-264', "HTTP {$httpCode}; bytes={$respLen}");
+        //LoggerService::logInfo('TranslationBatchService-264', "HTTP {$httpCode}; bytes={$respLen}");
 
         if (!is_string($response) || $httpCode !== 200) {
             return [false, array_fill(0, count($texts), ''), $httpCode, $error, $respLen];
         }
 
         $data = json_decode($response, true);
-        LoggerService::logInfo('TranslationBatchService-271', [$data]);
+        //LoggerService::logInfo('TranslationBatchService-271', [$data]);
         $items = $data['data']['translations'] ?? [];
 
         // Align translations to input order/size

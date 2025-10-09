@@ -27,10 +27,10 @@ final class BiblePassageService
     private $databaseService;
 
     /** @var BibleModel The Bible model instance. */
-    private $bible;
+    private $bibleModel;
 
     /** @var PassageReferenceModel The passage reference model instance. */
-    private $passageReference;
+    private $passageReferenceModel;
 
     /** @var PassageRepository The repository for handling passage data. */
     private $passageRepository;
@@ -62,41 +62,45 @@ final class BiblePassageService
      * not found, it uses the appropriate service to fetch and store the passage.
      *
      * @param BibleModel $bible The Bible model instance.
-     * @param PassageReferenceModel $passageReference The passage reference model.
+     * @param PassageReferenceModel $passageReferenceModel The passage reference model.
      * @return Models/Bible/PassageModel properties of the retrieved passage.
      */
-    public function getPassage(BibleModel $bible, PassageReferenceModel $passageReference) :PassageModel
+    public function getPassage(
+        BibleModel $bibleModel, 
+        PassageReferenceModel $passageReferenceModel) :PassageModel
     {
-        $this->bible = $bible;
-        $this->passageReference = $passageReference;
+        $this->bibleModel = $bibleModel;
+        $this->passageReferenceModel = $passageReferenceModel;
 
         // Generate the Bible Passage ID (BPID).
-        $this->bpid = $this->bible->getBid() . '-' . $this->passageReference->getPassageID();
+        $this->bpid = $this->bibleModel->getBid() . '-' . $this->passageReferenceModel->getPassageID();
 
         // Check if the passage is in the database or fetch it externally.
         if ($this->inDatabase($this->bpid)) {
             $passageModel = $this->retrieveStoredData($this->bpid);
         } else {
-            $passageModel = $this->retrieveExternalPassage( $this->passageReference);
+            $passageModel = $this->retrieveExternalPassage( $this->passageReferenceModel);
         }
 
         // Return the passage properties.
         return $passageModel;
     }
 
-    public function getPassageModel(BibleModel $bible, PassageReferenceModel $passageReference) :PassageModel
+    public function getPassageModel(
+            BibleModel $bibleModel, 
+            PassageReferenceModel $passageReferenceModel) :PassageModel
     {
-        $this->bible = $bible;
-        $this->passageReference = $passageReference;
+        $this->bibleModel = $bibleModel;
+        $this->passageReferenceModel = $passageReferenceModel;
 
         // Generate the Bible Passage ID (BPID).
-        $this->bpid = $this->bible->getBid() . '-' . $this->passageReference->getPassageID();
+        $this->bpid = $this->bibleModel->getBid() . '-' . $this->passageReferenceModel->getPassageID();
 
         // Check if the passage is in the database or fetch it externally.
         if ($this->inDatabase()) {
             $passageModel = $this->retrieveStoredData($this->bpid);
         } else {
-            $passageModel = $this->retrieveExternalPassage($this->passageReference);
+            $passageModel = $this->retrieveExternalPassage($this->passageReferenceModel);
         }
 
         // Return the passage properties.
@@ -172,7 +176,7 @@ final class BiblePassageService
      */
     private function getPassageService(): AbstractBiblePassageService
     {
-        $source = (string)$this->bible->getSource();
+        $source = (string)$this->bibleModel->getSource();
         LoggerService::logInfo('BiblePassageService-163', $source);
 
         // Strategy map (source -> concrete class). No per-service branches below.
@@ -187,14 +191,27 @@ final class BiblePassageService
         if ($class === null) {
             throw new \InvalidArgumentException("Unsupported source: {$source}");
         }
-
-        // Ask the container to build the concrete. We provide the runtime args that
-        // vary per request; the container autowires any extra deps (e.g. factories).
+                /**
+         * Decide *before* constructing:
+         *  - If the class exposes initRuntime(), we let DI autowire only the
+         *    connection factory, then pass runtime args explicitly.
+         *  - Otherwise we construct with *named* runtime args so PHP-DI binds
+         *    them correctly to the child's __construct(...) signature.
+         */
+        if (method_exists($class, 'initRuntime')) {
+            /** @var AbstractBiblePassageService $svc */
+            $svc = $this->container->make($class);
+            $svc->initRuntime($this->bibleModel, $this->databaseService);
+            return $svc;
+        }
+        // No initRuntime(): construct with named args (prevents DI misbinding).
         /** @var AbstractBiblePassageService $svc */
         $svc = $this->container->make($class, [
-            'bible'            => $this->bible,
-            'databaseService'  => $this->databaseService,
+            'bible'           => $this->bibleModel,
+            'databaseService' => $this->databaseService,
         ]);
+    
+
         return $svc;
   
     }

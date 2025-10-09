@@ -30,19 +30,27 @@ class LessonJsonService
                 $lesson, 
                 $languageCodeHL
             );
-            if (!$languageCodeJF){
-                return $bibleOutput;
-            }
+            $videoOutput = ['video'=> null];
             if ($languageCodeJF){
                 $videoOutput = $this->videoJsonService->generateVideoJsonBlock(
                     $study, 
                     $lesson, 
                     $languageCodeJF
                 );
-                $mergedOutput = array_merge($bibleOutput, $videoOutput);
-                return $mergedOutput; 
+                
             }
-
+            $complete = true;
+            if (!$bibleOutput){
+                $complete = false;
+                LoggerService::logError ('LessonService-46', "No Bible Text for  $study / $lesson / $languageCodeHL");
+            }
+            $meta = [
+               'meta' => [
+                  'complete' => $complete
+               ]
+            ];
+            $mergedOutput = array_merge($bibleOutput, $videoOutput, $meta);
+            return $mergedOutput; 
            
         } catch (\Exception $e) {
             throw new \Exception("Error generating Bible passage JSON block: " . $e->getMessage());

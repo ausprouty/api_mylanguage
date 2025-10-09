@@ -29,5 +29,6 @@
     "editor.suggest.showClasses": false,
     "editor.inlineSuggest.enabled": true,
     "editor.acceptSuggestionOnEnter": "off",
-    "editor.suggest.showFunctions": false
+    "editor.suggest.showFunctions": false,
+    "editor.defaultFoldingRangeProvider": "xdebug.php-debug"
 }

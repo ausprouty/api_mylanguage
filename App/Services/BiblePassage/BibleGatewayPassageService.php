@@ -2,20 +2,30 @@
 
 namespace App\Services\BiblePassage;
 
+use App\Models\Bible\BibleModel;
 use App\Factories\BibleGatewayConnectionFactory; // ⬅ inject this
 use App\Services\BiblePassage\AbstractBiblePassageService;
+use App\Services\Database\DatabaseService;
+use App\Services\LoggerService;
 use App\Configuration\Config;
 
 class BibleGatewayPassageService extends AbstractBiblePassageService
 {
-    public function __construct(
-        private BibleGatewayConnectionFactory $bg // ⬅ factory, not connection
-    ) {}
-
     /** Resolve base URL from config; fallback to public site. */
-    private function baseUrl(): string
-    {
-        return rtrim((string) Config::get('endpoints.biblegateway', 'https://www.biblegateway.com'), '/');
+    public function __construct(
+        
+        private BibleGatewayConnectionFactory $bibleGatewayConnectionService // ⬅ factory, not connection
+    ) {}
+    /**
+     * Helper invoked right after construction to pass runtime deps.
+     * (Inherits protected init() from AbstractBiblePassageService if you have it;
+     * otherwise keep parent::__construct signature and call it here.)
+     */
+    public function initRuntime(
+        \App\Models\Bible\BibleModel $bible,
+        \App\Services\Database\DatabaseService $databaseService
+    ): void {
+        parent::__construct($bible, $databaseService);
     }
 
     /**
@@ -42,7 +52,7 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
             . '&version=' . rawurlencode($this->bible->getExternalId());
 
         // ✅ use the factory (autoFetch=true, salvageJson=false for HTML)
-        $conn = $this->bg->fromPath($endpoint, autoFetch: true, salvageJson: false);
+        $conn = $this->bibleGatewayConnectionService->fromPath($endpoint, autoFetch: true, salvageJson: false);
 
         $body = $conn->getBody();
         if ($body === '') {
@@ -59,10 +69,10 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
         $t0 = microtime(true);
         $html = (string)($this->webpage ?? '');
         $inBytes = strlen($html);
-        \App\Services\LoggerService::logInfo('PassageText:start', "in_bytes={$inBytes}");
+        LoggerService::logInfo('PassageText:start', "in_bytes={$inBytes}");
 
         if ($inBytes === 0) {
-            \App\Services\LoggerService::logError('PassageText:empty', 'No HTML input');
+            LoggerService::logError('PassageText:empty', 'No HTML input');
             return '';
         }
 
@@ -71,17 +81,17 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
 
         $dom = new \DOMDocument('1.0', 'UTF-8');
         $ok  = @$dom->loadHTML($html, $flags);
-        \App\Services\LoggerService::logInfo('PassageText:parse_ms', (string) ((microtime(true) - $t0) * 1000));
+        LoggerService::logInfo('PassageText:parse_ms', (string) ((microtime(true) - $t0) * 1000));
 
         if (!$ok) {
-            \App\Services\LoggerService::logError('PassageText:parse_fail', 'DOMDocument->loadHTML failed');
+            LoggerService::logError('PassageText:parse_fail', 'DOMDocument->loadHTML failed');
             return '';
         }
 
         $xp = new \DOMXPath($dom);
         $nl = $xp->query("//div[contains(concat(' ', normalize-space(@class), ' '), ' passage-text ')]");
         if ($nl->length === 0) {
-            \App\Services\LoggerService::logError('PassageText:no_container', 'div.passage-text not found');
+            LoggerService::logError('PassageText:no_container', 'div.passage-text not found');
             return '';
         }
 
@@ -111,7 +121,7 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
         }
 
         $out = $newDom->saveHTML($newDom->documentElement);
-        \App\Services\LoggerService::logInfo('PassageText:done', "ms=" . (int)((microtime(true) - $t0) * 1000) . " out_bytes=" . strlen($out));
+        LoggerService::logInfo('PassageText:done', "ms=" . (int)((microtime(true) - $t0) * 1000) . " out_bytes=" . strlen($out));
         return $out;
     }
 
@@ -120,7 +130,7 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
         $t0 = microtime(true);
         $html = (string)($this->webpage ?? '');
         if ($html === '') {
-            \App\Services\LoggerService::logError('RefLocal:empty', 'No HTML input');
+            LoggerService::logError('RefLocal:empty', 'No HTML input');
             return '';
         }
 
@@ -131,10 +141,10 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
 
         $dom = new \DOMDocument('1.0', 'UTF-8');
         $ok  = @$dom->loadHTML($html, $flags);
-        \App\Services\LoggerService::logInfo('RefLocal:parse_ms', (string)((microtime(true) - $t0) * 1000));
+        LoggerService::logInfo('RefLocal:parse_ms', (string)((microtime(true) - $t0) * 1000));
 
         if (!$ok) {
-            \App\Services\LoggerService::logError('RefLocal:parse_fail', 'DOMDocument->loadHTML failed');
+            LoggerService::logError('RefLocal:parse_fail', 'DOMDocument->loadHTML failed');
             return '';
         }
 

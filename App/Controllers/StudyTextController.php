@@ -6,6 +6,7 @@ namespace App\Controllers;
 use App\Http\Concerns\ValidatesArgs;
 use App\Responses\JsonResponse;
 use App\Services\BibleStudy\TextBundleResolver;
+use App\Services\LoggerService;
 use Exception;
 
 final class StudyTextController
@@ -17,6 +18,7 @@ final class StudyTextController
         'commoncontent' =>'commonContent',
         'interface' => 'interface',
     ];
+    private bool $debugController = true;
 
     public function __construct(private TextBundleResolver $resolver) {}
 
@@ -59,7 +61,9 @@ final class StudyTextController
                     return;
                 }
             }
-
+            if ($this->debugController){
+                LoggerService::logInfoJson('StudyTextController-65', $res['data']['meta']);
+            }
             JsonResponse::success($res['data'], $headers, 200);
         } catch (Exception $e) {
             JsonResponse::error($e->getMessage());

@@ -80,7 +80,7 @@ return function (RouteCollector $r) {
     // translate
     $r->addGroup($basePath . 'api/translate', function (RouteCollector $group) use ($container) {
         $group->addRoute('GET', '/cron/{token}', function ($args) use ($container) {
-            $processor = $container->get(\App\Cron\TranslationQueueProcessor::class);
+            $processor = $container->get(\App\Controllers\TranslationQueueController::class);
             $processor->runIfAuthorized($args['token']);
         });
         $group->addRoute('GET', '/interface/{languageCodeHL}/{app}', function ($args) use ($container) {

@@ -3,20 +3,39 @@
 namespace App\Services\BiblePassage;
 
 use App\Factories\YouVersionConnectionFactory;      // ⬅ inject the factory
+use App\Models\Bible\BibleModel;
 use App\Services\BiblePassage\AbstractBiblePassageService;
+use App\Services\Database\DatabaseService;
 use App\Services\LoggerService;
 use App\Services\Web\YouVersionConnectionService;
 
 class YouVersionPassageService extends AbstractBiblePassageService
 {
 
-    public function __construct(private YouVersionConnectionFactory $youv) {}
+    /**
+     * NOTE: Only inject the factory here so PHP-DI can autowire safely.
+     * BibleModel + DatabaseService are runtime and will be passed via parent.
+     */
+    public function __construct(     
+        private YouVersionConnectionFactory $youVersionConnectionFactory
+    ){}
 
+    /**
+     * Helper invoked right after construction to pass runtime deps.
+     * (Inherits protected init() from AbstractBiblePassageService if you have it;
+     * otherwise keep parent::__construct signature and call it here.)
+     */
+    public function initRuntime(
+        \App\Models\Bible\BibleModel $bible,
+        \App\Services\Database\DatabaseService $databaseService
+    ): void {
+        parent::__construct($bible, $databaseService);
+    }
     /** Build the public URL (absolute). */
     public function getPassageUrl(): string
     {
         $path = $this->buildEndpointPath(); // relative part like "111/JHN.3.16-18.NIV"
-        $base = rtrim(YouVersionConnectionService::getBaseUrl(), '/'); // from Config endpoints.youversion
+        $base = rtrim(YouVersionConnectionService::getBaseUrl(), '/'); // from Config endpoints.youVersionConnectionFactoryersion
         $url  = $base . '/' . ltrim($path, '/');
 
         return $url;
@@ -30,7 +49,7 @@ class YouVersionPassageService extends AbstractBiblePassageService
     {
         $endpoint = $this->buildEndpointPath(); // ✅ endpoint only
         // YouVersion serves HTML → salvageJson=false
-        $conn = $this->youv->fromPath($endpoint, autoFetch: true, salvageJson: false);
+        $conn = $this->youVersionConnectionFactory->fromPath($endpoint, autoFetch: true, salvageJson: false);
 
         $html = $conn->getBody();
         if ($html === '') {

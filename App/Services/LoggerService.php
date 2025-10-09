@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Services;
 
@@ -81,6 +82,12 @@ class LoggerService
         self::$minLevelNum = self::levelNum((string) $lvl);
         return self::$minLevelNum;
     }
+        /** Base flags for safe JSON logging. */
+    private const JSON_FLAGS =
+        JSON_UNESCAPED_UNICODE
+        | JSON_UNESCAPED_SLASHES
+        | JSON_PARTIAL_OUTPUT_ON_ERROR;
+
 
     /**
      * True if a candidate level should be written given the threshold.
@@ -101,7 +108,7 @@ class LoggerService
     // ---------- Public convenience methods (structured logging) ----------
 
     /** @param array<string,mixed> $ctx */
-    public static function logError(string $ctxName, $msg, array $ctx = []): void
+    public static function logError(string $ctxName, mixed $msg, array $ctx = []): void
     {
         self::log('ERROR', $ctxName, $msg, $ctx);
     }
@@ -109,7 +116,7 @@ class LoggerService
     /** @param array<string,mixed> $ctx */
     public static function logCritical(
         string $ctxName,
-        $msg,
+        mixed $msg,
         array $ctx = []
     ): void {
         self::log('CRITICAL', $ctxName, $msg, $ctx);
@@ -118,7 +125,7 @@ class LoggerService
     /** @param array<string,mixed> $ctx */
     public static function logWarning(
         string $ctxName,
-        $msg,
+        mixed $msg,
         array $ctx = []
     ): void {
         self::log('WARNING', $ctxName, $msg, $ctx);
@@ -127,7 +134,7 @@ class LoggerService
     /** @param array<string,mixed> $ctx */
     public static function logInfo(
         string $ctxName,
-        $msg,
+        mixed $msg,
         array $ctx = []
     ): void {
         self::log('INFO', $ctxName, $msg, $ctx);
@@ -136,7 +143,7 @@ class LoggerService
     /** @param array<string,mixed> $ctx */
     public static function logDebug(
         string $ctxName,
-        $msg,
+        mixed $msg,
         array $ctx = []
     ): void {
         self::log('DEBUG', $ctxName, $msg, $ctx);
@@ -174,6 +181,42 @@ class LoggerService
         self::log('ERROR', $ctxName, (string) $e, $ctx);
     }
 
+        /**
+     * Encode a value to JSON for logs.
+     */
+    private static function toJson(mixed $value, bool $pretty = false): string
+    {
+        $flags = self::JSON_FLAGS | ($pretty ? JSON_PRETTY_PRINT : 0);
+        $json  = json_encode($value, $flags);
+        if ($json === false) {
+            return '<<json_encode_error: ' . json_last_error_msg() . '>>';
+        }
+        return $json;
+    }
+
+    /**
+     * Info-level JSON log helper.
+     */
+    public static function logInfoJson(
+        string $tag,
+        mixed $value,
+        bool $pretty = false
+    ): void {
+        self::logInfo($tag, self::toJson($value, $pretty));
+    }
+
+    /**
+     * Debug-level JSON log helper.
+     */
+    public static function logDebugJson(
+        string $tag,
+        mixed $value,
+        bool $pretty = false
+    ): void {
+        self::logDebug($tag, self::toJson($value, $pretty));
+    }
+
+
     // ------------------------------- Core --------------------------------
 
     /**
@@ -187,7 +230,7 @@ class LoggerService
     private static function log(
         string $level,
         string $context,
-        $message,
+        mixed $message,
         array $ctx = []
     ): void {
         if (!self::allowed($level)) {
@@ -203,12 +246,13 @@ class LoggerService
         // Attach minimal request/trace context
         $ctx = array_merge([
             'traceId' => Trace::id(),
-            'method'  => $_SERVER['REQUEST_METHOD'] ?? null,
+            'httpMethod' => $_SERVER['REQUEST_METHOD'] ?? null,
             'path'    => $_SERVER['REQUEST_URI'] ?? null,
             'ip'      => $_SERVER['REMOTE_ADDR'] ?? null,
         ], $ctx);
         // Add caller (class::method) if not provided explicitly by the caller
-        if (!isset($ctx['class']) || !isset($ctx['method'])) {
+        // Use distinct keys to avoid clashing with HTTP 'method'
+        if (!isset($ctx['caller']) || !isset($ctx['callerClass'])) {
             $ctx = self::enrichWithCaller($ctx);
         }
  
@@ -223,7 +267,7 @@ class LoggerService
         // Determine separator: newline + optional blank line
         $sep = PHP_EOL . (self::extraBlankLineEnabled() ? PHP_EOL : '');
         try {
-            file_put_contents(self::$logFile, $line . $sep, FILE_APPEND);
+            file_put_contents(self::$logFile, $line . $sep, FILE_APPEND | LOCK_EX);
             self::mirrorLine($line, $sep);
       
         } catch (Exception $e) {
@@ -322,8 +366,13 @@ class LoggerService
         }
 
         if (self::$mirrorFile) {
+         // Ensure directory exists for mirror target
+            $dir = dirname(self::$mirrorFile);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0755, true);
+            }
             // Best-effort (avoid breaking request flow on permission errors)
-            @file_put_contents(self::$mirrorFile, $line . $sep, FILE_APPEND);
+            @file_put_contents(self::$mirrorFile, $line . $sep, FILE_APPEND | LOCK_EX);
             return;
         }
          // error_log doesn't append a newline by itself
@@ -370,8 +419,8 @@ class LoggerService
             if (!$cls || $cls === __CLASS__) {
                 continue;
             }
-            $ctx['class']  = $ctx['class']  ?? $cls;
-            $ctx['method'] = $ctx['method'] ?? ($cls . '::' . (string) $fun);
+            $ctx['callerClass'] = $ctx['callerClass'] ?? $cls;
+            $ctx['caller']      = $ctx['caller']      ?? ($cls . '::' . (string) $fun);
             break;
         }
         return $ctx;
@@ -384,10 +433,13 @@ class LoggerService
      */
     private static function encodeJsonSafe(array $ctx): string
     {
-        $json = json_encode(
-            $ctx,
-            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
-        );
+        $json = json_encode($ctx,
+            JSON_UNESCAPED_UNICODE
+            | JSON_UNESCAPED_SLASHES
+            | JSON_PARTIAL_OUTPUT_ON_ERROR
+            | JSON_INVALID_UTF8_SUBSTITUTE
+    );
+  
         return ($json === false) ? '{}' : $json;
     }
 

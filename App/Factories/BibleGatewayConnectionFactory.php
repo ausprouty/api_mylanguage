@@ -16,6 +16,9 @@ final class BibleGatewayConnectionFactory
         bool $autoFetch = true,
         bool $salvageJson = false
     ): BibleGatewayConnectionService {
-        return new BibleGatewayConnectionService($endpoint, $autoFetch, $salvageJson);
+        return new BibleGatewayConnectionService(
+            $endpoint, 
+            $autoFetch, 
+            $salvageJson);
     }
 }

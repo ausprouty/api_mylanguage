@@ -278,8 +278,15 @@ class I18nTranslationService implements TranslationServiceContract
 
         // ---- apply translations back onto the bundle ------------------------
         $out = $this->applyTranslationsByStringId($bundle, $stringMap, $trById);
+      
+        // If there are still missing keys, issue a one-time cron token so the client
+        // can trigger the next background translation chunk.
+        $cronToken = null;
+        if ($keysMissing > 0) {
+            $cronToken = $this->issueCronKey();
+        }
 
-        // ---- meta -----------------------------------------------------------
+    
         $out = $this->withMeta($out, [
             'resourceSubject'      => $resourceSubject,
             'resourceVariant'      => $variantForMeta,
@@ -291,6 +298,7 @@ class I18nTranslationService implements TranslationServiceContract
             'keysMissing'          => $keysMissing,
             'keysFuzzy'            => $out['meta']['keysFuzzy'] ?? 0,
             'translationComplete'  => ($keysMissing === 0),
+            'cron_key'             => $cronToken,
             'fallbackCount'        => $keysMissing,
         ]);
 
@@ -774,6 +782,35 @@ class I18nTranslationService implements TranslationServiceContract
 
         // Default in prod: rely on cron; no-op here.
     }
+    /**
+     * Create a one-time token in cron_tokens. Returns the token string or null.
+     * Schema expected:
+     *   cron_tokens(id PK AUTO_INCREMENT, token VARCHAR(64) UNIQUE, created_at TIMESTAMP)
+     */
+    private function issueCronKey(): ?string
+    {
+        $token = $this->generateRandomToken(32); // 64 hex chars
+        try {
+            $stmt = $this->db->prepare(
+                "INSERT INTO cron_tokens (token) VALUES (:t)"
+            );
+            $stmt->execute([':t' => $token]);
+           return $token;
+        } catch (\Throwable $e) {
+            Log::logError('I18nTranslationService-cronTokenInsertFailed', [
+                'err' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /** Generate a cryptographically random hex token of $bytes bytes. */
+    private function generateRandomToken(int $bytes = 16): string
+    {
+        return bin2hex(random_bytes(max(8, $bytes)));
+    }
+    
+
     /**
      * Map "default", "", null to NULL; otherwise trimmed lowercase code.
      */

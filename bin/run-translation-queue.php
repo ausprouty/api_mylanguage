@@ -112,14 +112,32 @@ if ($fake && method_exists($proc, 'setTranslator')) {
     $stamp('RealTranslator');
 }
 
+// Normalize CLI scope -> DB columns for processor consumption.
+$effectiveScope = array_filter([
+    'targetLanguageCodeGoogle' => $scope['lang'],
+    'clientCode'               => $scope['client'],
+    'resourceType'             => $scope['type'],
+    'subject'                  => $scope['subject'],
+    'variant'                  => $scope['variant'],
+], fn($v) => $v !== null && $v !== '');
+
 // Optional: pass scope filters if your processor supports them.
 if (method_exists($proc, 'setScopeFilters')) {
-    $proc->setScopeFilters($scope);
-    $stamp('Scope', $scope);
+    $proc->setScopeFilters($effectiveScope);
+    $stamp('ScopeEffective', $effectiveScope);
 } elseif (method_exists($proc, 'setFilters')) {
-    $proc->setFilters($scope);
+    $proc->setFilters($effectiveScope);
+    $stamp('ScopeEffective', $effectiveScope);
+} else {
+    // Fall back to the original for visibility.
     $stamp('Scope', $scope);
 }
+
+// Optional dry-run flag if the processor supports it.
+if ($fake && method_exists($proc, 'setDryRun')) {
+    $proc->setDryRun(true);
+}
+
 // Honor --batch if the setter exists
 if (method_exists($proc, 'setBatchSize')) {
     $proc->setBatchSize((int)$batch);

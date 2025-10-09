@@ -3,18 +3,40 @@
 namespace App\Services\BiblePassage;
 
 use App\Factories\BibleBrainConnectionFactory;
+//use App\Models\Bible\BibleModel;
 use App\Services\BiblePassage\AbstractBiblePassageService;
+//use App\Services\Database\DatabaseService;
+use App\Services\LoggerService;
 
 /**
  * BibleBrainPassageService retrieves and formats Bible passage data from the
  * Bible Brain API.
- */
+ * Keep parity with BibleWordPassageService: we must receive the
+ * BibleModel (so $this->bible is initialised) and the DatabaseService
+ * (for any local caching/helpers in AbstractBiblePassageService).
+*/
 class BibleBrainPassageService extends AbstractBiblePassageService
 {
+        /**
+     * NOTE: Only inject the factory here so PHP-DI can autowire safely.
+     * BibleModel + DatabaseService are runtime and will be passed via parent.
+     */
     public function __construct(
-        private BibleBrainConnectionFactory $bb // ⬅ inject factory
-    ) {}
+        private BibleBrainConnectionFactory $bibleConnectionFactory)
+    {}
 
+    /**
+     * Helper invoked right after construction to pass runtime deps.
+     * (Inherits protected init() from AbstractBiblePassageService if you have it;
+     * otherwise keep parent::__construct signature and call it here.)
+     */
+    public function initRuntime(
+        \App\Models\Bible\BibleModel $bible,
+        \App\Services\Database\DatabaseService $databaseService
+    ): void {
+        parent::__construct($bible, $databaseService);
+    }
+ 
     /**
      * Example: https://live.bible.is/bible/AC1IBS/GEN/1
      */
@@ -45,7 +67,8 @@ class BibleBrainPassageService extends AbstractBiblePassageService
         ];
 
         // ✅ build connection via factory (adds v/key/format from config)
-        $conn = $this->bb->fromPath($endpoint, $params);
+        $conn = $this->bibleConnectionFactory->fromPath($endpoint, $params);
+        LoggerService::logDebug('BibleBrainPassageService-71', $conn);
 
         $json = $conn->getJson();
 
