@@ -13,6 +13,7 @@ use App\Repositories\LanguageRepository;
 use App\Services\Database\DatabaseService;
 use App\Services\LoggerService as Log;
 use App\Support\Async;
+use App\Support\I18n\ExcludeKeyMatcher;
 use App\Configuration\Config;
 
 class I18nTranslationService implements TranslationServiceContract
@@ -136,15 +137,27 @@ class I18nTranslationService implements TranslationServiceContract
                 'clientId'     => $clientId,
                 'resourceId'   => $resourceId,
             ]);
-        }
+       }
+        // ---- excludes (bundle + .env/config) --------------------------------
+        $defaults   = (array) Config::get('i18n.exclude_keys_default', []);
+        $bundleEx   = (array) ($bundle['meta']['i18n']['excludeKeys'] ?? []);
+        $excludeAll = array_values(array_unique(array_filter(
+            array_map('trim', array_merge($defaults, $bundleEx))
+        )));
 
-         // ---- extract masters (includes "Next Video") ------------------------
-         if ($dbg) { Log::logDebug('I18nTranslationService-076', 'bundle (pre-extract)', $bundle); }
- 
-         $masters = $this->extractMasterTexts($bundle); // [['key'=>'a.b.c','text'=>'...'], ...]
-         if ($dbg) { Log::logDebug('I18nTranslationService-077', 'masters (raw)', $masters); }
- 
-        
+        // ---- extract masters (respects exclude list) ------------------------
+        if ($dbg) {
+            Log::logDebug(
+                'I18nTranslationService-076',
+                'bundle (pre-extract)',
+                ['exclude' => $excludeAll]
+            );
+        }
+        $masters = $this->extractMasterTexts($bundle, $excludeAll);
+        if ($dbg) {
+            Log::logDebug('I18nTranslationService-077', 'masters (raw)', $masters);
+        }
+         
         // ---- ensure masters exist in i18n_strings, then build map+ids -------
         [$stringMap, $stringIds] = $this->ensureMastersAndMap(
             $clientId,
@@ -277,7 +290,12 @@ class I18nTranslationService implements TranslationServiceContract
             
 
         // ---- apply translations back onto the bundle ------------------------
-        $out = $this->applyTranslationsByStringId($bundle, $stringMap, $trById);
+        $out = $this->applyTranslationsByStringId(
+            $bundle,
+            $stringMap,
+            $trById,
+            $excludeAll
+        );      
       
         // If there are still missing keys, issue a one-time cron token so the client
         // can trigger the next background translation chunk.
@@ -462,10 +480,14 @@ class I18nTranslationService implements TranslationServiceContract
 
 
     /** Walk the bundle and return master lines with stable dot-keys. */
-    private function extractMasterTexts(array $bundle): array
+    private function extractMasterTexts(
+        array $bundle,
+        array $excludeKeys = []
+    ): array
     {
         $rows = [];
-        $this->collectStrings($bundle, [], ['meta'], $rows);
+        $matcher = new ExcludeKeyMatcher($excludeKeys);
+        $this->collectStrings($bundle, [], ['meta'], $rows, $matcher);
         $out = [];
         foreach ($rows as $r) {
             $out[] = [
@@ -482,16 +504,27 @@ class I18nTranslationService implements TranslationServiceContract
         return $out;
     }
 
-    private function collectStrings(array $node, array $path, array $skipTopKeys, array &$out): void
-    {
+    private function collectStrings(
+        array $node,
+        array $path,
+        array $skipTopKeys,
+        array &$out,
+        ?ExcludeKeyMatcher $matcher = null
+    ): void
+   {
         if (empty($path) && is_array($node)) {
             foreach ($skipTopKeys as $skip) { unset($node[$skip]); }
         }
         if (is_array($node)) {
             foreach ($node as $k => $v) {
                 $p = [...$path, (string)$k];
+                $dot = implode('.', $p);
+                if ($matcher && $matcher->isExcluded($dot)) {
+                    // prune entire subtree
+                    continue;
+                }
                 if (is_array($v)) {
-                    $this->collectStrings($v, $p, $skipTopKeys, $out);
+                    $this->collectStrings($v, $p, $skipTopKeys, $out, $matcher);
                 } elseif (is_string($v)) {
                     if ($this->looksHumanText($p, $v)) {
                         $out[] = ['path' => $p, 'text' => $v];
@@ -548,7 +581,8 @@ class I18nTranslationService implements TranslationServiceContract
     private function applyTranslationsByStringId(
         array $bundle,
         array $stringMap,
-        array $trById
+        array $trById,
+        array $excludeKeys = []
     ): array {
         $out = $bundle;
 
@@ -563,7 +597,8 @@ class I18nTranslationService implements TranslationServiceContract
         if (empty($keyToText)) { return $out; }
 
         $rows = [];
-        $this->collectStrings($bundle, [], ['meta'], $rows);
+        $matcher = new ExcludeKeyMatcher($excludeKeys);
+        $this->collectStrings($bundle, [], ['meta'], $rows, $matcher);
 
         foreach ($rows as $r) {
             $path = (array)($r['path'] ?? []);
@@ -571,6 +606,7 @@ class I18nTranslationService implements TranslationServiceContract
             if ($text === '') { continue; }
 
             $dot    = implode('.', $path);
+            if ($matcher->isExcluded($dot)) { continue; }
             $shaHex = sha1($text);
             $shaKey = 'sha1:' . $shaHex;
 

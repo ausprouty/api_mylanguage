@@ -22,7 +22,12 @@
         "set APP_ENV=local && php bin/run-translation-queue.php --seconds=50 --batch=40",
         "set APP_ENV=local && php bin/run-translation-queue.php --seconds=50 --batch=40",
         "set APP_ENV=local && php bin/run-translation-queue.php --seconds=50 --batch=40",
+        "set APP_ENV=local && php bin/run-translation-queue.php --seconds=50 --batch=40",
+         "set APP_ENV=local && php bin/run-translation-queue.php --seconds=50 --batch=40",
+        "set APP_ENV=local && php bin/run-translation-queue.php --seconds=50 --batch=40",
+        "set APP_ENV=local && php bin/run-translation-queue.php --seconds=50 --batch=40",
         "set APP_ENV=local && php bin/run-translation-queue.php --seconds=50 --batch=40"
+
 
 
       ],

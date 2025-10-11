@@ -3,15 +3,18 @@ declare(strict_types=1);
 
 namespace App\Cron;
 
-use App\Configuration\Config;
-use App\Contracts\Translation\TranslationProvider as ProviderContract;
-use App\Services\Database\DatabaseService;
-use App\Services\LoggerService;
 use DateInterval;
 use DateTimeImmutable;
 use Exception;
 use PDO;
 use PDOException;
+use App\Configuration\Config;
+use App\Contracts\Templates\TemplateAssemblyService;
+use App\Contracts\Translation\TranslationProvider as ProviderContract;
+use App\Services\Database\DatabaseService;
+use App\Services\LoggerService;
+use App\Support\I18n\ExcludeKeyMatcher;
+
 
 /**
  * TranslationQueueProcessor
@@ -69,6 +72,7 @@ final class TranslationQueueProcessor
         private DatabaseService $db,
         private LoggerService $logger,
         private ProviderContract $translator,
+        private TemplateAssemblyService $templateAssembly,
         
          /** Prefer DI via setPdo(); otherwise we lazy-resolve. */
         private ?PDO $pdo = null
@@ -78,6 +82,7 @@ final class TranslationQueueProcessor
         $host = php_uname('n');
         $pid  = (string) getmypid();
         $this->workerId = substr("cron:$host:$pid", 0, 64);
+        
     }
         /** Allow the runner to inject a PDO handle. */
     public function setPdo(PDO $pdo): void
@@ -151,6 +156,8 @@ final class TranslationQueueProcessor
             'subject',
             'variant',
         ] as $k) {
+            // inside the loop that processes each $job:
+
             if (isset($this->scopeFilters[$k])) {
                 $priorityParts[] = sprintf(
                     "(%s = :scope_%s)",
@@ -172,7 +179,8 @@ final class TranslationQueueProcessor
         //   - higher "priority" (your column) first (DESC)
         //   - older queuedAt first (ASC)
         $sql = "
-            SELECT id
+            SELECT
+              id, resourceType, subject, variant, stringKey
             FROM i18n_translation_queue
             WHERE $whereSql
             ORDER BY
@@ -193,10 +201,44 @@ final class TranslationQueueProcessor
         ]);
 
         $stmt->execute();
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        //LoggerService::logDebug('TQP.runOnce.picked', ['count' => count($ids), 'ids' => $ids]);
+        $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (!$jobs) { return; }
 
-        if (!$ids) { return; }
+        // --- Exclude guard: drop video.*, meta.*, etc. per bundle rules -----
+        $exCache = [];   // key: "type|subject|variant" => ExcludeKeyMatcher
+        $okJobs  = [];
+        foreach ($jobs as $job) {
+            $type    = (string)$job['resourceType'];
+            $subject = (string)$job['subject'];
+            $variant = ($job['variant'] === '' ? null : $job['variant']);
+            $cacheK  = $type . '|' . $subject . '|' . ($variant ?? '');
+
+            if (!isset($exCache[$cacheK])) {
+                $base = $this->templateAssembly->assemble($type, $subject, $variant);
+                // Merge env defaults with bundle list (in case loader didn’t):
+                $defaults = (array)\App\Configuration\Config::get('i18n.exclude_keys_default', []);
+                $bundleEx = (array)($base['meta']['i18n']['excludeKeys'] ?? []);
+                $exCache[$cacheK] = new ExcludeKeyMatcher(array_merge($defaults, $bundleEx));
+            }
+            $mx = $exCache[$cacheK];
+            $dotKey = (string)$job['stringKey'];
+            if ($mx->isExcluded($dotKey)) {
+                // mark ignored (or DELETE if you prefer)
+                $upd = $this->pdo->prepare(
+                    "UPDATE i18n_translation_queue SET status='ignored' WHERE id = :id AND status='queued'"
+                );
+                $upd->execute([':id' => (int)$job['id']]);
+                continue;
+            }
+            $okJobs[] = $job;
+        }
+
+        if (!$okJobs) { return; }
+
+        // Continue with your existing lock/translate/upsert/delete flow,
+        // but only for $okJobs:
+        $ids = array_map(static fn($j) => (int)$j['id'], $okJobs);
+        // ... existing locking and processing using $ids ...
 
         // ... proceed with your existing lock/translate/upsert/delete flow
         //     using the $ids selected above.
