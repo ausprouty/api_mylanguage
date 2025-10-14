@@ -22,8 +22,8 @@ abstract class AbstractBiblePassageService
     protected BibleModel $bible;
     protected DatabaseService $databaseService;
     protected PassageRepository $passageRepository;
-    /** @var array<string,mixed>|null */
-    protected ?array $webpage = null;
+    /** @var array<string,mixed>|string|null */
+    protected array|string|null $webpage = null;
     protected ?string $bpid = null;
     protected ?string $passageText = null;
     protected ?string $referenceLocalLanguage = null;
@@ -94,7 +94,7 @@ abstract class AbstractBiblePassageService
 
         // Fetch necessary data by calling abstract methods.
         $this->passageUrl = $this->getPassageUrl();
-        $this->webpage = $this->getWebpage();
+        $this->webpage = $this->getWebPage();
         $this->passageText = $this->getPassageText();
         $this->referenceLocalLanguage = $this->getReferenceLocalLanguage();
 

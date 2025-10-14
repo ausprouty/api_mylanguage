@@ -18,7 +18,7 @@ final class StudyTextController
         'commoncontent' =>'commonContent',
         'interface' => 'interface',
     ];
-    private bool $debugController = true;
+    private bool $debugController = false;
 
     public function __construct(private TextBundleResolver $resolver) {}
 

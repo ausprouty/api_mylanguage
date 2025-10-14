@@ -27,7 +27,7 @@ final class TranslationQueueController
     {
         header('Content-Type: application/json');
 
-        
+        LoggerService::logDebug('TranslationQueueContoller-30', 'running');
 
         $batches = (int)($_GET['batches'] ?? 1);
         if ($batches < 1) { $batches = 1; }
@@ -54,6 +54,7 @@ final class TranslationQueueController
             for ($i = 0; $i < $batches; $i++) {
                 $this->processor->runOnce();
                 $ran++;
+                LoggerService::logDebug('TranslationQueueContoller-57', $ran);
                 if ($sleepMs > 0 && $i + 1 < $batches) {
                     usleep($sleepMs * 1000);
                 }
@@ -108,6 +109,7 @@ final class TranslationQueueController
      */
     private function isAuthorized(PDO $pdo, array $args): bool
     {
+        LoggerService::logDebug('TranslationQueueContoller-111', $args);
         if (PHP_SAPI === 'cli') {
             return true;
         }
@@ -125,6 +127,7 @@ final class TranslationQueueController
         if ($given === '') {
             return false;
         }
+        LoggerService::logDebug('TranslationQueueContoller-129', $given);
 
         // One-time use: delete the row if present (atomic gate)
         // Minimal schema: cron_tokens(token VARCHAR PRIMARY KEY)

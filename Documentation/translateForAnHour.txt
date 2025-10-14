@@ -1,0 +1,17 @@
+Use Powershell
+
+$taskName = "Trailwriter Queue (1h)"
+$proj     = "C:\ampp82\htdocs"
+$php      = "C:\ampp82\php\php.exe"
+$log      = "C:\temp\queue-task.log"
+
+New-Item -ItemType Directory -Force -Path (Split-Path $log) | Out-Null
+
+$cmd = "cd /d `"$proj`" && set APP_ENV=local && `"$php`" bin\run-translation-queue.php --seconds=50 --batch=40 >> `"$log`" 2>>&1"
+$action  = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c $cmd"
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(10) `
+           -RepetitionInterval (New-TimeSpan -Minutes 3) `
+           -RepetitionDuration (New-TimeSpan -Hours 1)
+
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -RunLevel Highest | Out-Null
+Start-ScheduledTask -TaskName $taskName

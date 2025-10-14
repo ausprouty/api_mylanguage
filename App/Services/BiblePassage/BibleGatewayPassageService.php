@@ -33,12 +33,24 @@ class BibleGatewayPassageService extends AbstractBiblePassageService
      */
     public function getPassageUrl(): string
     {
-        $reference = $this->passageReference->getEntry();
-        $version   = $this->bible->getExternalId();
+        
+    $reference = trim((string) $this->passageReference->getEntry());
+    $version   = trim((string) $this->bible->getExternalId());
 
-        return $this->baseUrl()
-            . '/passage/?search=' . rawurlencode($reference)
-            . '&version=' . rawurlencode($version);
+    if ($reference === '' || $version === '') {
+        throw new InvalidArgumentException('Missing reference or version.');
+    }
+    $baseUrl = (string) (Config::get('endpoints.biblegateway')
+        ?? 'https://www.biblegateway.com');
+    $baseUrl = rtrim($baseUrl, '/');
+
+    $query = http_build_query(
+        ['search' => $reference, 'version' => $version],
+        '', '&', PHP_QUERY_RFC3986
+    );
+
+    return $baseUrl . '/passage/?' . $query;
+
     }
 
     /**

@@ -54,7 +54,9 @@ class I18nTranslationService implements TranslationServiceContract
                                  ?? ($languageCodeHL === $this->baseLanguage));
         $dbg                 = (bool)($ctx['debug']
                                  ?? Config::get('logging.i18n_debug', false));
-
+        
+                                 // do not log errrors in this page
+        $dbg = false;
         // Choose type by kind
         $resourceType = ($kind === 'interface') ? 'interface' : 'commonContent';
 
@@ -316,7 +318,7 @@ class I18nTranslationService implements TranslationServiceContract
             'keysMissing'          => $keysMissing,
             'keysFuzzy'            => $out['meta']['keysFuzzy'] ?? 0,
             'translationComplete'  => ($keysMissing === 0),
-            'cron_key'             => $cronToken,
+            'cronKey'              => $cronToken,
             'fallbackCount'        => $keysMissing,
         ]);
 
@@ -780,8 +782,8 @@ class I18nTranslationService implements TranslationServiceContract
       
         if ($isDev && $kickDev) {
             if (file_exists($devRunner)) {
-                Log::logDebug('i18nTranslationService-740', 'devArgs',  [$devArgs]);
-                Log::logDebug('i18nTranslationService-741', 'devRuner',  [$devRunner]);
+                //Log::logDebug('i18nTranslationService-740', 'devArgs',  [$devArgs]);
+                //Log::logDebug('i18nTranslationService-741', 'devRuner',  [$devRunner]);
                 $pid = \App\Support\Async::php(
                     $devRunner,     // e.g., C:\ampp82\htdocs\api_mylanguage\bin\run-translation-queue.php
                     $devArgs,       // e.g., ['--max-secs=30','--batch-size=50']
@@ -790,7 +792,7 @@ class I18nTranslationService implements TranslationServiceContract
                 );
                 // optional: log PID if returned
                 if ($pid) { Log::logInfo('i18nTranslationService-748', ['pid' => $pid]); }
-                Log::logInfo('i18nTranslationService-749', 'Async Finished');
+                //Log::logInfo('i18nTranslationService-749', 'Async Finished');
             }
             return;
         }
