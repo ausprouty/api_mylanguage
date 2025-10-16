@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 namespace App\Services\BibleStudy;
 
-use App\Contracts\Templates\TemplateAssemblyService;
+
+use App\Contracts\Templates\TemplateAssemblyService;          // ← interface FQCN
 use App\Contracts\Translation\TranslationService;
 use Psr\SimpleCache\CacheInterface;
 

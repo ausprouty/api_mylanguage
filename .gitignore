@@ -1,6 +1,6 @@
 /.htaccess
 /.build/*
-/App/Configuration/*
+/App/Configuration/.env*
 /logs/*
 /Imports/data/*
 /vendor/*

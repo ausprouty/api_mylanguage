@@ -7,7 +7,7 @@ chmod +x make-release.sh
 
 
 or try:
-
+chmod +x scripts/build-release.sh
 scripts/build-release.sh
 scripts/deploy-ssh.sh release_20251016_114300.zip mylanguagenet@dc:/home/mylanguagenet/api2.mylanguage.net.au
 
