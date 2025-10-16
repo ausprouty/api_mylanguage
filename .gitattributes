@@ -33,8 +33,8 @@
 
 # Manual update when needed
 /vendor/             export-ignore
-/composer.json       export-ignore
-/composer.lock       export-ignore
+#composer.json       export-ignore
+#composer.lock       export-ignore
 
 # Common junk
 /.DS_Store          export-ignore
@@ -42,3 +42,4 @@
 /desktop.ini        export-ignore
 /api_mylanguage.git/ export-ignore
 /api_mylanguage.git/ export-ignore
+/nppBackup/          export-ignore

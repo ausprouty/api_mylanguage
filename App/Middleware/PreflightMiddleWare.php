@@ -14,7 +14,7 @@ use App\Configuration\Config;
  * CORS headers and responds with a `200 OK` status. If the origin is not allowed, it responds 
  * with a `403 Forbidden` status.
  *
- * - **Allowed Origins**: The list of accepted origins is fetched from the environment configuration (`accepted_origins`).
+ * - **Allowed Origins**: The list of accepted origins is fetched from the environment configuration (`cors.allowed_origins`).
  * - **CORS Headers**: Sets the necessary CORS headers (`Access-Control-Allow-Origin`, `Access-Control-Allow-Headers`, 
  *   `Access-Control-Allow-Methods`, `Access-Control-Allow-Credentials`).
  * - **Preflight Requests**: Handles `OPTIONS` requests by verifying the origin and responding accordingly.
@@ -44,7 +44,7 @@ class PreflightMiddleware
     public function handle($request, $next)
     {
         // Fetch accepted origins from the environment configuration
-        $acceptedOrigins = Config::get('accepted_origins');
+        $acceptedOrigins = Config::get('cors.allowed_origins');
 
         // Check if the request is an OPTIONS (preflight) request
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {

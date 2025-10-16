@@ -1,4 +1,5 @@
 /.htaccess
+/.build/*
 /App/Configuration/*
 /logs/*
 /Imports/data/*
