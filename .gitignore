@@ -1,6 +1,6 @@
 /.htaccess
 /.build/*
-/App/Configuration/.env*
+/App/Configuration/private/*
 /logs/*
 /Imports/data/*
 /vendor/*
@@ -9,3 +9,9 @@ Resources/*
 Vendor/*
 Imports/*
 /App/Logs/*
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.rarApp/Configuration/google.txt
