@@ -7,7 +7,7 @@ use App\Configuration\Config;
 use App\Services\Web\BibleBrainConnectionService as WebBibleBrain;
 use App\Http\HttpClientInterface;
 
-final class BibleBrainApiClient
+final class BibleBrainApiService
 {
     public function __construct(
         private WebBibleBrain $web,          // your web-layer connection

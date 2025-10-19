@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Support\I18n;
+namespace App\Support\i18n;
 
 use App\Configuration\Config;
 

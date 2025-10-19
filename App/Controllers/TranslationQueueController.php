@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Controllers\Cron;
+namespace App\Controllers;
 
 use App\Configuration\Config;
 use App\Cron\TranslationQueueProcessor;

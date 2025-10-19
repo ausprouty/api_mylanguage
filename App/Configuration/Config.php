@@ -37,7 +37,7 @@ class Config
         }
 
         $configFile = __DIR__
-            . ($environment === 'local' ? '/.env.local.php' : '/.env.remote.php');
+            . ($environment === 'local' ? 'private/.env.local.php' : 'private/.env.remote.php');
 
         if (!file_exists($configFile)) {
             throw new \Exception("Configuration file '{$configFile}' not found.");
