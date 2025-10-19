@@ -6,6 +6,7 @@
 /vendor/*
 App/Resources/*
 Resources/*
+Documentation/*
 Vendor/*
 Imports/*
 /App/Logs/*
